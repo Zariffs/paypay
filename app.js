@@ -121,6 +121,16 @@ class AmexApp {
     populateHomePage() {
         if (typeof userConfig === 'undefined') return;
         
+        // Populate current date
+        const dateEl = document.getElementById('currentDate');
+        if (dateEl) {
+            const now = new Date();
+            const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            dateEl.textContent = `${days[now.getDay()]}, ${months[now.getMonth()]} ${now.getDate()}`;
+            console.log(dateEl.textContent);
+        }
+        
         // Populate accounts
         const accountsContainer = document.getElementById('accountsContainer');
         if (accountsContainer && userConfig.cards) {
@@ -1070,49 +1080,55 @@ class AmexApp {
     }
     
     setupPullToRefresh() {
-        const pages = document.querySelectorAll('.page');
+        const app = document.querySelector('.app');
+        if (!app) return;
+        
         let startY = 0;
         let currentY = 0;
         let isPulling = false;
         let isRefreshing = false;
-        const pullThreshold = 80;
+        const pullThreshold = 100;
         
-        pages.forEach(page => {
-            page.addEventListener('touchstart', (e) => {
-                // Only trigger when at top of scroll
-                if (page.scrollTop <= 0 && !isRefreshing) {
-                    startY = e.touches[0].clientY;
-                    isPulling = true;
-                }
-            }, { passive: true });
+        app.addEventListener('touchstart', (e) => {
+            // Only trigger when at top of scroll
+            const scrollTop = app.scrollTop || window.scrollY || 0;
+            if (scrollTop <= 5 && !isRefreshing) {
+                startY = e.touches[0].clientY;
+                isPulling = true;
+            }
+        }, { passive: true });
+        
+        app.addEventListener('touchmove', (e) => {
+            if (!isPulling || isRefreshing) return;
             
-            page.addEventListener('touchmove', (e) => {
-                if (!isPulling || isRefreshing) return;
-                
-                currentY = e.touches[0].clientY;
-                const pullDistance = currentY - startY;
-                
-                // Only if pulling down
-                if (pullDistance > 0 && page.scrollTop <= 0) {
-                    // Show visual feedback - could add indicator here
-                }
-            }, { passive: true });
+            currentY = e.touches[0].clientY;
+            const pullDistance = currentY - startY;
+            const scrollTop = app.scrollTop || window.scrollY || 0;
             
-            page.addEventListener('touchend', (e) => {
-                if (!isPulling || isRefreshing) return;
-                
-                const pullDistance = currentY - startY;
-                
-                if (pullDistance > pullThreshold && page.scrollTop <= 0) {
-                    // Trigger refresh
-                    this.triggerRefresh();
-                }
-                
-                isPulling = false;
-                startY = 0;
-                currentY = 0;
-            }, { passive: true });
-        });
+            // Only if pulling down while at top
+            if (pullDistance > 20 && scrollTop <= 5) {
+                // Visual feedback could go here
+            }
+        }, { passive: true });
+        
+        app.addEventListener('touchend', (e) => {
+            if (!isPulling || isRefreshing) return;
+            
+            const pullDistance = currentY - startY;
+            const scrollTop = app.scrollTop || window.scrollY || 0;
+            
+            if (pullDistance > pullThreshold && scrollTop <= 5) {
+                // Trigger refresh
+                isRefreshing = true;
+                this.triggerRefresh().then(() => {
+                    isRefreshing = false;
+                });
+            }
+            
+            isPulling = false;
+            startY = 0;
+            currentY = 0;
+        }, { passive: true });
     }
     
     async triggerRefresh() {
@@ -1142,6 +1158,10 @@ class AmexApp {
                 this.loadVersion(),
                 new Promise(resolve => setTimeout(resolve, 300)) // Min visual time
             ]);
+            
+            // Repopulate home page with fresh data (date, etc.)
+            this.populateHomePage();
+            this.setupCardDrawer();
             
             // Quick jump to 70%
             progress.style.transition = 'width 0.2s ease-out';
