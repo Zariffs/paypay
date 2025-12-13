@@ -24,10 +24,41 @@
     -webkit-tap-highlight-color: transparent;
     scrollbar-width: none;
     -ms-overflow-style: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
 }
 
 *::-webkit-scrollbar {
     display: none;
+}
+
+/* Prevent context menu on long press */
+img, a, button, svg, div, span {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+a {
+    -webkit-user-drag: none;
+    user-drag: none;
+}
+
+img {
+    -webkit-user-drag: none;
+    user-drag: none;
+    pointer-events: none;
+}
+
+/* Re-enable pointer events for clickable images */
+.account-top img,
+.hero img {
+    pointer-events: auto;
 }
 
 html, body {
@@ -36,6 +67,11 @@ html, body {
     background: var(--bg);
     scrollbar-width: none; /* Firefox */
     -ms-overflow-style: none; /* IE/Edge */
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
 }
 
 html::-webkit-scrollbar,
@@ -499,10 +535,11 @@ body {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    font-weight: 700;
-    font-size: 28px;
-    line-height: 1;
+    font-weight: 400;
+    font-size: 32px;
+    line-height: 0;
     padding: 0;
+    padding-bottom: 3px;
     cursor: pointer;
     -webkit-user-select: none;
     user-select: none;
@@ -511,10 +548,11 @@ body {
         0 4px 16px rgba(0, 0, 0, 0.25),
         inset 0 1px 0 rgba(255, 255, 255, 0.1),
         inset 0 -1px 0 rgba(0, 0, 0, 0.1);
-    transition: transform 0.18s cubic-bezier(0.25, 0.46, 0.45, 0.94),
-                box-shadow 0.18s ease-out,
-                background 0.18s ease-out,
-                border-color 0.18s ease-out;
+    /* Release transition - smooth bounce back */
+    transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1),
+                box-shadow 0.2s ease-out,
+                background 0.2s ease-out,
+                border-color 0.2s ease-out;
 }
 
 .section-plus:active,
@@ -527,6 +565,11 @@ body {
         0 2px 8px rgba(0, 0, 0, 0.3),
         inset 0 1px 0 rgba(255, 255, 255, 0.2),
         inset 0 0 16px rgba(74, 166, 255, 0.15);
+    /* Press-in transition - instant */
+    transition: transform 0.08s ease-out,
+                box-shadow 0.08s ease-out,
+                background 0.08s ease-out,
+                border-color 0.08s ease-out;
 }
 
 
@@ -680,6 +723,54 @@ body {
         inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
+/* Sliding indicator */
+.nav-indicator {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    width: calc(25% - 6px);
+    height: 52px;
+    border-radius: 16px;
+    background: linear-gradient(
+        135deg,
+        rgba(120, 200, 255, 0.18) 0%,
+        rgba(180, 140, 255, 0.14) 25%,
+        rgba(255, 180, 200, 0.10) 50%,
+        rgba(140, 255, 200, 0.14) 75%,
+        rgba(120, 200, 255, 0.18) 100%
+    );
+    background-size: 300% 300%;
+    animation: holographicShift 6s ease-in-out infinite;
+    z-index: 0;
+    pointer-events: none;
+    will-change: transform;
+    transform: translateX(0);
+    /* Smooth cubic bezier - no overshoot, silky smooth */
+    transition: transform 0.35s cubic-bezier(0.33, 0, 0.2, 1);
+}
+
+/* Subtle glow effect behind indicator */
+.nav-indicator::before {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    border-radius: inherit;
+    background: inherit;
+    filter: blur(8px);
+    opacity: 0.4;
+    z-index: -1;
+}
+
+/* Simple border */
+.nav-indicator::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+
 .nav-item {
     flex: 1;
     min-width: 0;
@@ -693,51 +784,12 @@ body {
     font-size: 11px;
     font-weight: 600;
     position: relative;
-    transition: color 0.3s ease;
-}
-
-.nav-item::before {
-    content: '';
-    position: absolute;
-    top: 4px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 44px;
-    height: 44px;
-    border-radius: 14px;
-    opacity: 0;
-    background: linear-gradient(
-        135deg,
-        rgba(120, 200, 255, 0.25) 0%,
-        rgba(180, 140, 255, 0.2) 25%,
-        rgba(255, 180, 200, 0.15) 50%,
-        rgba(140, 255, 200, 0.2) 75%,
-        rgba(120, 200, 255, 0.25) 100%
-    );
-    background-size: 200% 200%;
-    transition: opacity 0.3s ease, transform 0.3s ease;
+    z-index: 1;
+    transition: color 0.15s ease;
 }
 
 .nav-item.active {
     color: #ffffff;
-}
-
-.nav-item.active::before {
-    opacity: 1;
-    animation: holographicShift 4s ease-in-out infinite;
-}
-
-.nav-item.active::after {
-    content: '';
-    position: absolute;
-    top: 4px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 44px;
-    height: 44px;
-    border-radius: 14px;
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    pointer-events: none;
 }
 
 .nav-item svg {
@@ -841,7 +893,8 @@ body {
         0 4px 16px rgba(0, 0, 0, 0.2),
         inset 0 1px 0 rgba(255, 255, 255, 0.1),
         inset 0 -1px 0 rgba(0, 0, 0, 0.1);
-    transition: transform 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+    /* Release transition - smooth bounce back */
+    transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1),
                 box-shadow 0.2s ease-out,
                 background 0.2s ease-out,
                 border-color 0.2s ease-out;
@@ -857,6 +910,11 @@ body {
         0 2px 8px rgba(0, 0, 0, 0.25),
         inset 0 1px 0 rgba(255, 255, 255, 0.15),
         inset 0 0 20px rgba(74, 166, 255, 0.1);
+    /* Press-in transition - instant */
+    transition: transform 0.08s ease-out,
+                box-shadow 0.08s ease-out,
+                background 0.08s ease-out,
+                border-color 0.08s ease-out;
 }
 
 /* ========================================
@@ -1137,7 +1195,8 @@ body {
         0 4px 16px rgba(0, 0, 0, 0.2),
         inset 0 1px 0 rgba(255, 255, 255, 0.1),
         inset 0 -1px 0 rgba(0, 0, 0, 0.1);
-    transition: transform 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+    /* Release transition - smooth bounce back */
+    transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1),
                 box-shadow 0.2s ease-out,
                 background 0.2s ease-out,
                 border-color 0.2s ease-out;
@@ -1153,6 +1212,11 @@ body {
         0 2px 8px rgba(0, 0, 0, 0.25),
         inset 0 1px 0 rgba(255, 255, 255, 0.15),
         inset 0 0 20px rgba(74, 166, 255, 0.1);
+    /* Press-in transition - instant */
+    transition: transform 0.08s ease-out,
+                box-shadow 0.08s ease-out,
+                background 0.08s ease-out,
+                border-color 0.08s ease-out;
 }
 
 
@@ -1180,6 +1244,268 @@ body {
     font-weight: 800;
     margin-top: -8px;
     letter-spacing: 2px;
+}
+
+/* ========================================
+   Card Drawer / Bottom Sheet
+   ======================================== */
+@keyframes iridescentShift {
+    0% {
+        background-position: 0% 50%;
+        filter: hue-rotate(0deg);
+    }
+    25% {
+        background-position: 100% 50%;
+        filter: hue-rotate(30deg);
+    }
+    50% {
+        background-position: 100% 100%;
+        filter: hue-rotate(60deg);
+    }
+    75% {
+        background-position: 0% 100%;
+        filter: hue-rotate(30deg);
+    }
+    100% {
+        background-position: 0% 50%;
+        filter: hue-rotate(0deg);
+    }
+}
+
+.drawer-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+    z-index: 998;
+}
+
+.drawer-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.card-drawer {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    max-height: 85vh;
+    background: linear-gradient(180deg, #1a1a1c 0%, #0d0d0e 100%);
+    border-top-left-radius: 24px;
+    border-top-right-radius: 24px;
+    transform: translateY(100%);
+    transition: transform 0.4s cubic-bezier(0.32, 0.72, 0, 1);
+    z-index: 999;
+    overflow: hidden;
+    box-shadow: 0 -10px 50px rgba(0, 0, 0, 0.5);
+}
+
+.card-drawer.active {
+    transform: translateY(0);
+}
+
+.drawer-handle {
+    width: 40px;
+    height: 5px;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 3px;
+    margin: 12px auto 8px;
+}
+
+.drawer-content {
+    padding: 16px 22px 40px;
+    overflow-y: auto;
+    max-height: calc(85vh - 30px);
+}
+
+/* Iridescent Card Container */
+.drawer-card-container {
+    position: relative;
+    width: 100%;
+    max-width: 340px;
+    margin: 0 auto 20px;
+    border-radius: 16px;
+    overflow: visible;
+    box-shadow: 
+        0 20px 60px rgba(0, 0, 0, 0.4),
+        0 8px 25px rgba(0, 0, 0, 0.3);
+    transform-style: preserve-3d;
+    perspective: 1000px;
+    transition: transform 0.1s ease-out;
+}
+
+.drawer-card-inner {
+    position: relative;
+    width: 100%;
+    border-radius: 16px;
+    overflow: hidden;
+    transform-style: preserve-3d;
+    transition: transform 0.15s ease-out;
+    will-change: transform;
+}
+
+.drawer-card-img {
+    width: 100%;
+    height: auto;
+    display: block;
+    border-radius: 16px;
+}
+
+.drawer-card-iridescent {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(
+        var(--iridescent-angle, 135deg),
+        rgba(255, 0, 128, 0.18) 0%,
+        rgba(255, 100, 0, 0.14) 15%,
+        rgba(255, 200, 0, 0.12) 30%,
+        rgba(0, 255, 100, 0.14) 45%,
+        rgba(0, 200, 255, 0.18) 60%,
+        rgba(100, 0, 255, 0.14) 75%,
+        rgba(255, 0, 200, 0.18) 90%,
+        rgba(255, 0, 128, 0.18) 100%
+    );
+    background-size: 400% 400%;
+    background-position: var(--iridescent-pos, 50% 50%);
+    animation: iridescentShift 6s ease-in-out infinite;
+    mix-blend-mode: overlay;
+    pointer-events: none;
+    border-radius: 16px;
+    transition: background-position 0.1s ease-out;
+}
+
+.drawer-card-iridescent::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(
+        ellipse at var(--shine-x, 50%) var(--shine-y, 30%),
+        rgba(255, 255, 255, 0.25) 0%,
+        rgba(255, 255, 255, 0.1) 30%,
+        transparent 60%
+    );
+    transition: all 0.1s ease-out;
+}
+
+.drawer-card-iridescent::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(
+        45deg,
+        transparent 0%,
+        rgba(255, 255, 255, 0.06) 40%,
+        rgba(255, 255, 255, 0.12) 50%,
+        rgba(255, 255, 255, 0.06) 60%,
+        transparent 100%
+    );
+    background-size: 200% 200%;
+    animation: iridescentShift 4s ease-in-out infinite reverse;
+}
+
+/* Card Info */
+.drawer-card-info {
+    text-align: center;
+    margin-bottom: 28px;
+}
+
+.drawer-card-name {
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+
+.drawer-card-number {
+    font-size: 15px;
+    color: var(--muted);
+    letter-spacing: 1px;
+}
+
+/* Transactions */
+.drawer-section-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 16px;
+}
+
+.transactions-list {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    background: var(--stroke);
+    border-radius: 16px;
+    overflow: hidden;
+}
+
+.transaction-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 16px;
+    background: var(--card);
+}
+
+.transaction-icon {
+    width: 44px;
+    height: 44px;
+    background: var(--card2);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+}
+
+.transaction-details {
+    flex: 1;
+    min-width: 0;
+}
+
+.transaction-merchant {
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 2px;
+}
+
+.transaction-date {
+    font-size: 13px;
+    color: var(--muted2);
+}
+
+.transaction-amount {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+}
+
+/* Make account-top clickable */
+.account-top {
+    cursor: pointer;
+    transition: opacity 0.2s ease;
+}
+
+.account-top:active {
+    opacity: 0.7;
 }
 
 

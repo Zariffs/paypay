@@ -205,21 +205,98 @@
             <div class="page" data-page="account"></div>
         </div>
 
+        <!-- Card Drawer Overlay -->
+        <div class="drawer-overlay" id="drawerOverlay"></div>
+        
+        <!-- Card Details Drawer -->
+        <div class="card-drawer" id="cardDrawer">
+            <div class="drawer-handle"></div>
+            <div class="drawer-content">
+                <!-- Iridescent Card -->
+                <div class="drawer-card-container" id="tiltCard">
+                    <div class="drawer-card-inner">
+                        <img class="drawer-card-img" src="images/AMEX/centurion.jpeg" alt="Centurion Card">
+                        <div class="drawer-card-iridescent"></div>
+                    </div>
+                </div>
+                
+                <!-- Card Info -->
+                <div class="drawer-card-info">
+                    <div class="drawer-card-name">Centurion Black Card</div>
+                    <div class="drawer-card-number">•••• •••• •••• 7838</div>
+                </div>
+                
+                <!-- Transactions -->
+                <div class="drawer-section-title">Recent Transactions</div>
+                <div class="transactions-list">
+                    <div class="transaction-item">
+                        <div class="transaction-icon">🛍️</div>
+                        <div class="transaction-details">
+                            <div class="transaction-merchant">Louis Vuitton</div>
+                            <div class="transaction-date">Dec 12, 2025</div>
+                        </div>
+                        <div class="transaction-amount">-$2,450.00</div>
+                    </div>
+                    <div class="transaction-item">
+                        <div class="transaction-icon">✈️</div>
+                        <div class="transaction-details">
+                            <div class="transaction-merchant">Emirates Airlines</div>
+                            <div class="transaction-date">Dec 10, 2025</div>
+                        </div>
+                        <div class="transaction-amount">-$8,750.00</div>
+                    </div>
+                    <div class="transaction-item">
+                        <div class="transaction-icon">🍽️</div>
+                        <div class="transaction-details">
+                            <div class="transaction-merchant">Nobu Restaurant</div>
+                            <div class="transaction-date">Dec 8, 2025</div>
+                        </div>
+                        <div class="transaction-amount">-$485.00</div>
+                    </div>
+                    <div class="transaction-item">
+                        <div class="transaction-icon">🏨</div>
+                        <div class="transaction-details">
+                            <div class="transaction-merchant">Four Seasons Hotel</div>
+                            <div class="transaction-date">Dec 5, 2025</div>
+                        </div>
+                        <div class="transaction-amount">-$3,200.00</div>
+                    </div>
+                    <div class="transaction-item">
+                        <div class="transaction-icon">⛽</div>
+                        <div class="transaction-details">
+                            <div class="transaction-merchant">Shell Gas Station</div>
+                            <div class="transaction-date">Dec 4, 2025</div>
+                        </div>
+                        <div class="transaction-amount">-$95.40</div>
+                    </div>
+                    <div class="transaction-item">
+                        <div class="transaction-icon">🛒</div>
+                        <div class="transaction-details">
+                            <div class="transaction-merchant">Whole Foods Market</div>
+                            <div class="transaction-date">Dec 3, 2025</div>
+                        </div>
+                        <div class="transaction-amount">-$234.50</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Bottom Navigation -->
         <nav class="nav" aria-label="Main navigation">
-            <a class="nav-item active" href="#" data-target="home" aria-current="page">
+            <div class="nav-indicator"></div>
+            <a class="nav-item active" href="#" data-target="home" data-index="0" aria-current="page">
                 <svg viewBox="0 0 24 24"><path d="M4 11.5l8-7 8 7"/><path d="M6.5 10.5v9h11v-9"/></svg>
                 <span>Home</span>
             </a>
-            <a class="nav-item" href="#" data-target="membership">
+            <a class="nav-item" href="#" data-target="membership" data-index="1">
                 <svg viewBox="0 0 24 24"><path d="M12 3l2.2 4.7 5.2.6-3.9 3.4 1.2 5-4.7-2.7-4.7 2.7 1.2-5-3.9-3.4 5.2-.6z"/></svg>
                 <span>Membership</span>
             </a>
-            <a class="nav-item" href="#" data-target="offers">
+            <a class="nav-item" href="#" data-target="offers" data-index="2">
                 <svg viewBox="0 0 24 24"><rect x="6" y="7" width="12" height="12" rx="3"/><path d="M12 11v4"/><path d="M10 13h4"/></svg>
                 <span>Offers</span>
             </a>
-            <a class="nav-item" href="#" data-target="account">
+            <a class="nav-item" href="#" data-target="account" data-index="3">
                 <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3"/><path d="M5.5 20c1.6-3.3 4.2-5 6.5-5s4.9 1.7 6.5 5"/></svg>
                 <span>Account</span>
             </a>
