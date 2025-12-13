@@ -1650,4 +1650,266 @@ body {
     opacity: 0.7;
 }
 
+/* ========================================
+   Insights Modal
+   ======================================== */
+.insights-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--bg);
+    z-index: 3000;
+    transform: translateX(100%);
+    transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.insights-modal.open {
+    transform: translateX(0);
+}
+
+.insights-modal-header {
+    position: sticky;
+    top: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: calc(16px + env(safe-area-inset-top)) 20px 16px;
+    background: var(--bg);
+    z-index: 10;
+    border-bottom: 1px solid var(--stroke);
+}
+
+.insights-back-btn {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    border-radius: 50%;
+}
+
+.insights-back-btn svg {
+    width: 24px;
+    height: 24px;
+    stroke: var(--accent);
+}
+
+.insights-back-btn:active {
+    background: var(--stroke);
+}
+
+.insights-modal-title {
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--text);
+}
+
+.insights-modal-spacer {
+    width: 40px;
+}
+
+.insights-modal-content {
+    padding: 20px;
+    padding-bottom: calc(40px + env(safe-area-inset-bottom));
+}
+
+/* Summary Cards */
+.insights-summary {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 28px;
+}
+
+.insights-summary-card {
+    background: var(--card);
+    border-radius: 16px;
+    padding: 16px 12px;
+    text-align: center;
+    border: 1px solid var(--stroke);
+}
+
+.insights-summary-label {
+    font-size: 11px;
+    color: var(--muted2);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+}
+
+.insights-summary-value {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text);
+}
+
+/* Insights Sections */
+.insights-section {
+    margin-bottom: 28px;
+}
+
+.insights-section-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 16px;
+}
+
+/* Categories */
+.insights-categories {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.insights-category-item {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.insights-category-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.insights-category-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.insights-category-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+}
+
+.insights-category-name {
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--text);
+}
+
+.insights-category-amount {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+}
+
+.insights-category-bar {
+    height: 6px;
+    background: var(--stroke);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.insights-category-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.5s ease-out;
+}
+
+/* Merchants */
+.insights-merchants {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    background: var(--stroke);
+    border-radius: 16px;
+    overflow: hidden;
+}
+
+.insights-merchant-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 16px;
+    background: var(--card);
+}
+
+.insights-merchant-rank {
+    width: 24px;
+    height: 24px;
+    background: var(--card2);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--muted);
+}
+
+.insights-merchant-info {
+    flex: 1;
+}
+
+.insights-merchant-name {
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--text);
+}
+
+.insights-merchant-count {
+    font-size: 12px;
+    color: var(--muted2);
+}
+
+.insights-merchant-total {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+}
+
+/* Trend */
+.insights-trend {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    height: 120px;
+    padding: 16px;
+    background: var(--card);
+    border-radius: 16px;
+    gap: 8px;
+}
+
+.insights-trend-bar {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    height: 100%;
+    justify-content: flex-end;
+}
+
+.insights-trend-fill {
+    width: 100%;
+    max-width: 32px;
+    background: linear-gradient(180deg, var(--accent) 0%, rgba(74, 166, 255, 0.4) 100%);
+    border-radius: 4px 4px 0 0;
+    min-height: 4px;
+}
+
+.insights-trend-label {
+    font-size: 10px;
+    color: var(--muted2);
+    text-transform: uppercase;
+}
+
 

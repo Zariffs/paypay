@@ -240,6 +240,61 @@
             </div>
         </div>
 
+        <!-- Insights Modal -->
+        <div class="insights-modal" id="insightsModal">
+            <div class="insights-modal-header">
+                <button class="insights-back-btn" id="insightsBackBtn" type="button">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M19 12H5M12 19l-7-7 7-7" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+                <h2 class="insights-modal-title">Card Insights</h2>
+                <div class="insights-modal-spacer"></div>
+            </div>
+            
+            <div class="insights-modal-content">
+                <!-- Summary Cards -->
+                <div class="insights-summary">
+                    <div class="insights-summary-card">
+                        <div class="insights-summary-label">This Month</div>
+                        <div class="insights-summary-value" id="insightsMonthTotal">$0</div>
+                    </div>
+                    <div class="insights-summary-card">
+                        <div class="insights-summary-label">Transactions</div>
+                        <div class="insights-summary-value" id="insightsTxCount">0</div>
+                    </div>
+                    <div class="insights-summary-card">
+                        <div class="insights-summary-label">Avg Transaction</div>
+                        <div class="insights-summary-value" id="insightsAvgTx">$0</div>
+                    </div>
+                </div>
+                
+                <!-- Spending by Category -->
+                <div class="insights-section">
+                    <h3 class="insights-section-title">Spending by Category</h3>
+                    <div class="insights-categories" id="insightsCategories">
+                        <!-- Categories populated dynamically -->
+                    </div>
+                </div>
+                
+                <!-- Top Merchants -->
+                <div class="insights-section">
+                    <h3 class="insights-section-title">Top Merchants</h3>
+                    <div class="insights-merchants" id="insightsMerchants">
+                        <!-- Merchants populated dynamically -->
+                    </div>
+                </div>
+                
+                <!-- Spending Trend -->
+                <div class="insights-section">
+                    <h3 class="insights-section-title">Recent Activity</h3>
+                    <div class="insights-trend" id="insightsTrend">
+                        <!-- Trend chart populated dynamically -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Bottom Navigation -->
         <nav class="nav" aria-label="Main navigation">
             <div class="nav-indicator"></div>
