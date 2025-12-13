@@ -1097,15 +1097,18 @@ class AmexApp {
     // ========================================
     
     getTrips() {
-        // Get trips from localStorage, fallback to userConfig
+        // Get trips from localStorage only
         const stored = localStorage.getItem('amex-trips');
         if (stored) {
-            return JSON.parse(stored);
+            const trips = JSON.parse(stored);
+            // Ensure all trips have IDs
+            return trips.map((trip, i) => ({
+                ...trip,
+                id: trip.id || `trip-legacy-${i}`
+            }));
         }
-        // Initialize with userConfig trips
-        const initialTrips = userConfig.upcoming || [];
-        localStorage.setItem('amex-trips', JSON.stringify(initialTrips));
-        return initialTrips;
+        // No trips stored - return empty array
+        return [];
     }
     
     saveTrips(trips) {

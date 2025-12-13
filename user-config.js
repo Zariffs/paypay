@@ -120,20 +120,6 @@ const userConfig = {
         }
     },
 
-    // Upcoming trips/events
-    upcoming: [
-        {
-            id: 'japan-trip',
-            name: 'Japan',
-            image: 'images/AMEX/italy.jpg',
-            startDate: 'Jan 5',
-            endDate: 'Jan 11',
-            type: 'trip',
-            hasFlights: true,
-            hasHotel: true
-        }
-    ],
-
     // Financial Insights
     insights: {
         weeklySpending: {
