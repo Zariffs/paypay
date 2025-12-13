@@ -291,6 +291,33 @@ body {
     stroke-linejoin: round;
 }
 
+.top-refresh {
+    width: 28px;
+    height: 28px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: 0;
+    padding: 0;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+}
+
+.top-refresh:active {
+    transform: rotate(180deg);
+}
+
+.top-refresh svg {
+    width: 24px;
+    height: 24px;
+    stroke: rgba(74, 166, 255, 0.95);
+    stroke-width: 2;
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
 /* ========================================
    Content Area
    ======================================== */
@@ -669,107 +696,76 @@ body {
     }
 }
 
-/* Pull to Refresh Indicator */
-.pull-indicator {
+/* Full Screen Refresh Overlay */
+.refresh-overlay {
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
-    height: 80px;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    z-index: 99999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.refresh-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.refresh-overlay.success {
+    background: rgba(0, 180, 100, 0.15);
+}
+
+.refresh-content {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
-    gap: 8px;
-    background: linear-gradient(180deg, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0) 100%);
-    z-index: 9999;
-    opacity: 0;
-    transform: translateY(-100%);
-    transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 0.3s ease;
-    padding-top: env(safe-area-inset-top);
+    gap: 20px;
 }
 
-.pull-indicator.pulling {
-    opacity: 1;
-    transform: translateY(0);
-}
-
-.pull-indicator.refreshing {
-    opacity: 1;
-    transform: translateY(0);
-}
-
-.pull-spinner {
-    width: 24px;
-    height: 24px;
-    border: 2px solid rgba(255, 255, 255, 0.2);
+.refresh-spinner {
+    width: 50px;
+    height: 50px;
+    border: 3px solid rgba(255, 255, 255, 0.1);
     border-top-color: var(--accent);
     border-radius: 50%;
-    transition: transform 0.2s ease;
+    animation: refreshSpin 0.8s linear infinite;
 }
 
-.pull-indicator.pulling .pull-spinner {
-    transform: rotate(var(--pull-rotation, 0deg));
+.refresh-overlay.success .refresh-spinner {
+    border-color: #00d4aa;
+    border-top-color: #00d4aa;
+    animation: none;
+    background: rgba(0, 212, 170, 0.2);
 }
 
-.pull-indicator.refreshing .pull-spinner {
-    animation: spin 0.8s linear infinite;
+.refresh-overlay.success .refresh-spinner::after {
+    content: '✓';
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    font-size: 24px;
+    color: #00d4aa;
 }
 
-@keyframes spin {
+@keyframes refreshSpin {
     to { transform: rotate(360deg); }
 }
 
-.pull-text {
-    font-size: 12px;
-    color: var(--muted);
+.refresh-status {
+    font-size: 16px;
     font-weight: 500;
-    letter-spacing: 0.3px;
-}
-
-/* Refresh Loading Bar */
-.refresh-bar {
-    position: fixed;
-    top: env(safe-area-inset-top, 0);
-    left: 0;
-    right: 0;
-    height: 4px;
-    background: rgba(255, 255, 255, 0.1);
-    z-index: 10000;
-    opacity: 0;
-    transform: scaleY(0);
-    transform-origin: top;
-    transition: opacity 0.2s ease, transform 0.2s ease;
-    overflow: hidden;
-}
-
-.refresh-bar.active {
-    opacity: 1;
-    transform: scaleY(1);
-}
-
-.refresh-bar.complete {
-    opacity: 0;
-    transition: opacity 0.4s ease;
-}
-
-.refresh-bar-progress {
-    height: 100%;
-    width: 0%;
-    background: linear-gradient(
-        90deg,
-        #00d4aa 0%,
-        #4a9eff 25%,
-        #a855f7 50%,
-        #4a9eff 75%,
-        #00d4aa 100%
-    );
-    background-size: 200% 100%;
-    animation: refreshGradient 1.5s ease-in-out infinite;
-    box-shadow: 
-        0 0 15px rgba(74, 158, 255, 0.6),
-        0 0 30px rgba(74, 158, 255, 0.4);
-    border-radius: 0 2px 2px 0;
+    color: white;
+    letter-spacing: 0.5px;
 }
 
 @keyframes refreshGradient {

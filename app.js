@@ -1080,140 +1080,52 @@ class AmexApp {
     }
     
     setupPullToRefresh() {
-        const app = document.querySelector('.app');
-        const pullIndicator = document.getElementById('pullIndicator');
-        const pullSpinner = pullIndicator?.querySelector('.pull-spinner');
-        const pullText = pullIndicator?.querySelector('.pull-text');
-        
-        if (!app || !pullIndicator) return;
-        
-        let startY = 0;
-        let currentY = 0;
-        let isPulling = false;
-        let isRefreshing = false;
-        const pullThreshold = 80;
-        const maxPull = 120;
-        
-        app.addEventListener('touchstart', (e) => {
-            // Only trigger when at top of scroll
-            const scrollTop = app.scrollTop || window.scrollY || 0;
-            if (scrollTop <= 5 && !isRefreshing) {
-                startY = e.touches[0].clientY;
-                isPulling = true;
-            }
-        }, { passive: true });
-        
-        app.addEventListener('touchmove', (e) => {
-            if (!isPulling || isRefreshing) return;
-            
-            currentY = e.touches[0].clientY;
-            const pullDistance = Math.min(currentY - startY, maxPull);
-            const scrollTop = app.scrollTop || window.scrollY || 0;
-            
-            // Only if pulling down while at top
-            if (pullDistance > 20 && scrollTop <= 5) {
-                // Show pull indicator
-                pullIndicator.classList.add('pulling');
-                
-                // Rotate spinner based on pull distance
-                const rotation = Math.min((pullDistance / pullThreshold) * 360, 360);
-                pullSpinner.style.setProperty('--pull-rotation', `${rotation}deg`);
-                
-                // Update text
-                if (pullDistance >= pullThreshold) {
-                    pullText.textContent = 'Release to refresh';
-                    pullIndicator.style.transform = 'translateY(0)';
-                } else {
-                    pullText.textContent = 'Pull to refresh';
-                    const translateY = -80 + (pullDistance / pullThreshold) * 80;
-                    pullIndicator.style.transform = `translateY(${translateY}px)`;
-                }
-            } else if (scrollTop > 5) {
-                pullIndicator.classList.remove('pulling');
-            }
-        }, { passive: true });
-        
-        app.addEventListener('touchend', (e) => {
-            if (!isPulling || isRefreshing) return;
-            
-            const pullDistance = currentY - startY;
-            const scrollTop = app.scrollTop || window.scrollY || 0;
-            
-            if (pullDistance > pullThreshold && scrollTop <= 5) {
-                // Trigger refresh
-                isRefreshing = true;
-                pullIndicator.classList.remove('pulling');
-                pullIndicator.classList.add('refreshing');
-                pullIndicator.style.transform = 'translateY(0)';
-                pullText.textContent = 'Refreshing...';
-                
-                this.triggerRefresh().then(() => {
-                    isRefreshing = false;
-                    pullIndicator.classList.remove('refreshing');
-                    pullIndicator.style.transform = '';
-                    pullText.textContent = 'Pull to refresh';
-                });
-            } else {
-                // Reset indicator
-                pullIndicator.classList.remove('pulling');
-                pullIndicator.style.transform = '';
-            }
-            
-            isPulling = false;
-            startY = 0;
-            currentY = 0;
-        }, { passive: true });
+        // Setup refresh button click handler
+        const refreshButton = document.getElementById('refreshButton');
+        if (refreshButton) {
+            refreshButton.addEventListener('click', () => {
+                this.triggerRefresh();
+            });
+        }
     }
     
     async triggerRefresh() {
-        const refreshBar = document.getElementById('refreshBar');
-        const progress = refreshBar?.querySelector('.refresh-bar-progress');
+        const overlay = document.getElementById('refreshOverlay');
+        const status = overlay?.querySelector('.refresh-status');
         
-        // Show loading bar at top
-        if (refreshBar && progress) {
-            refreshBar.classList.add('active');
-            progress.style.transition = 'none';
-            progress.style.width = '0%';
-            progress.offsetWidth; // Force reflow
-            progress.style.transition = 'width 0.3s ease-out';
-            progress.style.width = '30%';
-        }
+        if (!overlay) return;
+        
+        // Show refreshing overlay
+        overlay.classList.remove('success');
+        overlay.classList.add('active');
+        if (status) status.textContent = 'Refreshing...';
         
         try {
             // Refresh data
             await Promise.all([
                 this.updateCryptoPrices(),
                 this.loadVersion(),
-                new Promise(resolve => setTimeout(resolve, 400)) // Min visual time
+                new Promise(resolve => setTimeout(resolve, 600)) // Min visual time
             ]);
             
             // Repopulate home page with fresh data
             this.populateHomePage();
             this.setupCardDrawer();
             
-            if (progress) {
-                progress.style.transition = 'width 0.2s ease-out';
-                progress.style.width = '70%';
-                await new Promise(resolve => setTimeout(resolve, 150));
-                progress.style.transition = 'width 0.15s ease-out';
-                progress.style.width = '100%';
-                await new Promise(resolve => setTimeout(resolve, 150));
-            }
+            // Show success state
+            if (status) status.textContent = 'Updated!';
+            overlay.classList.add('success');
             
-            // Fade out
-            if (refreshBar) {
-                refreshBar.classList.add('complete');
-                await new Promise(resolve => setTimeout(resolve, 400));
-                refreshBar.classList.remove('active', 'complete');
-                if (progress) progress.style.width = '0%';
-            }
+            // Wait then hide
+            await new Promise(resolve => setTimeout(resolve, 800));
+            
+            overlay.classList.remove('active', 'success');
             
         } catch (error) {
             console.error('Refresh failed:', error);
-            if (refreshBar) {
-                refreshBar.classList.remove('active', 'complete');
-                if (progress) progress.style.width = '0%';
-            }
+            if (status) status.textContent = 'Failed to refresh';
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            overlay.classList.remove('active');
         }
     }
 

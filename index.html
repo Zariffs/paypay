@@ -16,10 +16,12 @@
 </head>
 <body>
     <div class="app">
-        <!-- Pull to Refresh Indicator -->
-        <div class="pull-indicator" id="pullIndicator">
-            <div class="pull-spinner"></div>
-            <span class="pull-text">Pull to refresh</span>
+        <!-- Refresh Overlay -->
+        <div class="refresh-overlay" id="refreshOverlay">
+            <div class="refresh-content">
+                <div class="refresh-spinner"></div>
+                <span class="refresh-status">Refreshing...</span>
+            </div>
         </div>
         
         <!-- Page Container -->
@@ -38,7 +40,12 @@
                             <path d="M17 12h.01"/>
                         </svg>
                     </button>
-                    <div></div>
+                    <button class="top-refresh" type="button" aria-label="Refresh" id="refreshButton">
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/>
+                            <path d="M21 3v5h-5"/>
+                        </svg>
+                    </button>
                 </header>
 
                 <!-- Main Content -->
@@ -244,11 +251,6 @@
                     <!-- Transactions populated dynamically -->
                 </div>
             </div>
-        </div>
-
-        <!-- Refresh Loading Bar -->
-        <div class="refresh-bar" id="refreshBar">
-            <div class="refresh-bar-progress"></div>
         </div>
 
         <!-- Bottom Navigation -->
