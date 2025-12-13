@@ -2,12 +2,12 @@
     "name": "PayPal",
     "short_name": "PayPal",
     "description": "PayPal Mobile App",
-    "start_url": "/paypay/",
+    "start_url": "./",
     "display": "standalone",
     "background_color": "#ffffff",
     "theme_color": "#003087",
     "orientation": "portrait",
-    "scope": "/paypay/",
+    "scope": "./",
     "icons": [
         {
             "src": "icons/icon-72.png",

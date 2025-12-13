@@ -31,6 +31,7 @@
             background: #eff1f8;
             min-height: 100vh;
             min-height: -webkit-fill-available;
+            margin: 0;
         }
 
         .app-container {
@@ -41,19 +42,38 @@
             min-height: -webkit-fill-available;
             position: relative;
             padding-bottom: 85px;
-            padding-top: env(safe-area-inset-top);
         }
 
-        /* Header - Isolated white bar */
+        /* Header - Floating icon buttons on page background */
         .header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 14px 20px;
-            background: #fefefe;
+            padding: calc(10px + env(safe-area-inset-top)) 16px 10px 16px;
+            background: #eff1f8;
             position: sticky;
             top: 0;
             z-index: 100;
+        }
+
+        .icon-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 999px;
+            background: #fefefe;
+            border: 1px solid rgba(0, 0, 0, 0.04);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+            cursor: pointer;
+            appearance: none;
+            -webkit-appearance: none;
+        }
+
+        .icon-btn:active {
+            transform: translateY(0.5px);
         }
 
         .menu-icon {
@@ -62,7 +82,6 @@
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            cursor: pointer;
         }
 
         .menu-icon span {
@@ -76,7 +95,7 @@
         .header-right {
             display: flex;
             align-items: center;
-            gap: 18px;
+            gap: 12px;
         }
 
         .qr-icon {
@@ -97,10 +116,6 @@
         }
 
         .profile-icon {
-            width: 26px;
-            height: 26px;
-            border: 2px solid #0057d9;
-            border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -116,7 +131,7 @@
 
         /* Main Content */
         .main-content {
-            padding: 12px 16px;
+            padding: 10px 16px 16px 16px;
         }
 
         /* Balance Card - White rounded card */
@@ -531,25 +546,31 @@
     </div>
 
     <div class="app-container">
-        <!-- Header - Isolated white bar -->
+        <!-- Header - Floating circular icons -->
         <header class="header">
-            <div class="menu-icon">
-                <span></span>
-                <span></span>
-                <span></span>
-            </div>
+            <button class="icon-btn" type="button" aria-label="Menu">
+                <div class="menu-icon" aria-hidden="true">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </button>
             <div class="header-right">
-                <div class="qr-icon">
-                    <span></span><span></span><span></span>
-                    <span></span><span></span><span></span>
-                    <span></span><span></span><span></span>
-                </div>
-                <div class="profile-icon">
-                    <svg viewBox="0 0 24 24">
-                        <circle cx="12" cy="8" r="3.5"/>
-                        <path d="M5 20c0-3.5 3.5-5.5 7-5.5s7 2 7 5.5"/>
-                    </svg>
-                </div>
+                <button class="icon-btn" type="button" aria-label="QR">
+                    <div class="qr-icon" aria-hidden="true">
+                        <span></span><span></span><span></span>
+                        <span></span><span></span><span></span>
+                        <span></span><span></span><span></span>
+                    </div>
+                </button>
+                <button class="icon-btn" type="button" aria-label="Profile">
+                    <div class="profile-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24">
+                            <circle cx="12" cy="8" r="3.5"/>
+                            <path d="M5 20c0-3.5 3.5-5.5 7-5.5s7 2 7 5.5"/>
+                        </svg>
+                    </div>
+                </button>
             </div>
         </header>
 
@@ -569,18 +590,18 @@
 
                 <!-- Notification Banner inside balance card -->
                 <div class="notification-banner">
-                <div class="notification-icon">
-                    <svg viewBox="0 0 24 24" fill="none">
-                        <rect x="2" y="5" width="20" height="14" rx="2" stroke="#ffffff" stroke-width="1.8" fill="none"/>
-                        <line x1="2" y1="10" x2="22" y2="10" stroke="#ffffff" stroke-width="1.8"/>
-                        <rect x="5" y="13" width="5" height="3" rx="0.5" fill="#ffffff"/>
-                    </svg>
-                </div>
-                <div class="notification-content">
-                    <div class="notification-title">You received $100.00</div>
-                    <div class="notification-subtitle">Now, use it to tap to pay in stores with PayPal Debit</div>
-                </div>
-                <span class="notification-arrow">›</span>
+                    <div class="notification-icon">
+                        <svg viewBox="0 0 24 24" fill="none">
+                            <rect x="2" y="5" width="20" height="14" rx="2" stroke="#ffffff" stroke-width="1.8" fill="none"/>
+                            <line x1="2" y1="10" x2="22" y2="10" stroke="#ffffff" stroke-width="1.8"/>
+                            <rect x="5" y="13" width="5" height="3" rx="0.5" fill="#ffffff"/>
+                        </svg>
+                    </div>
+                    <div class="notification-content">
+                        <div class="notification-title">You received $100.00</div>
+                        <div class="notification-subtitle">Now, use it to tap to pay in stores with PayPal Debit</div>
+                    </div>
+                    <span class="notification-arrow">›</span>
                 </div>
             </div>
 
