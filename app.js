@@ -54,9 +54,6 @@ class AmexApp {
         // Setup edge swipe navigation
         this.setupEdgeSwipe();
         
-        // Setup pull-to-refresh
-        this.setupPullToRefresh();
-        
         // Register service worker
         this.registerServiceWorker();
         
@@ -1076,56 +1073,6 @@ class AmexApp {
         const cardInner = document.querySelector('.drawer-card-inner');
         if (cardInner) {
             cardInner.style.transform = 'rotateX(0deg) rotateY(0deg)';
-        }
-    }
-    
-    setupPullToRefresh() {
-        // Setup refresh button click handler
-        const refreshButton = document.getElementById('refreshButton');
-        if (refreshButton) {
-            refreshButton.addEventListener('click', () => {
-                this.triggerRefresh();
-            });
-        }
-    }
-    
-    async triggerRefresh() {
-        const overlay = document.getElementById('refreshOverlay');
-        const status = overlay?.querySelector('.refresh-status');
-        
-        if (!overlay) return;
-        
-        // Show refreshing overlay
-        overlay.classList.remove('success');
-        overlay.classList.add('active');
-        if (status) status.textContent = 'Refreshing...';
-        
-        try {
-            // Refresh data
-            await Promise.all([
-                this.updateCryptoPrices(),
-                this.loadVersion(),
-                new Promise(resolve => setTimeout(resolve, 600)) // Min visual time
-            ]);
-            
-            // Repopulate home page with fresh data
-            this.populateHomePage();
-            this.setupCardDrawer();
-            
-            // Show success state
-            if (status) status.textContent = 'Updated!';
-            overlay.classList.add('success');
-            
-            // Wait then hide
-            await new Promise(resolve => setTimeout(resolve, 800));
-            
-            overlay.classList.remove('active', 'success');
-            
-        } catch (error) {
-            console.error('Refresh failed:', error);
-            if (status) status.textContent = 'Failed to refresh';
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            overlay.classList.remove('active');
         }
     }
 
