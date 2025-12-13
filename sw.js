@@ -1,10 +1,10 @@
-const CACHE_NAME = 'paypal-pwa-v1';
+const CACHE_NAME = 'paypal-pwa-v2';
 const urlsToCache = [
-    '/',
-    '/index.html',
-    '/manifest.json',
-    '/icons/icon-192.png',
-    '/icons/icon-512.png'
+    '/paypay/',
+    '/paypay/index.html',
+    '/paypay/manifest.json',
+    '/paypay/icons/icon-192.png',
+    '/paypay/icons/icon-512.png'
 ];
 
 // Install event
