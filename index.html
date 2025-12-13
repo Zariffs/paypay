@@ -3,27 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <meta name="theme-color" content="#eff1f8">
+    <meta name="theme-color" content="#000000">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <meta name="apple-mobile-web-app-title" content="PayPal">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="AMEX">
     <meta name="mobile-web-app-capable" content="yes">
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="icons/icon-192.png">
     <link rel="icon" type="image/png" href="icons/icon-192.png">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <title>PayPal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <title>AMEX</title>
     <style>
         :root {
-            --bg: #eff1f8;
-            --card: #fefefe;
-            --text: #0a0a0a;
-            --muted: rgba(0, 0, 0, 0.58);
-            --blue: #0057d9;
-            --blue2: #0066f5;
-            --chipBg: #dbebfd;
-            --divider: rgba(15, 15, 15, 0.06);
-            --shadow: 0 1px 0 rgba(0, 0, 0, 0.03);
+            --bg: #000000;
+            --card: #1b1b1d;
+            --card2: #202123;
+            --stroke: rgba(255, 255, 255, 0.06);
+            --text: #ffffff;
+            --muted: rgba(255, 255, 255, 0.62);
+            --muted2: rgba(255, 255, 255, 0.42);
+            --accent: #4aa6ff;
         }
 
         * {
@@ -36,494 +35,456 @@
         html, body {
             height: 100%;
             overflow-x: hidden;
+            background: var(--bg);
         }
 
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
-            background: var(--bg);
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', Inter, 'Segoe UI', Roboto, sans-serif;
+            color: var(--text);
             min-height: 100vh;
             min-height: -webkit-fill-available;
-            margin: 0;
         }
 
-        .app-container {
-            max-width: 100%;
-            margin: 0 auto;
-            background: var(--bg);
+        .app {
             min-height: 100vh;
             min-height: -webkit-fill-available;
+            padding-bottom: calc(80px + env(safe-area-inset-bottom));
             position: relative;
-            padding-bottom: 85px;
-            padding-top: env(safe-area-inset-top);
+            overflow: hidden;
         }
 
-        /* Header - isolated circular icons */
-        .header {
+        .top {
+            padding: calc(14px + env(safe-area-inset-top)) 22px 0 22px;
             display: flex;
+            align-items: center;
             justify-content: space-between;
-            align-items: center;
-            padding: 18px 18px 10px 18px;
-            background: transparent;
-            position: sticky;
-            top: 0;
-            z-index: 100;
         }
 
-        .header-right {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-        }
-
-        .circle-btn {
-            width: 52px;
-            height: 52px;
-            border-radius: 999px;
-            background: var(--card);
-            border: 1px solid var(--divider);
-            box-shadow: var(--shadow);
+        .top-wallet {
+            width: 28px;
+            height: 28px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
+            background: transparent;
+            border: 0;
             padding: 0;
-            cursor: pointer;
-            appearance: none;
-            -webkit-appearance: none;
         }
 
-        .circle-btn:active {
-            transform: translateY(0.5px);
-        }
-
-        .circle-btn svg {
-            width: 22px;
-            height: 22px;
-            stroke: var(--blue);
-            stroke-width: 2;
+        .top-wallet svg {
+            width: 28px;
+            height: 28px;
+            stroke: rgba(74, 166, 255, 0.95);
+            stroke-width: 1.9;
             fill: none;
             stroke-linecap: round;
             stroke-linejoin: round;
         }
 
-        .avatar {
-            width: 52px;
-            height: 52px;
-            border-radius: 999px;
-            background: var(--card);
-            border: 1px solid var(--divider);
-            box-shadow: var(--shadow);
-            overflow: hidden;
+        .content {
+            padding: 18px 22px 0 22px;
         }
 
-        .avatar::before {
-            content: "";
+        .date {
+            margin-top: 10px;
+            font-size: 20px;
+            font-weight: 500;
+            letter-spacing: -0.2px;
+            color: rgba(255, 255, 255, 0.56);
+        }
+
+        .welcome {
+            margin-top: 6px;
+            font-size: 44px;
+            font-weight: 800;
+            letter-spacing: -0.6px;
+        }
+
+        .peek-card {
+            position: absolute;
+            right: -34px;
+            top: calc(64px + env(safe-area-inset-top));
+            width: 140px;
+            height: auto;
+            border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.20);
+            box-shadow: 0 12px 30px rgba(0,0,0,0.55);
+            opacity: 0.90;
+            pointer-events: none;
+        }
+
+        .hero {
+            margin-top: 22px;
             display: block;
-            width: 100%;
-            height: 100%;
-            background:
-                radial-gradient(circle at 36% 30%, rgba(255,255,255,0.7) 0 26%, transparent 27%),
-                radial-gradient(circle at 58% 62%, rgba(0,0,0,0.10) 0 34%, transparent 35%),
-                linear-gradient(135deg, rgba(0,0,0,0.10), rgba(0,0,0,0.02));
-        }
-
-        /* Main Content */
-        .main-content {
-            padding: 8px 16px 18px 16px;
-        }
-
-        /* Balance Card (new screenshot) */
-        .balance-card {
+            text-decoration: none;
+            color: inherit;
             background: var(--card);
-            border-radius: 18px;
-            padding: 20px;
-            box-shadow: var(--shadow);
+            border: 1px solid var(--stroke);
+            border-radius: 22px;
+            overflow: hidden;
+            box-shadow: 0 18px 44px rgba(0,0,0,0.55);
         }
 
-        .balance-top {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 18px;
+        .hero-inner {
+            padding: 18px;
         }
 
-        .pp-badge {
-            width: 44px;
-            height: 44px;
-            border-radius: 14px;
-            background: rgba(0, 0, 0, 0.04);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
+        .hero-art {
+            height: 200px;
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+            background:
+                linear-gradient(180deg, rgba(0,0,0,0.04), rgba(0,0,0,0.70)),
+                radial-gradient(circle at 22% 12%, rgba(255, 201, 143, 0.75), transparent 55%),
+                radial-gradient(circle at 72% 40%, rgba(143, 187, 255, 0.40), transparent 55%),
+                linear-gradient(135deg, rgba(10, 12, 18, 0.2), rgba(10, 12, 18, 0.92));
         }
 
-        .pp-badge svg {
-            width: 26px;
-            height: 26px;
+        .hero-card {
+            position: absolute;
+            left: 16px;
+            top: 72px;
+            width: 110px;
+            height: auto;
+            border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.22);
+            box-shadow: 0 14px 30px rgba(0,0,0,0.55);
         }
 
-        .balance-title {
-            font-size: 18px;
-            font-weight: 600;
-            color: var(--muted);
-        }
-
-        .balance-amount {
-            font-size: 54px;
-            font-weight: 700;
-            color: var(--text);
-            margin-bottom: 22px;
-            letter-spacing: -1.6px;
-            line-height: 1;
-        }
-
-        .balance-bottom {
+        .hero-overlay {
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            padding: 16px 16px 14px 16px;
             display: flex;
             align-items: flex-end;
             justify-content: space-between;
-            gap: 14px;
+            gap: 12px;
+            background: linear-gradient(180deg, rgba(0,0,0,0.00), rgba(0,0,0,0.72));
         }
 
-        .balance-bottom-text {
-            font-size: 18px;
-            font-weight: 600;
-            color: var(--text);
-            line-height: 1.25;
-            max-width: 76%;
+        .hero-kicker {
+            font-size: 20px;
+            font-weight: 500;
+            letter-spacing: 2.0px;
+            color: rgba(255,255,255,0.72);
         }
 
-        .balance-cta {
-            width: 58px;
-            height: 58px;
-            border-radius: 999px;
-            background: rgba(0, 0, 0, 0.04);
+        .hero-title {
+            margin-top: 4px;
+            font-size: 34px;
+            font-weight: 800;
+            letter-spacing: -0.4px;
+        }
+
+        .hero-chevron {
+            width: 30px;
+            height: 30px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: rgba(255, 255, 255, 0.55);
+        }
+
+        .hero-chevron svg {
+            width: 22px;
+            height: 22px;
+            stroke: currentColor;
+            stroke-width: 2.2;
+            fill: none;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .section-head {
             display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 20px;
+            margin-bottom: 14px;
+        }
+
+        .section-name {
+            font-size: 26px;
+            font-weight: 800;
+            letter-spacing: -0.3px;
+            color: rgba(255,255,255,0.95);
+        }
+
+        .section-plus {
+            width: 44px;
+            height: 44px;
+            border-radius: 999px;
+            border: 1px solid rgba(74, 166, 255, 0.18);
+            background: rgba(20, 40, 58, 0.80);
+            color: var(--accent);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 28px;
+            line-height: 1;
+            padding: 0;
+        }
+
+        .account {
+            background: var(--card);
+            border: 1px solid var(--stroke);
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 18px 44px rgba(0,0,0,0.55);
+        }
+
+        .account-top {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 18px;
+        }
+
+        .account-card {
+            width: 70px;
+            height: auto;
+            border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.16);
+            box-shadow: 0 10px 22px rgba(0,0,0,0.35);
+            flex-shrink: 0;
+        }
+
+        .account-balance {
+            font-size: 18px;
+            font-weight: 800;
+            letter-spacing: -0.2px;
+        }
+
+        .account-sub {
+            margin-top: 2px;
+            font-size: 16px;
+            color: rgba(255,255,255,0.62);
+        }
+
+        .account-cta {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 0 18px 14px 18px;
+            padding: 14px 14px;
+            background: rgba(255,255,255,0.14);
+            border-radius: 14px;
+            border: none;
+            color: rgba(255,255,255,0.78);
+            font-family: inherit;
+            font-size: 16px;
+            font-weight: 600;
+            text-align: left;
+        }
+
+        .account-cta .cta-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 0;
+            flex: 1;
+        }
+
+        .account-cta .cta-icon {
+            width: 28px;
+            height: 28px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: rgba(255,255,255,0.62);
+            flex-shrink: 0;
+        }
+
+        .account-cta .cta-icon svg {
+            width: 26px;
+            height: 26px;
+            stroke: currentColor;
+            stroke-width: 1.9;
+            fill: none;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .account-cta .cta-text {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .account-cta .cta-chevron {
+            width: 24px;
+            height: 24px;
+            color: rgba(255,255,255,0.48);
+            display: inline-flex;
             align-items: center;
             justify-content: center;
             flex-shrink: 0;
         }
 
-        .balance-cta svg {
-            width: 24px;
-            height: 24px;
-            stroke: var(--text);
-            stroke-width: 2.5;
-            fill: none;
-            stroke-linecap: round;
-            stroke-linejoin: round;
-        }
-
-        /* Sections */
-        .section {
-            margin-top: 18px;
-        }
-
-        .section-row {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 12px;
-            margin: 18px 0 12px;
-        }
-
-        .section-title {
-            font-size: 28px;
-            font-weight: 700;
-            color: var(--text);
-            letter-spacing: -0.6px;
-        }
-
-        .see-more {
-            font-size: 18px;
-            font-weight: 500;
-            color: var(--muted);
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .see-more span {
-            font-size: 22px;
-            line-height: 1;
-        }
-
-        .send-card {
-            background: var(--card);
-            border-radius: 18px;
-            padding: 22px;
-            box-shadow: var(--shadow);
-            display: flex;
-            align-items: center;
-            gap: 18px;
-        }
-
-        .send-illustration {
-            width: 78px;
-            height: 60px;
-            border-radius: 12px;
-            position: relative;
-            flex-shrink: 0;
-            background: var(--chipBg);
-            overflow: hidden;
-        }
-
-        .send-illustration::after {
-            content: "";
-            position: absolute;
-            right: -2px;
-            bottom: -2px;
-            width: 46px;
-            height: 38px;
-            background: rgba(0, 87, 217, 0.20);
-            border-top-left-radius: 12px;
-        }
-
-        .send-illustration svg {
-            position: absolute;
-            left: 14px;
-            top: 18px;
-            width: 28px;
-            height: 28px;
-            stroke: var(--text);
+        .account-cta .cta-chevron svg {
+            width: 18px;
+            height: 18px;
+            stroke: currentColor;
             stroke-width: 2.2;
             fill: none;
-            z-index: 1;
             stroke-linecap: round;
             stroke-linejoin: round;
         }
 
-        .send-content {
-            flex: 1;
-            min-width: 0;
+        .account-divider {
+            height: 1px;
+            background: rgba(255,255,255,0.10);
+            margin: 0 18px 14px 18px;
         }
 
-        .send-title {
-            font-size: 28px;
-            font-weight: 700;
-            color: var(--text);
-            letter-spacing: -0.6px;
-            margin-bottom: 6px;
-        }
-
-        .send-subtitle {
-            font-size: 20px;
-            font-weight: 500;
-            color: var(--text);
-            letter-spacing: -0.2px;
-            opacity: 0.9;
-        }
-
-        .send-link {
-            display: block;
-            margin-top: 16px;
-            color: var(--blue);
-            font-size: 18px;
-            font-weight: 600;
-            text-decoration: underline;
-        }
-
-        /* Bottom Navigation */
-        .bottom-nav {
+        .nav {
             position: fixed;
             bottom: 0;
             left: 0;
             right: 0;
-            background: var(--card);
+            background: rgba(18, 18, 18, 0.88);
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+            padding: 10px 10px calc(12px + env(safe-area-inset-bottom)) 10px;
             display: flex;
-            justify-content: space-around;
-            align-items: flex-end;
-            padding: 8px 0 10px 0;
-            padding-bottom: calc(10px + env(safe-area-inset-bottom));
-            box-shadow: 0 -1px 8px rgba(0, 0, 0, 0.05);
+            justify-content: space-between;
+            gap: 8px;
             z-index: 1000;
-            border-top: 1px solid var(--divider);
+            backdrop-filter: blur(14px);
         }
 
         .nav-item {
+            flex: 1;
+            min-width: 0;
+            text-decoration: none;
+            color: rgba(255,255,255,0.46);
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 2px;
-            text-decoration: none;
-            min-width: 56px;
-            padding-top: 4px;
+            gap: 6px;
+            padding: 8px 0;
+            font-size: 11px;
+            font-weight: 600;
         }
 
-        .nav-icon {
-            width: 24px;
-            height: 24px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .nav-icon svg {
+        .nav-item svg {
             width: 22px;
             height: 22px;
+            stroke: currentColor;
+            stroke-width: 2.1;
             fill: none;
-            stroke: #6d7781;
-            stroke-width: 1.5;
+            stroke-linecap: round;
+            stroke-linejoin: round;
         }
 
-        .nav-item.active .nav-icon svg {
-            stroke: var(--blue);
-            fill: none;
+        .nav-item.active {
+            color: var(--accent);
         }
-
-        .nav-label {
-            font-size: 10px;
-            color: #6d7781;
-            font-weight: 500;
-        }
-
-        .nav-item.active .nav-label {
-            color: var(--blue);
-        }
-
-        /* Center Send/Request Button */
-        .nav-center {
-            position: relative;
-            margin-top: -22px;
-        }
-
-        .nav-center-btn {
-            width: 50px;
-            height: 50px;
-            background: var(--blue2);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 4px 12px rgba(0, 102, 245, 0.4);
-        }
-
-        .nav-center-btn svg {
-            width: 22px;
-            height: 22px;
-            fill: none;
-            stroke: #ffffff;
-            stroke-width: 2.5;
-        }
-
-        .nav-center .nav-label {
-            margin-top: 4px;
-            white-space: nowrap;
-            font-size: 9px;
-        }
-
     </style>
 </head>
 <body>
-    <div class="app-container">
-        <!-- Header - circular icons -->
-        <header class="header">
-            <button class="circle-btn" type="button" aria-label="Menu">
+    <div class="app">
+        <img class="peek-card" src="images/AMEX/centurion.jpeg" alt="" aria-hidden="true">
+        <header class="top">
+            <button class="top-wallet" type="button" aria-label="Wallet">
                 <svg viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="M4 7h16" />
-                    <path d="M4 12h16" />
-                    <path d="M4 17h16" />
+                    <path d="M4 7.5A2.5 2.5 0 0 1 6.5 5h11A2.5 2.5 0 0 1 20 7.5v9A2.5 2.5 0 0 1 17.5 19h-11A2.5 2.5 0 0 1 4 16.5z" />
+                    <path d="M20 9h-4.5A2.5 2.5 0 0 0 13 11.5v1A2.5 2.5 0 0 0 15.5 15H20" />
+                    <path d="M17 12h.01" />
                 </svg>
             </button>
-            <div class="header-right">
-                <button class="circle-btn" type="button" aria-label="Notifications">
-                    <svg viewBox="0 0 24 24" aria-hidden="true">
-                        <path d="M18 8a6 6 0 10-12 0c0 7-3 7-3 7h18s-3 0-3-7" />
-                        <path d="M10 19a2 2 0 004 0" />
-                    </svg>
-                </button>
-                <div class="avatar" aria-label="Profile"></div>
-            </div>
+            <div></div>
         </header>
 
-        <!-- Main Content -->
-        <main class="main-content">
-            <!-- PayPal balance -->
-            <div class="balance-card">
-                <div class="balance-top">
-                    <div class="pp-badge" aria-hidden="true">
-                        <svg viewBox="0 0 64 64">
-                            <path d="M28.4 14.2h14.8c10.2 0 16.6 5.2 15.1 15.3-1.4 9.3-8.8 14.3-18.9 14.3h-6.5l-2.6 16.7c-.2 1.4-1.4 2.4-2.8 2.4H18c-1.2 0-2.1-1-1.9-2.2l6.4-40.9c.2-1.4 1.4-2.4 2.8-2.4z" fill="#1f5bd8"/>
-                            <path d="M35.4 20.5h6.9c5.1 0 8.3 2.6 7.5 7.6-.7 4.6-4.3 7-9.4 7h-3.9l-1.6 10.4c-.2 1.1-1.1 1.9-2.2 1.9h-4.4c-1 0-1.7-.8-1.6-1.8l4-25.4c.2-1.1 1.1-1.9 2.2-1.9z" fill="#0c2e7a" opacity="0.95"/>
-                        </svg>
-                    </div>
-                    <div class="balance-title">PayPal balance</div>
-                </div>
+        <main class="content">
+            <div class="date">Thursday, Sep 18</div>
+            <div class="welcome">Welcome</div>
 
-                <div class="balance-amount">$0.00</div>
-
-                <div class="balance-bottom">
-                    <div class="balance-bottom-text">Provide more information to hold a balance</div>
-                    <div class="balance-cta" aria-hidden="true">
-                        <svg viewBox="0 0 24 24">
-                            <path d="M5 12h13" />
-                            <path d="M13 6l6 6-6 6" />
-                        </svg>
+            <a class="hero" href="#" aria-label="Explore card benefits">
+                <div class="hero-inner">
+                    <div class="hero-art" aria-hidden="true">
+                        <img class="hero-card" src="images/AMEX/centurion.jpeg" alt="" aria-hidden="true">
+                        <div class="hero-overlay">
+                            <div>
+                                <div class="hero-kicker">EXPLORE</div>
+                                <div class="hero-title">CARD BENEFITS</div>
+                            </div>
+                            <div class="hero-chevron" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" aria-hidden="true">
+                                    <path d="M9 6l6 6-6 6" />
+                                </svg>
+                            </div>
+                        </div>
                     </div>
                 </div>
+            </a>
+
+            <div class="section-head">
+                <div class="section-name">Accounts</div>
+                <button class="section-plus" type="button" aria-label="Add">+</button>
             </div>
 
-            <!-- Send money -->
-            <div class="section">
-                <div class="section-row">
-                    <div class="section-title">Send money</div>
+            <div class="account">
+                <div class="account-top">
+                    <img class="account-card" src="images/AMEX/centurion.jpeg" alt="" aria-hidden="true">
+                    <div>
+                        <div class="account-balance">$1,355.24</div>
+                        <div class="account-sub">The Platinum® Card (•••12431)</div>
+                    </div>
                 </div>
-                <div class="send-card">
-                    <div class="send-illustration" aria-hidden="true">
-                        <svg viewBox="0 0 24 24">
-                            <path d="M5 12h11" />
-                            <path d="M12 8l4 4-4 4" />
+                <button class="account-cta" type="button">
+                    <span class="cta-left">
+                        <span class="cta-icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" aria-hidden="true">
+                                <path d="M4 7.5A2.5 2.5 0 0 1 6.5 5h11A2.5 2.5 0 0 1 20 7.5v9A2.5 2.5 0 0 1 17.5 19h-11A2.5 2.5 0 0 1 4 16.5z" />
+                                <path d="M20 9h-4.5A2.5 2.5 0 0 0 13 11.5v1A2.5 2.5 0 0 0 15.5 15H20" />
+                                <path d="M17 12h.01" />
+                            </svg>
+                        </span>
+                        <span class="cta-text">Continue your account setup</span>
+                    </span>
+                    <span class="cta-chevron" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M9 6l6 6-6 6" />
                         </svg>
-                    </div>
-                    <div class="send-content">
-                        <div class="send-title">Pay from your phone</div>
-                        <div class="send-subtitle">To people and places you love.</div>
-                        <a class="send-link" href="#">Send now</a>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Lend a helping hand -->
-            <div class="section">
-                <div class="section-row">
-                    <div class="section-title">Lend a helping hand</div>
-                    <a class="see-more" href="#">See more <span>›</span></a>
-                </div>
+                    </span>
+                </button>
+                <div class="account-divider" aria-hidden="true"></div>
             </div>
         </main>
 
-        <!-- Bottom Navigation -->
-        <nav class="bottom-nav" aria-label="Bottom navigation">
-            <a href="#" class="nav-item active" aria-current="page">
-                <div class="nav-icon">
-                    <svg viewBox="0 0 24 24">
-                        <path d="M3 12l9-9 9 9" stroke-linecap="round" stroke-linejoin="round"/>
-                        <path d="M5 10v9a1 1 0 001 1h4v-5h4v5h4a1 1 0 001-1v-9" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                </div>
-                <span class="nav-label">Home</span>
+        <nav class="nav" aria-label="Bottom navigation">
+            <a class="nav-item active" href="#" aria-current="page">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M4 11.5l8-7 8 7" />
+                    <path d="M6.5 10.5v9h11v-9" />
+                </svg>
+                <span>Home</span>
             </a>
-
-            <a href="#" class="nav-item nav-center">
-                <div class="nav-center-btn">
-                    <svg viewBox="0 0 24 24">
-                        <path d="M12 3v18" stroke-linecap="round"/>
-                        <path d="M7 8l5-5 5 5" stroke-linecap="round" stroke-linejoin="round"/>
-                        <path d="M7 16l5 5 5-5" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                </div>
-                <span class="nav-label">Send/Request</span>
+            <a class="nav-item" href="#">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M12 3l2.2 4.7 5.2.6-3.9 3.4 1.2 5-4.7-2.7-4.7 2.7 1.2-5-3.9-3.4 5.2-.6z" />
+                </svg>
+                <span>Membership</span>
             </a>
-
-            <a href="#" class="nav-item">
-                <div class="nav-icon">
-                    <svg viewBox="0 0 24 24">
-                        <rect x="4" y="6" width="16" height="14" rx="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        <path d="M7 6V5a2 2 0 012-2h6a2 2 0 012 2v1" stroke-linecap="round" stroke-linejoin="round"/>
-                        <path d="M8 12h8" stroke-linecap="round"/>
-                    </svg>
-                </div>
-                <span class="nav-label">Wallet</span>
+            <a class="nav-item" href="#">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <rect x="6" y="7" width="12" height="12" rx="3" />
+                    <path d="M12 11v4" />
+                    <path d="M10 13h4" />
+                </svg>
+                <span>Offers</span>
+            </a>
+            <a class="nav-item" href="#">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <circle cx="12" cy="8" r="3" />
+                    <path d="M5.5 20c1.6-3.3 4.2-5 6.5-5s4.9 1.7 6.5 5" />
+                </svg>
+                <span>Account</span>
             </a>
         </nav>
     </div>

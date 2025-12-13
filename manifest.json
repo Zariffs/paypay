@@ -4,8 +4,8 @@
     "description": "PayPal Mobile App",
     "start_url": "./",
     "display": "standalone",
-    "background_color": "#ffffff",
-    "theme_color": "#003087",
+    "background_color": "#eff2fb",
+    "theme_color": "#eff2fb",
     "orientation": "portrait",
     "scope": "./",
     "icons": [
