@@ -535,14 +535,18 @@ body {
 
 
 /* ========================================
-   Account Card
+   Account Cards Container
    ======================================== */
-.account {
+.accounts-container {
     background: var(--card);
     border: 1px solid var(--stroke);
     border-radius: 20px;
     overflow: hidden;
     box-shadow: 0 18px 44px rgba(0,0,0,0.55);
+}
+
+.account {
+    background: transparent;
 }
 
 .account-top {
@@ -562,15 +566,21 @@ body {
 }
 
 .account-balance {
-    font-size: 18px;
+    font-size: 20px;
     font-weight: 800;
-    letter-spacing: -0.2px;
+    letter-spacing: -0.3px;
 }
 
 .account-sub {
-    margin-top: 2px;
-    font-size: 16px;
-    color: rgba(255,255,255,0.62);
+    margin-top: 3px;
+    font-size: 14px;
+    color: var(--muted);
+}
+
+.account-divider {
+    height: 1px;
+    background: rgba(255, 255, 255, 0.1);
+    margin: 0 18px;
 }
 
 .account-cta {
@@ -643,12 +653,6 @@ body {
     fill: none;
     stroke-linecap: round;
     stroke-linejoin: round;
-}
-
-.account-divider {
-    height: 1px;
-    background: rgba(255,255,255,0.10);
-    margin: 0 18px 14px 18px;
 }
 
 /* ========================================
@@ -903,6 +907,12 @@ body {
     font-weight: 600;
     color: var(--accent);
     text-decoration: none;
+}
+
+.upcoming-trips {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
 }
 
 .upcoming-card {
@@ -1423,7 +1433,7 @@ body {
 /* Card Info */
 .drawer-card-info {
     text-align: center;
-    margin-bottom: 28px;
+    margin-bottom: 24px;
 }
 
 .drawer-card-name {
@@ -1435,7 +1445,106 @@ body {
 .drawer-card-number {
     font-size: 15px;
     color: var(--muted);
-    letter-spacing: 1px;
+    letter-spacing: 2px;
+    font-family: 'SF Mono', 'Menlo', monospace;
+}
+
+/* Balance Section */
+.drawer-balance-section {
+    text-align: center;
+    padding: 20px;
+    background: linear-gradient(135deg, var(--card2) 0%, var(--card) 100%);
+    border-radius: 16px;
+    margin-bottom: 24px;
+    border: 1px solid var(--stroke);
+}
+
+.drawer-balance-label {
+    font-size: 13px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+}
+
+.drawer-balance-amount {
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 12px;
+    letter-spacing: -0.5px;
+}
+
+.drawer-balance-available {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+}
+
+.available-label {
+    color: var(--muted);
+}
+
+.available-amount {
+    color: #4CD964;
+    font-weight: 600;
+}
+
+/* Action Buttons */
+.drawer-actions {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 28px;
+}
+
+.drawer-action-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background: var(--card2);
+    border: 1px solid var(--stroke);
+    border-radius: 12px;
+    color: var(--text);
+    cursor: pointer;
+    padding: 14px 12px;
+    transition: all 0.2s ease;
+}
+
+.drawer-action-btn:active {
+    transform: scale(0.97);
+    background: var(--card);
+}
+
+.drawer-action-btn svg {
+    width: 18px;
+    height: 18px;
+    stroke: var(--text);
+    flex-shrink: 0;
+}
+
+.drawer-action-btn span {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+}
+
+/* Section Header */
+.drawer-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.drawer-section-link {
+    font-size: 13px;
+    color: var(--accent);
+    text-decoration: none;
+    font-weight: 500;
 }
 
 /* Transactions */
@@ -1445,7 +1554,6 @@ body {
     color: var(--muted);
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    margin-bottom: 16px;
 }
 
 .transactions-list {
@@ -1481,7 +1589,8 @@ body {
     min-width: 0;
 }
 
-.transaction-merchant {
+.transaction-merchant,
+.transaction-name {
     font-size: 15px;
     font-weight: 600;
     margin-bottom: 2px;
@@ -1496,6 +1605,39 @@ body {
     font-size: 15px;
     font-weight: 600;
     color: var(--text);
+}
+
+.transaction-amount.positive {
+    color: #4CD964;
+}
+
+/* Crypto Holdings Styles */
+.crypto-holding {
+    align-items: flex-start;
+}
+
+.crypto-icon {
+    background: linear-gradient(135deg, #00d4aa 0%, #00a080 100%) !important;
+    color: #fff;
+    font-weight: 700;
+    font-size: 16px !important;
+}
+
+.crypto-icon span {
+    font-size: 18px;
+}
+
+.crypto-value {
+    text-align: right;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+}
+
+.crypto-price {
+    font-size: 11px;
+    color: var(--muted2);
+    margin-top: 2px;
 }
 
 /* Make account-top clickable */

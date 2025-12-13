@@ -30,6 +30,9 @@ class AmexApp {
     }
 
     async setup() {
+        // Populate home page from userConfig
+        this.populateHomePage();
+        
         // Cache home page content (already loaded)
         const homePage = document.querySelector('.page[data-page="home"]');
         if (homePage) {
@@ -56,6 +59,119 @@ class AmexApp {
         
         // Load and display version
         this.loadVersion();
+        
+        // Fetch crypto prices and update crypto cards
+        this.updateCryptoPrices();
+    }
+    
+    async updateCryptoPrices() {
+        try {
+            // Fetch prices from CoinGecko API (free, no API key needed)
+            const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana,ripple,cardano,dogecoin&vs_currencies=usd');
+            const prices = await response.json();
+            
+            // Map API response to our symbols
+            this.cryptoPrices = {
+                BTC: prices.bitcoin?.usd || 0,
+                ETH: prices.ethereum?.usd || 0,
+                SOL: prices.solana?.usd || 0,
+                XRP: prices.ripple?.usd || 0,
+                ADA: prices.cardano?.usd || 0,
+                DOGE: prices.dogecoin?.usd || 0
+            };
+            
+            // Update crypto card balances in userConfig
+            if (typeof userConfig !== 'undefined' && userConfig.cards) {
+                Object.values(userConfig.cards).forEach(card => {
+                    if (card.isCrypto && card.holdings) {
+                        let totalValue = 0;
+                        card.holdings.forEach(holding => {
+                            const price = this.cryptoPrices[holding.symbol] || 0;
+                            holding.valueUSD = holding.amount * price;
+                            holding.price = price;
+                            totalValue += holding.valueUSD;
+                        });
+                        card.balanceRaw = totalValue;
+                        card.balance = '$' + totalValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                    }
+                });
+            }
+            
+            // Re-populate home page with updated values
+            this.populateHomePage();
+            this.setupCardDrawer();
+            
+        } catch (error) {
+            console.error('Failed to fetch crypto prices:', error);
+            // Use fallback prices if API fails
+            this.cryptoPrices = {
+                BTC: 105000,
+                ETH: 3900,
+                SOL: 220,
+                XRP: 2.30,
+                ADA: 1.05,
+                DOGE: 0.42
+            };
+        }
+    }
+    
+    populateHomePage() {
+        if (typeof userConfig === 'undefined') return;
+        
+        // Populate accounts
+        const accountsContainer = document.getElementById('accountsContainer');
+        if (accountsContainer && userConfig.cards) {
+            const cards = Object.values(userConfig.cards);
+            accountsContainer.innerHTML = cards.map((card, index) => `
+                ${index > 0 ? '<div class="account-divider"></div>' : ''}
+                <div class="account" data-card="${card.id}">
+                    <div class="account-top">
+                        <img class="account-card" src="${card.image}" alt="" aria-hidden="true">
+                        <div>
+                            <div class="account-balance">${card.balance}</div>
+                            <div class="account-sub">${card.name} (•••${card.lastFour})</div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        // Populate rewards points
+        const rewardsPoints = document.getElementById('rewardsPoints');
+        if (rewardsPoints && userConfig.rewards) {
+            rewardsPoints.textContent = userConfig.rewards.totalPoints.toLocaleString();
+        }
+        
+        // Populate upcoming trips
+        const upcomingTrips = document.getElementById('upcomingTrips');
+        if (upcomingTrips && userConfig.upcoming) {
+            upcomingTrips.innerHTML = userConfig.upcoming.map(trip => `
+                <div class="upcoming-card">
+                    <img class="upcoming-img" src="${trip.image}" alt="${trip.name} trip">
+                    <div class="upcoming-info">
+                        <div class="upcoming-name">${trip.name}</div>
+                        <div class="upcoming-date">${trip.startDate} - ${trip.endDate}</div>
+                        <div class="upcoming-icons">
+                            ${trip.hasFlights ? `<svg viewBox="0 0 24 24">
+                                <path d="M21 16v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"/>
+                                <path d="M7 10V6a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v4"/>
+                                <line x1="12" y1="14" x2="12" y2="18"/>
+                            </svg>` : ''}
+                            ${trip.hasHotel ? `<svg viewBox="0 0 24 24">
+                                <rect x="3" y="7" width="18" height="13" rx="2"/>
+                                <path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                            </svg>` : ''}
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        // Populate member since year
+        const memberSinceYear = document.getElementById('memberSinceYear');
+        if (memberSinceYear && userConfig.profile) {
+            memberSinceYear.textContent = userConfig.profile.memberSince;
+        }
     }
 
     setupNavigation() {
@@ -85,6 +201,11 @@ class AmexApp {
             await this.loadPage(targetPage);
         } else {
             targetEl.innerHTML = this.pageCache[targetPage];
+        }
+        
+        // Repopulate home page if navigating to it
+        if (targetPage === 'home') {
+            this.populateHomePage();
         }
 
         // Cleanup: remove active from ALL pages first
@@ -219,12 +340,17 @@ class AmexApp {
         
         let startX = 0;
         let startY = 0;
+        let startTime = 0;
+        let lastX = 0;
+        let lastTime = 0;
+        let velocity = 0;
         let isSwiping = false;
         let direction = null;
         let targetPage = null;
         let currentEl = null;
         let targetEl = null;
-        const commitThreshold = 0.35; // 35% of screen to commit navigation
+        const commitThreshold = 0.20; // 20% of screen to commit navigation
+        const velocityThreshold = 0.5; // pixels per millisecond for quick swipe
         
         pagesContainer.addEventListener('touchstart', (e) => {
             if (this.isTransitioning) return;
@@ -232,6 +358,10 @@ class AmexApp {
             const touch = e.touches[0];
             startX = touch.clientX;
             startY = touch.clientY;
+            startTime = Date.now();
+            lastX = startX;
+            lastTime = startTime;
+            velocity = 0;
             isSwiping = false;
             direction = null;
             targetPage = null;
@@ -248,6 +378,14 @@ class AmexApp {
             if (this.isTransitioning || !currentEl) return;
             
             const touch = e.touches[0];
+            const now = Date.now();
+            
+            // Calculate velocity
+            if (now - lastTime > 10) {
+                velocity = (touch.clientX - lastX) / (now - lastTime);
+                lastX = touch.clientX;
+                lastTime = now;
+            }
             const deltaX = touch.clientX - startX;
             const deltaY = touch.clientY - startY;
             const screenWidth = window.innerWidth;
@@ -331,8 +469,13 @@ class AmexApp {
             const _targetEl = targetEl;
             const _targetPage = targetPage;
             
-            // Check if swipe exceeds threshold
-            if (progress >= commitThreshold && _targetPage && _targetEl) {
+            // Check if swipe exceeds threshold OR velocity is high enough (quick flick)
+            const isQuickSwipe = Math.abs(velocity) > velocityThreshold && 
+                                 ((velocity < 0 && direction === 'forward') || 
+                                  (velocity > 0 && direction === 'backward'));
+            const shouldCommit = (progress >= commitThreshold || isQuickSwipe) && _targetPage && _targetEl;
+            
+            if (shouldCommit) {
                 // Immediately update nav state with smooth transition
                 this.currentPage = _targetPage;
                 this.updateNavState(_targetPage);
@@ -480,22 +623,28 @@ class AmexApp {
     }
 
     setupCardDrawer() {
-        const accountTops = document.querySelectorAll('.account-top');
+        const accounts = document.querySelectorAll('.account[data-card]');
         const drawer = document.getElementById('cardDrawer');
         const overlay = document.getElementById('drawerOverlay');
         
         if (!drawer || !overlay) return;
         
-        accountTops.forEach(accountTop => {
-            // Remove existing to avoid duplicates
-            accountTop.removeEventListener('click', this.openDrawer);
+        accounts.forEach(account => {
+            const accountTop = account.querySelector('.account-top');
+            if (!accountTop) return;
             
-            accountTop.addEventListener('click', () => {
-                this.openDrawer();
+            // Clone to remove old listeners
+            const newAccountTop = accountTop.cloneNode(true);
+            accountTop.parentNode.replaceChild(newAccountTop, accountTop);
+            
+            newAccountTop.addEventListener('click', () => {
+                const cardId = account.getAttribute('data-card');
+                this.openDrawer(cardId);
             });
         });
         
         // Close on overlay click
+        overlay.onclick = () => this.closeDrawer();
         overlay.addEventListener('click', () => {
             this.closeDrawer();
         });
@@ -587,7 +736,104 @@ class AmexApp {
         }, { passive: true });
     }
     
-    openDrawer() {
+    renderDrawerForCard(cardId) {
+        const card = typeof userConfig !== 'undefined' && userConfig.cards ? userConfig.cards[cardId] : null;
+        if (!card) return;
+        
+        // Update card image
+        const cardImg = document.querySelector('.drawer-card-img');
+        if (cardImg) {
+            cardImg.src = card.image;
+            cardImg.alt = card.name;
+        }
+        
+        // Update card name
+        const cardName = document.querySelector('.drawer-card-name');
+        if (cardName) {
+            cardName.textContent = card.name;
+        }
+        
+        // Update card number
+        const cardNumber = document.querySelector('.drawer-card-number');
+        if (cardNumber) {
+            cardNumber.textContent = card.fullNumber || `•••• •••• •••• ${card.lastFour}`;
+        }
+        
+        // Update balance section based on card type
+        const balanceSection = document.querySelector('.drawer-balance-section');
+        const balanceLabel = document.querySelector('.drawer-balance-label');
+        const balanceAmount = document.querySelector('.drawer-balance-amount');
+        const availableRow = document.querySelector('.drawer-balance-available');
+        
+        if (card.isCrypto) {
+            // Crypto card - show portfolio value
+            if (balanceLabel) balanceLabel.textContent = 'Portfolio Value';
+            if (balanceAmount) balanceAmount.textContent = card.balance;
+            if (availableRow) {
+                const change24h = '+5.2%'; // Could be dynamic
+                availableRow.innerHTML = `
+                    <span class="available-label">24h Change</span>
+                    <span class="available-amount">${change24h}</span>
+                `;
+            }
+        } else {
+            // Regular card
+            if (balanceLabel) balanceLabel.textContent = 'Current Balance';
+            if (balanceAmount) balanceAmount.textContent = card.balance;
+            if (availableRow) {
+                availableRow.innerHTML = `
+                    <span class="available-label">Available Credit</span>
+                    <span class="available-amount">${card.availableCredit || '$0.00'}</span>
+                `;
+            }
+        }
+        
+        // Update section title and list based on card type
+        const sectionTitle = document.querySelector('.drawer-section-title');
+        const transactionsList = document.querySelector('.transactions-list');
+        
+        if (card.isCrypto && card.holdings) {
+            // Show crypto holdings
+            if (sectionTitle) sectionTitle.textContent = 'Holdings';
+            if (transactionsList) {
+                transactionsList.innerHTML = card.holdings.map(holding => `
+                    <div class="transaction-item crypto-holding">
+                        <div class="transaction-icon crypto-icon">
+                            <span>${holding.icon}</span>
+                        </div>
+                        <div class="transaction-details">
+                            <div class="transaction-name">${holding.name}</div>
+                            <div class="transaction-date">${holding.amount.toLocaleString()} ${holding.symbol}</div>
+                        </div>
+                        <div class="crypto-value">
+                            <div class="transaction-amount">$${(holding.valueUSD || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+                            <div class="crypto-price">@$${(holding.price || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+        } else if (transactionsList && card.transactions) {
+            // Show regular transactions
+            if (sectionTitle) sectionTitle.textContent = 'Recent Transactions';
+            transactionsList.innerHTML = card.transactions.map(tx => `
+                <div class="transaction-item">
+                    <div class="transaction-icon">
+                        <span style="font-size: 22px;">${tx.icon}</span>
+                    </div>
+                    <div class="transaction-details">
+                        <div class="transaction-name">${tx.merchant}</div>
+                        <div class="transaction-date">${tx.date}</div>
+                    </div>
+                    <div class="transaction-amount ${tx.amount.startsWith('+') ? 'positive' : ''}">${tx.amount}</div>
+                </div>
+            `).join('');
+        }
+    }
+    
+    openDrawer(cardId = 'centurion') {
+        // Render the drawer content for this card
+        this.renderDrawerForCard(cardId);
+        
         const drawer = document.getElementById('cardDrawer');
         const overlay = document.getElementById('drawerOverlay');
         
