@@ -214,17 +214,17 @@ class AmexApp {
 
     setupEdgeSwipe() {
         const pagesContainer = document.querySelector('.pages-container');
+        const indicator = document.querySelector('.nav-indicator');
         if (!pagesContainer) return;
         
         let startX = 0;
         let startY = 0;
-        let currentX = 0;
-        let isDragging = false;
+        let isSwiping = false;
         let direction = null;
         let targetPage = null;
         let currentEl = null;
         let targetEl = null;
-        let initialDirection = null; // Lock in direction at start
+        const commitThreshold = 0.35; // 35% of screen to commit navigation
         
         pagesContainer.addEventListener('touchstart', (e) => {
             if (this.isTransitioning) return;
@@ -232,24 +232,15 @@ class AmexApp {
             const touch = e.touches[0];
             startX = touch.clientX;
             startY = touch.clientY;
-            currentX = startX;
-            isDragging = false;
+            isSwiping = false;
             direction = null;
-            initialDirection = null;
             targetPage = null;
-            // Use this.currentPage as source of truth
             currentEl = document.querySelector(`.page[data-page="${this.currentPage}"]`);
             targetEl = null;
             
-            // Ensure only current page has active class (cleanup any stale active states)
-            document.querySelectorAll('.page.active').forEach(p => {
-                if (p.getAttribute('data-page') !== this.currentPage) {
-                    p.classList.remove('active');
-                }
-            });
-            // Ensure current page has active class
-            if (currentEl && !currentEl.classList.contains('active')) {
-                currentEl.classList.add('active');
+            // Disable nav indicator transition during swipe
+            if (indicator) {
+                indicator.style.transition = 'none';
             }
         }, { passive: true });
         
@@ -259,167 +250,233 @@ class AmexApp {
             const touch = e.touches[0];
             const deltaX = touch.clientX - startX;
             const deltaY = touch.clientY - startY;
-            currentX = touch.clientX;
+            const screenWidth = window.innerWidth;
             
-            // Only start dragging if horizontal movement is dominant
-            if (!isDragging) {
-                if (Math.abs(deltaX) > 10 && Math.abs(deltaX) > Math.abs(deltaY)) {
-                    // Determine direction and target ONCE at the start
-                    const currentIndex = this.pageOrder.indexOf(this.currentPage);
-                    
-                    // Lock in direction based on initial swipe
-                    initialDirection = deltaX > 0 ? 'backward' : 'forward';
-                    
-                    if (initialDirection === 'backward' && currentIndex > 0) {
-                        // Swiping right - go to previous page
-                        direction = 'backward';
-                        targetPage = this.pageOrder[currentIndex - 1];
-                    } else if (initialDirection === 'forward' && currentIndex < this.pageOrder.length - 1) {
-                        // Swiping left - go to next page
-                        direction = 'forward';
-                        targetPage = this.pageOrder[currentIndex + 1];
-                    } else {
-                        // Can't go in this direction, don't start dragging
-                        return;
-                    }
-                    
-                    // Now we have a valid target
-                    isDragging = true;
-                    targetEl = document.querySelector(`.page[data-page="${targetPage}"]`);
-                    
-                    if (!targetEl) return;
-                    
-                    // Load content if needed
+            // Determine if we should start swiping
+            if (!isSwiping && Math.abs(deltaX) > 10 && Math.abs(deltaX) > Math.abs(deltaY)) {
+                const currentIndex = this.pageOrder.indexOf(this.currentPage);
+                
+                // Determine direction
+                if (deltaX > 0 && currentIndex > 0) {
+                    direction = 'backward';
+                    targetPage = this.pageOrder[currentIndex - 1];
+                } else if (deltaX < 0 && currentIndex < this.pageOrder.length - 1) {
+                    direction = 'forward';
+                    targetPage = this.pageOrder[currentIndex + 1];
+                } else {
+                    return;
+                }
+                
+                isSwiping = true;
+                targetEl = document.querySelector(`.page[data-page="${targetPage}"]`);
+                
+                // Preload and show target page behind current
+                if (targetEl) {
                     if (!this.pageCache[targetPage]) {
                         await this.loadPage(targetPage);
                     } else {
                         targetEl.innerHTML = this.pageCache[targetPage];
                     }
-                    
-                    // Setup pages for swiping
-                    pagesContainer.classList.add('swiping');
+                    // Show target page underneath with 0 opacity
                     targetEl.classList.add('active');
-                    
-                    // Position target page to the side based on direction
-                    if (direction === 'forward') {
-                        targetEl.style.transform = 'translateX(100%)';
-                    } else {
-                        targetEl.style.transform = 'translateX(-100%)';
-                    }
-                } else {
-                    return;
+                    targetEl.style.opacity = '0';
                 }
             }
             
-            if (!isDragging || !targetEl || !direction) return;
+            if (!isSwiping || !targetEl) return;
             
-            // Constrain movement to the valid direction
-            let constrainedDeltaX = deltaX;
-            if (direction === 'forward' && deltaX > 0) {
-                constrainedDeltaX = 0; // Don't allow swiping right when going forward
-            } else if (direction === 'backward' && deltaX < 0) {
-                constrainedDeltaX = 0; // Don't allow swiping left when going backward
-            }
+            // Calculate progress (0 to 1) based on screen width
+            // Clamp so it doesn't go beyond 0-1
+            const progress = Math.max(0, Math.min(1, Math.abs(deltaX) / screenWidth));
             
-            // Move both pages with finger
-            const screenWidth = window.innerWidth;
+            // Cross-fade: current fades out, target fades in
+            currentEl.style.opacity = 1 - progress;
+            targetEl.style.opacity = progress;
             
-            if (direction === 'forward') {
-                // Swiping left - current goes left, target comes from right
-                currentEl.style.transform = `translateX(${constrainedDeltaX}px)`;
-                targetEl.style.transform = `translateX(${screenWidth + constrainedDeltaX}px)`;
-            } else {
-                // Swiping right - current goes right, target comes from left
-                currentEl.style.transform = `translateX(${constrainedDeltaX}px)`;
-                targetEl.style.transform = `translateX(${-screenWidth + constrainedDeltaX}px)`;
+            // Move nav indicator based on progress
+            if (indicator) {
+                const currentIndex = this.pageOrder.indexOf(this.currentPage);
+                const targetIndex = this.pageOrder.indexOf(targetPage);
+                const navItem = document.querySelector('.nav-item');
+                if (navItem) {
+                    const navWidth = navItem.offsetWidth;
+                    const gap = 8;
+                    const currentPos = currentIndex * (navWidth + gap);
+                    const targetPos = targetIndex * (navWidth + gap);
+                    const currentTranslate = currentPos + (targetPos - currentPos) * progress;
+                    indicator.style.transform = `translateX(${currentTranslate}px)`;
+                }
             }
         }, { passive: true });
         
-        pagesContainer.addEventListener('touchend', (e) => {
-            if (!isDragging || !targetEl || !currentEl) {
-                this.resetSwipeState(pagesContainer, currentEl, targetEl);
-                isDragging = false;
+        pagesContainer.addEventListener('touchend', async (e) => {
+            // Re-enable nav indicator transition
+            if (indicator) {
+                indicator.style.transition = '';
+            }
+            
+            if (!isSwiping || !currentEl) {
+                if (currentEl) currentEl.style.opacity = '';
+                isSwiping = false;
                 return;
             }
             
-            const deltaX = currentX - startX;
+            const touch = e.changedTouches[0];
+            const deltaX = touch.clientX - startX;
             const screenWidth = window.innerWidth;
-            const threshold = screenWidth * 0.3; // 30% of screen to commit
+            const progress = Math.abs(deltaX) / screenWidth;
             
-            pagesContainer.classList.remove('swiping');
-            pagesContainer.classList.add('snapping');
+            // Capture references before async operations
+            const _currentEl = currentEl;
+            const _targetEl = targetEl;
+            const _targetPage = targetPage;
             
-            // Determine if we should complete the swipe or snap back
-            const shouldComplete = (direction === 'forward' && deltaX < -threshold) ||
-                                   (direction === 'backward' && deltaX > threshold);
-            
-            if (shouldComplete && targetPage) {
-                // Complete the swipe
-                currentEl.style.transform = direction === 'forward' ? 'translateX(-100%)' : 'translateX(100%)';
-                targetEl.style.transform = 'translateX(0)';
+            // Check if swipe exceeds threshold
+            if (progress >= commitThreshold && _targetPage && _targetEl) {
+                // Immediately update nav state with smooth transition
+                this.currentPage = _targetPage;
+                this.updateNavState(_targetPage);
+                
+                // Complete the fade animation
+                _currentEl.style.transition = 'opacity 0.2s ease-out';
+                _targetEl.style.transition = 'opacity 0.2s ease-out';
+                _currentEl.style.opacity = '0';
+                _targetEl.style.opacity = '1';
                 
                 setTimeout(() => {
-                    currentEl.classList.remove('active');
-                    currentEl.style.transform = '';
-                    targetEl.style.transform = '';
-                    pagesContainer.classList.remove('snapping');
-                    
-                    this.currentPage = targetPage;
-                    this.updateNavState(targetPage);
+                    if (_currentEl) {
+                        _currentEl.classList.remove('active');
+                        _currentEl.style.opacity = '';
+                        _currentEl.style.transition = '';
+                    }
+                    if (_targetEl) {
+                        _targetEl.style.transition = '';
+                    }
                     
                     // Re-setup handlers
                     this.setupTouchHandlers();
                     this.setupCardDrawer();
                     
-                    // Reset locals
-                    isDragging = false;
-                    direction = null;
-                    targetPage = null;
-                    targetEl = null;
-                    currentEl = null;
-                }, 300);
+                    this.isTransitioning = false;
+                }, 200);
             } else {
-                // Snap back
-                currentEl.style.transform = 'translateX(0)';
-                if (direction === 'forward') {
-                    targetEl.style.transform = 'translateX(100%)';
-                } else {
-                    targetEl.style.transform = 'translateX(-100%)';
+                // Snap back - restore opacity and nav position
+                if (_currentEl) {
+                    _currentEl.style.transition = 'opacity 0.2s ease-out';
+                    _currentEl.style.opacity = '1';
                 }
                 
-                setTimeout(() => {
-                    targetEl.classList.remove('active');
-                    targetEl.style.transform = '';
-                    currentEl.style.transform = '';
-                    pagesContainer.classList.remove('snapping');
+                if (_targetEl) {
+                    _targetEl.style.transition = 'opacity 0.2s ease-out';
+                    _targetEl.style.opacity = '0';
                     
-                    // Reset locals
-                    isDragging = false;
-                    direction = null;
-                    targetPage = null;
-                    targetEl = null;
-                    currentEl = null;
-                }, 300);
+                    setTimeout(() => {
+                        if (_targetEl) {
+                            _targetEl.classList.remove('active');
+                            _targetEl.style.opacity = '';
+                            _targetEl.style.transition = '';
+                        }
+                    }, 200);
+                }
+                
+                this.updateNavState(this.currentPage);
+                
+                setTimeout(() => {
+                    if (_currentEl) {
+                        _currentEl.style.transition = '';
+                    }
+                }, 200);
             }
+            
+            // Reset state
+            isSwiping = false;
+            direction = null;
+            targetPage = null;
+            currentEl = null;
+            targetEl = null;
         }, { passive: true });
         
         pagesContainer.addEventListener('touchcancel', () => {
-            this.resetSwipeState(pagesContainer, currentEl, targetEl);
-            isDragging = false;
+            if (indicator) {
+                indicator.style.transition = '';
+            }
+            if (currentEl) {
+                currentEl.style.opacity = '';
+                currentEl.style.transition = '';
+            }
+            if (targetEl) {
+                targetEl.classList.remove('active');
+                targetEl.style.opacity = '';
+                targetEl.style.transition = '';
+            }
+            this.updateNavState(this.currentPage);
+            isSwiping = false;
             direction = null;
             targetPage = null;
-            targetEl = null;
             currentEl = null;
+            targetEl = null;
         }, { passive: true });
     }
     
-    resetSwipeState(container, currentEl, targetEl) {
-        container?.classList.remove('swiping', 'snapping');
-        if (currentEl) currentEl.style.transform = '';
-        if (targetEl) {
-            targetEl.classList.remove('active');
-            targetEl.style.transform = '';
+    async navigateWithFade(targetPage) {
+        if (targetPage === this.currentPage || this.isTransitioning) return;
+        
+        this.isTransitioning = true;
+        
+        const currentEl = document.querySelector(`.page[data-page="${this.currentPage}"]`);
+        const targetEl = document.querySelector(`.page[data-page="${targetPage}"]`);
+        
+        if (!currentEl || !targetEl) {
+            this.isTransitioning = false;
+            return;
         }
+        
+        // Load page content if not cached
+        if (!this.pageCache[targetPage]) {
+            await this.loadPage(targetPage);
+        } else {
+            targetEl.innerHTML = this.pageCache[targetPage];
+        }
+        
+        // Complete fade out
+        currentEl.style.transition = 'opacity 0.15s ease-out';
+        currentEl.style.opacity = '0';
+        
+        // Update nav immediately
+        this.updateNavState(targetPage);
+        
+        setTimeout(() => {
+            // Switch pages
+            currentEl.classList.remove('active');
+            currentEl.style.opacity = '';
+            currentEl.style.transition = '';
+            
+            targetEl.classList.add('active');
+            targetEl.style.opacity = '0';
+            targetEl.style.transition = 'opacity 0.15s ease-in';
+            
+            // Force reflow
+            targetEl.offsetHeight;
+            
+            // Fade in target
+            targetEl.style.opacity = '1';
+            
+            setTimeout(() => {
+                targetEl.style.opacity = '';
+                targetEl.style.transition = '';
+                
+                this.currentPage = targetPage;
+                
+                // Re-setup handlers
+                this.setupTouchHandlers();
+                this.setupCardDrawer();
+                // Re-setup handlers
+                this.setupTouchHandlers();
+                this.setupCardDrawer();
+                
+                this.isTransitioning = false;
+            }, 200);
+        }, 200);
     }
 
     setupCardDrawer() {
