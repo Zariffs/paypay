@@ -911,8 +911,21 @@ body {
 
 .upcoming-trips {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     gap: 12px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 8px;
+    margin-left: -22px;
+    margin-right: -22px;
+    padding-left: 22px;
+    padding-right: 22px;
+}
+
+.upcoming-trips::-webkit-scrollbar {
+    display: none;
 }
 
 .upcoming-card {
@@ -921,11 +934,14 @@ body {
     border-radius: 16px;
     overflow: hidden;
     box-shadow: 0 14px 34px rgba(0,0,0,0.45);
+    flex-shrink: 0;
+    width: 240px;
+    scroll-snap-align: start;
 }
 
 .upcoming-img {
     width: 100%;
-    height: 140px;
+    height: 120px;
     object-fit: cover;
     display: block;
 }
@@ -1651,265 +1667,281 @@ body {
 }
 
 /* ========================================
-   Insights Modal
+   Add Trip Card
    ======================================== */
-.insights-modal {
+.add-trip-card {
+    background: var(--card);
+    border: 2px dashed rgba(255, 255, 255, 0.15);
+    border-radius: 16px;
+    width: 240px;
+    height: 190px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    scroll-snap-align: start;
+}
+
+.add-trip-card:active {
+    transform: scale(0.98);
+    background: var(--card2);
+}
+
+.add-trip-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: rgba(74, 166, 255, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    color: var(--accent);
+}
+
+.add-trip-text {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--muted);
+}
+
+/* Trip card delete button */
+.upcoming-card {
+    position: relative;
+}
+
+.trip-delete-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(10px);
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    z-index: 10;
+}
+
+.upcoming-card:hover .trip-delete-btn,
+.upcoming-card:active .trip-delete-btn {
+    opacity: 1;
+}
+
+.trip-delete-btn svg {
+    width: 14px;
+    height: 14px;
+    stroke: #ff6b6b;
+    stroke-width: 2;
+    fill: none;
+}
+
+/* ========================================
+   Modal Styles
+   ======================================== */
+.modal-overlay {
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
     bottom: 0;
-    background: var(--bg);
-    z-index: 3000;
-    transform: translateX(100%);
-    transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1);
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    z-index: 99999;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.modal-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.modal {
+    background: var(--card);
+    border-radius: 24px 24px 0 0;
+    width: 100%;
+    max-height: 90vh;
     overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
+    transform: translateY(100%);
+    transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
 }
 
-.insights-modal.open {
-    transform: translateX(0);
+.modal-overlay.active .modal {
+    transform: translateY(0);
 }
 
-.insights-modal-header {
-    position: sticky;
-    top: 0;
+.modal-header {
+    padding: 20px 20px 16px;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: calc(16px + env(safe-area-inset-top)) 20px 16px;
-    background: var(--bg);
-    z-index: 10;
     border-bottom: 1px solid var(--stroke);
+    position: sticky;
+    top: 0;
+    background: var(--card);
+    z-index: 10;
 }
 
-.insights-back-btn {
-    width: 40px;
-    height: 40px;
+.modal-title {
+    font-size: 20px;
+    font-weight: 700;
+}
+
+.modal-close {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: transparent;
-    border: none;
     cursor: pointer;
-    border-radius: 50%;
 }
 
-.insights-back-btn svg {
-    width: 24px;
-    height: 24px;
-    stroke: var(--accent);
+.modal-close svg {
+    width: 18px;
+    height: 18px;
+    stroke: var(--muted);
+    stroke-width: 2;
+    fill: none;
+    stroke-linecap: round;
 }
 
-.insights-back-btn:active {
-    background: var(--stroke);
-}
-
-.insights-modal-title {
-    font-size: 17px;
-    font-weight: 600;
-    color: var(--text);
-}
-
-.insights-modal-spacer {
-    width: 40px;
-}
-
-.insights-modal-content {
+.modal-body {
     padding: 20px;
-    padding-bottom: calc(40px + env(safe-area-inset-bottom));
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
 }
 
-/* Summary Cards */
-.insights-summary {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
+.modal-footer {
+    padding: 16px 20px calc(16px + env(safe-area-inset-bottom));
+    display: flex;
     gap: 12px;
-    margin-bottom: 28px;
+    border-top: 1px solid var(--stroke);
 }
 
-.insights-summary-card {
-    background: var(--card);
-    border-radius: 16px;
-    padding: 16px 12px;
-    text-align: center;
-    border: 1px solid var(--stroke);
+/* Form Styles */
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
 }
 
-.insights-summary-label {
-    font-size: 11px;
-    color: var(--muted2);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-bottom: 8px;
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
 }
 
-.insights-summary-value {
-    font-size: 18px;
-    font-weight: 700;
-    color: var(--text);
-}
-
-/* Insights Sections */
-.insights-section {
-    margin-bottom: 28px;
-}
-
-.insights-section-title {
+.form-label {
     font-size: 14px;
     font-weight: 600;
     color: var(--muted);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-bottom: 16px;
 }
 
-/* Categories */
-.insights-categories {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
-
-.insights-category-item {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.insights-category-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.insights-category-info {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.insights-category-icon {
-    width: 32px;
-    height: 32px;
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 16px;
-}
-
-.insights-category-name {
-    font-size: 15px;
-    font-weight: 500;
-    color: var(--text);
-}
-
-.insights-category-amount {
-    font-size: 15px;
-    font-weight: 600;
-    color: var(--text);
-}
-
-.insights-category-bar {
-    height: 6px;
-    background: var(--stroke);
-    border-radius: 3px;
-    overflow: hidden;
-}
-
-.insights-category-fill {
-    height: 100%;
-    border-radius: 3px;
-    transition: width 0.5s ease-out;
-}
-
-/* Merchants */
-.insights-merchants {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    background: var(--stroke);
-    border-radius: 16px;
-    overflow: hidden;
-}
-
-.insights-merchant-item {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    padding: 14px 16px;
-    background: var(--card);
-}
-
-.insights-merchant-rank {
-    width: 24px;
-    height: 24px;
+.form-input {
     background: var(--card2);
-    border-radius: 6px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 12px;
-    font-weight: 700;
-    color: var(--muted);
-}
-
-.insights-merchant-info {
-    flex: 1;
-}
-
-.insights-merchant-name {
-    font-size: 15px;
-    font-weight: 500;
+    border: 1px solid var(--stroke);
+    border-radius: 12px;
+    padding: 14px 16px;
+    font-size: 16px;
     color: var(--text);
+    font-family: inherit;
+    outline: none;
+    transition: border-color 0.2s ease;
 }
 
-.insights-merchant-count {
-    font-size: 12px;
+.form-input:focus {
+    border-color: var(--accent);
+}
+
+.form-input::placeholder {
     color: var(--muted2);
 }
 
-.insights-merchant-total {
-    font-size: 15px;
-    font-weight: 600;
+.form-textarea {
+    min-height: 80px;
+    resize: none;
+}
+
+.form-checkboxes {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.form-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    padding: 10px 16px;
+    background: var(--card2);
+    border-radius: 10px;
+    border: 1px solid var(--stroke);
+    transition: all 0.2s ease;
+}
+
+.form-checkbox:has(input:checked) {
+    background: rgba(74, 166, 255, 0.15);
+    border-color: var(--accent);
+}
+
+.form-checkbox input {
+    display: none;
+}
+
+.checkbox-icon {
+    font-size: 18px;
+}
+
+.form-checkbox span:last-child {
+    font-size: 14px;
     color: var(--text);
 }
 
-/* Trend */
-.insights-trend {
-    display: flex;
-    align-items: flex-end;
-    justify-content: space-between;
-    height: 120px;
+/* Modal Buttons */
+.modal-btn {
+    flex: 1;
     padding: 16px;
-    background: var(--card);
-    border-radius: 16px;
-    gap: 8px;
+    border-radius: 14px;
+    font-size: 16px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
 }
 
-.insights-trend-bar {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 8px;
-    height: 100%;
-    justify-content: flex-end;
+.modal-btn-secondary {
+    background: var(--card2);
+    color: var(--text);
 }
 
-.insights-trend-fill {
-    width: 100%;
-    max-width: 32px;
-    background: linear-gradient(180deg, var(--accent) 0%, rgba(74, 166, 255, 0.4) 100%);
-    border-radius: 4px 4px 0 0;
-    min-height: 4px;
+.modal-btn-primary {
+    background: var(--accent);
+    color: #000;
 }
 
-.insights-trend-label {
-    font-size: 10px;
-    color: var(--muted2);
-    text-transform: uppercase;
+.modal-btn:active {
+    transform: scale(0.98);
 }
 
 

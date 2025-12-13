@@ -51,9 +51,6 @@ class AmexApp {
         // Setup card drawer
         this.setupCardDrawer();
         
-        // Setup insights modal
-        this.setupInsightsModal();
-        
         // Setup edge swipe navigation
         this.setupEdgeSwipe();
         
@@ -157,28 +154,12 @@ class AmexApp {
         
         // Populate upcoming trips
         const upcomingTrips = document.getElementById('upcomingTrips');
-        if (upcomingTrips && userConfig.upcoming) {
-            upcomingTrips.innerHTML = userConfig.upcoming.map(trip => `
-                <div class="upcoming-card">
-                    <img class="upcoming-img" src="${trip.image}" alt="${trip.name} trip">
-                    <div class="upcoming-info">
-                        <div class="upcoming-name">${trip.name}</div>
-                        <div class="upcoming-date">${trip.startDate} - ${trip.endDate}</div>
-                        <div class="upcoming-icons">
-                            ${trip.hasFlights ? `<svg viewBox="0 0 24 24">
-                                <path d="M21 16v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"/>
-                                <path d="M7 10V6a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v4"/>
-                                <line x1="12" y1="14" x2="12" y2="18"/>
-                            </svg>` : ''}
-                            ${trip.hasHotel ? `<svg viewBox="0 0 24 24">
-                                <rect x="3" y="7" width="18" height="13" rx="2"/>
-                                <path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
-                            </svg>` : ''}
-                        </div>
-                    </div>
-                </div>
-            `).join('');
+        if (upcomingTrips) {
+            this.renderTrips();
         }
+        
+        // Setup trip modal
+        this.setupTripModal();
         
         // Populate member since year
         const memberSinceYear = document.getElementById('memberSinceYear');
@@ -844,9 +825,6 @@ class AmexApp {
     }
     
     openDrawer(cardId = 'centurion') {
-        // Track current card for insights
-        this.currentDrawerCard = cardId;
-        
         // Render the drawer content for this card
         this.renderDrawerForCard(cardId);
         
@@ -920,154 +898,6 @@ class AmexApp {
             // Stop gyroscope tilt effect
             this.stopGyroscopeTilt();
         }
-    }
-    
-    // ========================================
-    // Insights Modal
-    // ========================================
-    
-    setupInsightsModal() {
-        const insightsBtn = document.querySelector('.drawer-action-btn:last-child'); // Insights is 3rd button
-        const insightsModal = document.getElementById('insightsModal');
-        const backBtn = document.getElementById('insightsBackBtn');
-        
-        // Find the insights button by text content
-        const actionBtns = document.querySelectorAll('.drawer-action-btn');
-        actionBtns.forEach(btn => {
-            if (btn.querySelector('span')?.textContent === 'Insights') {
-                btn.addEventListener('click', () => {
-                    this.openInsightsModal();
-                });
-            }
-        });
-        
-        if (backBtn) {
-            backBtn.addEventListener('click', () => {
-                this.closeInsightsModal();
-            });
-        }
-    }
-    
-    openInsightsModal() {
-        const modal = document.getElementById('insightsModal');
-        if (modal) {
-            this.populateInsights();
-            modal.classList.add('open');
-        }
-    }
-    
-    closeInsightsModal() {
-        const modal = document.getElementById('insightsModal');
-        if (modal) {
-            modal.classList.remove('open');
-        }
-    }
-    
-    populateInsights() {
-        // Get current card from drawer
-        const cardId = this.currentDrawerCard || 'centurion';
-        const card = typeof userConfig !== 'undefined' && userConfig.cards ? userConfig.cards[cardId] : null;
-        
-        if (!card || !card.transactions) return;
-        
-        const transactions = card.transactions;
-        
-        // Calculate totals
-        let totalSpent = 0;
-        const categoryTotals = {};
-        const merchantTotals = {};
-        
-        transactions.forEach(tx => {
-            const amount = Math.abs(parseFloat(tx.amount.replace(/[$,]/g, '')));
-            totalSpent += amount;
-            
-            // Category totals
-            const category = tx.category || 'Other';
-            categoryTotals[category] = (categoryTotals[category] || 0) + amount;
-            
-            // Merchant totals
-            const merchant = tx.merchant;
-            if (!merchantTotals[merchant]) {
-                merchantTotals[merchant] = { total: 0, count: 0, icon: tx.icon };
-            }
-            merchantTotals[merchant].total += amount;
-            merchantTotals[merchant].count++;
-        });
-        
-        const avgTransaction = totalSpent / transactions.length;
-        
-        // Update summary
-        document.getElementById('insightsMonthTotal').textContent = '$' + totalSpent.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-        document.getElementById('insightsTxCount').textContent = transactions.length;
-        document.getElementById('insightsAvgTx').textContent = '$' + avgTransaction.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
-        
-        // Category icons and colors
-        const categoryStyles = {
-            'Shopping': { icon: '🛍️', color: '#a855f7' },
-            'Travel': { icon: '✈️', color: '#3b82f6' },
-            'Dining': { icon: '🍽️', color: '#f97316' },
-            'Entertainment': { icon: '🎭', color: '#ec4899' },
-            'Auto': { icon: '🚗', color: '#6366f1' },
-            'Groceries': { icon: '🛒', color: '#22c55e' },
-            'Lifestyle': { icon: '✨', color: '#14b8a6' },
-            'Other': { icon: '📦', color: '#64748b' }
-        };
-        
-        // Populate categories
-        const categoriesContainer = document.getElementById('insightsCategories');
-        const sortedCategories = Object.entries(categoryTotals).sort((a, b) => b[1] - a[1]);
-        const maxCategoryAmount = sortedCategories[0]?.[1] || 1;
-        
-        categoriesContainer.innerHTML = sortedCategories.map(([category, amount]) => {
-            const style = categoryStyles[category] || categoryStyles['Other'];
-            const percentage = (amount / maxCategoryAmount) * 100;
-            return `
-                <div class="insights-category-item">
-                    <div class="insights-category-header">
-                        <div class="insights-category-info">
-                            <div class="insights-category-icon" style="background: ${style.color}20;">${style.icon}</div>
-                            <span class="insights-category-name">${category}</span>
-                        </div>
-                        <span class="insights-category-amount">$${amount.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
-                    </div>
-                    <div class="insights-category-bar">
-                        <div class="insights-category-fill" style="width: ${percentage}%; background: ${style.color};"></div>
-                    </div>
-                </div>
-            `;
-        }).join('');
-        
-        // Populate top merchants
-        const merchantsContainer = document.getElementById('insightsMerchants');
-        const sortedMerchants = Object.entries(merchantTotals).sort((a, b) => b[1].total - a[1].total).slice(0, 5);
-        
-        merchantsContainer.innerHTML = sortedMerchants.map(([merchant, data], index) => `
-            <div class="insights-merchant-item">
-                <div class="insights-merchant-rank">${index + 1}</div>
-                <div class="insights-merchant-info">
-                    <div class="insights-merchant-name">${merchant}</div>
-                    <div class="insights-merchant-count">${data.count} transaction${data.count > 1 ? 's' : ''}</div>
-                </div>
-                <div class="insights-merchant-total">$${data.total.toLocaleString('en-US', { minimumFractionDigits: 2 })}</div>
-            </div>
-        `).join('');
-        
-        // Populate trend (last transactions as bars)
-        const trendContainer = document.getElementById('insightsTrend');
-        const recentTx = transactions.slice(0, 7).reverse();
-        const maxTxAmount = Math.max(...recentTx.map(tx => Math.abs(parseFloat(tx.amount.replace(/[$,]/g, '')))));
-        
-        trendContainer.innerHTML = recentTx.map(tx => {
-            const amount = Math.abs(parseFloat(tx.amount.replace(/[$,]/g, '')));
-            const heightPercent = (amount / maxTxAmount) * 80;
-            const day = tx.date.split(' ')[1].replace(',', '');
-            return `
-                <div class="insights-trend-bar">
-                    <div class="insights-trend-fill" style="height: ${heightPercent}px;"></div>
-                    <div class="insights-trend-label">${day}</div>
-                </div>
-            `;
-        }).join('');
     }
     
     startGyroscopeTilt() {
@@ -1260,6 +1090,182 @@ class AmexApp {
         } catch (e) {
             console.log('Version info not available');
         }
+    }
+
+    // ========================================
+    // Trip Management
+    // ========================================
+    
+    getTrips() {
+        // Get trips from localStorage, fallback to userConfig
+        const stored = localStorage.getItem('amex-trips');
+        if (stored) {
+            return JSON.parse(stored);
+        }
+        // Initialize with userConfig trips
+        const initialTrips = userConfig.upcoming || [];
+        localStorage.setItem('amex-trips', JSON.stringify(initialTrips));
+        return initialTrips;
+    }
+    
+    saveTrips(trips) {
+        localStorage.setItem('amex-trips', JSON.stringify(trips));
+    }
+    
+    renderTrips() {
+        const container = document.getElementById('upcomingTrips');
+        if (!container) return;
+        
+        const trips = this.getTrips();
+        
+        // Render trip cards + add button
+        container.innerHTML = trips.map(trip => `
+            <div class="upcoming-card" data-trip-id="${trip.id}">
+                <button class="trip-delete-btn" type="button" data-delete-trip="${trip.id}">
+                    <svg viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                </button>
+                <img class="upcoming-img" src="${trip.image || 'images/AMEX/italy.jpg'}" alt="${trip.name} trip" onerror="this.src='images/AMEX/italy.jpg'">
+                <div class="upcoming-info">
+                    <div class="upcoming-name">${trip.name}</div>
+                    <div class="upcoming-date">${trip.startDate} - ${trip.endDate}</div>
+                    <div class="upcoming-icons">
+                        ${trip.hasFlights ? `<svg viewBox="0 0 24 24">
+                            <path d="M21 16v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"/>
+                            <path d="M7 10V6a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v4"/>
+                            <line x1="12" y1="14" x2="12" y2="18"/>
+                        </svg>` : ''}
+                        ${trip.hasHotel ? `<svg viewBox="0 0 24 24">
+                            <rect x="3" y="7" width="18" height="13" rx="2"/>
+                            <path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                        </svg>` : ''}
+                        ${trip.hasCar ? `<svg viewBox="0 0 24 24">
+                            <path d="M5 17h14v-5H5v5z"/>
+                            <path d="M6 12l2-5h8l2 5"/>
+                            <circle cx="7" cy="17" r="1"/>
+                            <circle cx="17" cy="17" r="1"/>
+                        </svg>` : ''}
+                    </div>
+                </div>
+            </div>
+        `).join('') + `
+            <div class="add-trip-card" id="addTripBtn">
+                <div class="add-trip-icon">+</div>
+                <div class="add-trip-text">Add Trip</div>
+            </div>
+        `;
+        
+        // Setup delete handlers
+        container.querySelectorAll('.trip-delete-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const tripId = btn.dataset.deleteTrip;
+                this.deleteTrip(tripId);
+            });
+        });
+        
+        // Setup add button handler
+        const addBtn = document.getElementById('addTripBtn');
+        if (addBtn) {
+            addBtn.addEventListener('click', () => this.openTripModal());
+        }
+    }
+    
+    deleteTrip(tripId) {
+        const trips = this.getTrips();
+        const filtered = trips.filter(t => t.id !== tripId);
+        this.saveTrips(filtered);
+        this.renderTrips();
+    }
+    
+    setupTripModal() {
+        const overlay = document.getElementById('tripModalOverlay');
+        const closeBtn = document.getElementById('closeTripModal');
+        const cancelBtn = document.getElementById('cancelTripModal');
+        const saveBtn = document.getElementById('saveTripBtn');
+        
+        if (!overlay) return;
+        
+        // Close handlers
+        closeBtn?.addEventListener('click', () => this.closeTripModal());
+        cancelBtn?.addEventListener('click', () => this.closeTripModal());
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) this.closeTripModal();
+        });
+        
+        // Save handler
+        saveBtn?.addEventListener('click', () => this.saveTrip());
+    }
+    
+    openTripModal() {
+        const overlay = document.getElementById('tripModalOverlay');
+        if (overlay) {
+            overlay.classList.add('active');
+            // Set default dates
+            const today = new Date();
+            const nextWeek = new Date(today);
+            nextWeek.setDate(nextWeek.getDate() + 7);
+            
+            document.getElementById('tripStartDate').value = today.toISOString().split('T')[0];
+            document.getElementById('tripEndDate').value = nextWeek.toISOString().split('T')[0];
+        }
+    }
+    
+    closeTripModal() {
+        const overlay = document.getElementById('tripModalOverlay');
+        if (overlay) {
+            overlay.classList.remove('active');
+            // Clear form
+            document.getElementById('tripDestination').value = '';
+            document.getElementById('tripImage').value = '';
+            document.getElementById('tripNotes').value = '';
+            document.getElementById('tripHasFlights').checked = false;
+            document.getElementById('tripHasHotel').checked = false;
+            document.getElementById('tripHasCar').checked = false;
+        }
+    }
+    
+    saveTrip() {
+        const destination = document.getElementById('tripDestination').value.trim();
+        const startDate = document.getElementById('tripStartDate').value;
+        const endDate = document.getElementById('tripEndDate').value;
+        const image = document.getElementById('tripImage').value.trim();
+        const hasFlights = document.getElementById('tripHasFlights').checked;
+        const hasHotel = document.getElementById('tripHasHotel').checked;
+        const hasCar = document.getElementById('tripHasCar').checked;
+        const notes = document.getElementById('tripNotes').value.trim();
+        
+        if (!destination) {
+            // Highlight the field
+            document.getElementById('tripDestination').style.borderColor = '#ff6b6b';
+            return;
+        }
+        
+        // Format dates nicely
+        const formatDate = (dateStr) => {
+            const date = new Date(dateStr);
+            return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        };
+        
+        const newTrip = {
+            id: `trip-${Date.now()}`,
+            name: destination,
+            image: image || 'images/AMEX/italy.jpg',
+            startDate: formatDate(startDate),
+            endDate: formatDate(endDate),
+            type: 'trip',
+            hasFlights,
+            hasHotel,
+            hasCar,
+            notes,
+            createdAt: new Date().toISOString()
+        };
+        
+        const trips = this.getTrips();
+        trips.push(newTrip);
+        this.saveTrips(trips);
+        
+        this.closeTripModal();
+        this.renderTrips();
     }
 }
 

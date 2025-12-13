@@ -174,6 +174,66 @@
         <!-- Card Drawer Overlay -->
         <div class="drawer-overlay" id="drawerOverlay"></div>
         
+        <!-- Add Trip Modal -->
+        <div class="modal-overlay" id="tripModalOverlay">
+            <div class="modal" id="tripModal">
+                <div class="modal-header">
+                    <h2 class="modal-title">Add Trip</h2>
+                    <button class="modal-close" id="closeTripModal" type="button">
+                        <svg viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label class="form-label">Destination</label>
+                        <input type="text" class="form-input" id="tripDestination" placeholder="e.g., Tokyo, Japan">
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Start Date</label>
+                            <input type="date" class="form-input" id="tripStartDate">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">End Date</label>
+                            <input type="date" class="form-input" id="tripEndDate">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Image URL (optional)</label>
+                        <input type="text" class="form-input" id="tripImage" placeholder="https://...">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">What's included?</label>
+                        <div class="form-checkboxes">
+                            <label class="form-checkbox">
+                                <input type="checkbox" id="tripHasFlights">
+                                <span class="checkbox-icon">✈️</span>
+                                <span>Flights</span>
+                            </label>
+                            <label class="form-checkbox">
+                                <input type="checkbox" id="tripHasHotel">
+                                <span class="checkbox-icon">🏨</span>
+                                <span>Hotel</span>
+                            </label>
+                            <label class="form-checkbox">
+                                <input type="checkbox" id="tripHasCar">
+                                <span class="checkbox-icon">🚗</span>
+                                <span>Car Rental</span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Notes (optional)</label>
+                        <textarea class="form-input form-textarea" id="tripNotes" placeholder="Any additional details..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="modal-btn modal-btn-secondary" id="cancelTripModal" type="button">Cancel</button>
+                    <button class="modal-btn modal-btn-primary" id="saveTripBtn" type="button">Save Trip</button>
+                </div>
+            </div>
+        </div>
+        
         <!-- Card Details Drawer -->
         <div class="card-drawer" id="cardDrawer">
             <div class="drawer-handle"></div>
@@ -236,61 +296,6 @@
                 </div>
                 <div class="transactions-list">
                     <!-- Transactions populated dynamically -->
-                </div>
-            </div>
-        </div>
-
-        <!-- Insights Modal -->
-        <div class="insights-modal" id="insightsModal">
-            <div class="insights-modal-header">
-                <button class="insights-back-btn" id="insightsBackBtn" type="button">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M19 12H5M12 19l-7-7 7-7" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                </button>
-                <h2 class="insights-modal-title">Card Insights</h2>
-                <div class="insights-modal-spacer"></div>
-            </div>
-            
-            <div class="insights-modal-content">
-                <!-- Summary Cards -->
-                <div class="insights-summary">
-                    <div class="insights-summary-card">
-                        <div class="insights-summary-label">This Month</div>
-                        <div class="insights-summary-value" id="insightsMonthTotal">$0</div>
-                    </div>
-                    <div class="insights-summary-card">
-                        <div class="insights-summary-label">Transactions</div>
-                        <div class="insights-summary-value" id="insightsTxCount">0</div>
-                    </div>
-                    <div class="insights-summary-card">
-                        <div class="insights-summary-label">Avg Transaction</div>
-                        <div class="insights-summary-value" id="insightsAvgTx">$0</div>
-                    </div>
-                </div>
-                
-                <!-- Spending by Category -->
-                <div class="insights-section">
-                    <h3 class="insights-section-title">Spending by Category</h3>
-                    <div class="insights-categories" id="insightsCategories">
-                        <!-- Categories populated dynamically -->
-                    </div>
-                </div>
-                
-                <!-- Top Merchants -->
-                <div class="insights-section">
-                    <h3 class="insights-section-title">Top Merchants</h3>
-                    <div class="insights-merchants" id="insightsMerchants">
-                        <!-- Merchants populated dynamically -->
-                    </div>
-                </div>
-                
-                <!-- Spending Trend -->
-                <div class="insights-section">
-                    <h3 class="insights-section-title">Recent Activity</h3>
-                    <div class="insights-trend" id="insightsTrend">
-                        <!-- Trend chart populated dynamically -->
-                    </div>
                 </div>
             </div>
         </div>
