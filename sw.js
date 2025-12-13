@@ -86,7 +86,11 @@ self.addEventListener('fetch', (event) => {
                     .catch(() => {
                         // Network failed, try cache
                         console.log('[SW] Network failed, serving crypto prices from cache');
-                        return cache.match(event.request);
+                        return cache.match(event.request).then((cached) => {
+                            return cached || new Response(JSON.stringify({}), {
+                                headers: {'Content-Type': 'application/json'}
+                            });
+                        });
                     });
             })
         );
@@ -97,7 +101,23 @@ self.addEventListener('fetch', (event) => {
     if (url.pathname.includes('version.json')) {
         event.respondWith(
             fetch(event.request)
-                .catch(() => caches.match(event.request))
+                .then((response) => {
+                    // Cache for offline use
+                    if (response.ok) {
+                        const responseClone = response.clone();
+                        caches.open(DATA_CACHE_NAME).then((cache) => {
+                            cache.put(event.request, responseClone);
+                        });
+                    }
+                    return response;
+                })
+                .catch(() => {
+                    return caches.match(event.request).then((cached) => {
+                        return cached || new Response(JSON.stringify({commit: 'offline', build: 0, date: 'N/A'}), {
+                            headers: {'Content-Type': 'application/json'}
+                        });
+                    });
+                })
         );
         return;
     }
@@ -108,10 +128,18 @@ self.addEventListener('fetch', (event) => {
             caches.open(DATA_CACHE_NAME).then((cache) => {
                 return fetch(event.request)
                     .then((response) => {
-                        cache.put(event.request, response.clone());
+                        if (response.ok) {
+                            cache.put(event.request, response.clone());
+                        }
                         return response;
                     })
-                    .catch(() => cache.match(event.request));
+                    .catch(() => {
+                        return cache.match(event.request).then((cached) => {
+                            return cached || new Response('// Offline - config unavailable', {
+                                headers: {'Content-Type': 'application/javascript'}
+                            });
+                        });
+                    });
             })
         );
         return;
@@ -148,8 +176,11 @@ self.addEventListener('fetch', (event) => {
             .catch(() => {
                 // Offline fallback for navigation requests
                 if (event.request.mode === 'navigate') {
-                    return caches.match('/index.html');
+                    return caches.match('/index.html').then((cached) => {
+                        return cached || new Response('Offline', {status: 503});
+                    });
                 }
+                return new Response('Offline', {status: 503});
             })
     );
 });
