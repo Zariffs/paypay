@@ -183,7 +183,6 @@ body {
     width: 100%;
     min-height: 100vh;
     overflow: hidden;
-    perspective: 1200px;
     scrollbar-width: none;
     -ms-overflow-style: none;
 }
@@ -201,8 +200,7 @@ body {
     opacity: 0;
     visibility: hidden;
     pointer-events: none;
-    transform: translateX(0) translateZ(0);
-    transform-origin: center center;
+    transform: translateX(0);
     overflow-x: hidden;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
@@ -221,74 +219,24 @@ body {
     opacity: 1;
     visibility: visible;
     pointer-events: auto;
-    transform: translateX(0) translateZ(0);
+    transform: translateX(0);
 }
 
-/* Morphing Page Transitions */
-.page.transitioning-out {
+/* Swiping state - pages side by side like Instagram */
+.pages-container.swiping .page {
     position: absolute;
     visibility: visible;
-    transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1),
-                opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1),
-                filter 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    opacity: 1;
+    transition: none;
 }
 
-.page.transitioning-in {
+.pages-container.swiping .page.active {
     position: absolute;
-    visibility: visible;
-    transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1),
-                opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1),
-                filter 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Forward navigation (going right) */
-.page.transitioning-out.morph-forward {
-    transform: translateX(0) scale(1);
-    opacity: 1;
-    filter: blur(0);
-}
-
-.page.transitioning-out.morph-forward.out {
-    transform: translateX(-25%) scale(0.92);
-    opacity: 0;
-    filter: blur(8px);
-}
-
-.page.transitioning-in.morph-forward {
-    transform: translateX(100%) scale(0.92);
-    opacity: 0;
-    filter: blur(8px);
-}
-
-.page.transitioning-in.morph-forward.in {
-    transform: translateX(0) scale(1);
-    opacity: 1;
-    filter: blur(0);
-}
-
-/* Backward navigation (going left) */
-.page.transitioning-out.morph-backward {
-    transform: translateX(0) scale(1);
-    opacity: 1;
-    filter: blur(0);
-}
-
-.page.transitioning-out.morph-backward.out {
-    transform: translateX(25%) scale(0.92);
-    opacity: 0;
-    filter: blur(8px);
-}
-
-.page.transitioning-in.morph-backward {
-    transform: translateX(-100%) scale(0.92);
-    opacity: 0;
-    filter: blur(8px);
-}
-
-.page.transitioning-in.morph-backward.in {
-    transform: translateX(0) scale(1);
-    opacity: 1;
-    filter: blur(0);
+/* Snap back animation after swipe */
+.pages-container.snapping .page {
+    transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
 /* Page-specific styles for loaded content */
@@ -1283,13 +1231,15 @@ body {
     -webkit-backdrop-filter: blur(4px);
     opacity: 0;
     visibility: hidden;
+    pointer-events: none;
     transition: opacity 0.3s ease, visibility 0.3s ease;
-    z-index: 998;
+    z-index: 1001;
 }
 
 .drawer-overlay.active {
     opacity: 1;
     visibility: visible;
+    pointer-events: auto;
 }
 
 .card-drawer {
@@ -1303,7 +1253,7 @@ body {
     border-top-right-radius: 24px;
     transform: translateY(100%);
     transition: transform 0.4s cubic-bezier(0.32, 0.72, 0, 1);
-    z-index: 999;
+    z-index: 1002;
     overflow: hidden;
     box-shadow: 0 -10px 50px rgba(0, 0, 0, 0.5);
 }
@@ -1313,17 +1263,31 @@ body {
 }
 
 .drawer-handle {
+    width: 100%;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: grab;
+    touch-action: pan-y;
+}
+
+.drawer-handle::after {
+    content: '';
     width: 40px;
     height: 5px;
-    background: rgba(255, 255, 255, 0.3);
+    background: rgba(255, 255, 255, 0.35);
     border-radius: 3px;
-    margin: 12px auto 8px;
+}
+
+.drawer-handle:active {
+    cursor: grabbing;
 }
 
 .drawer-content {
     padding: 16px 22px 40px;
     overflow-y: auto;
-    max-height: calc(85vh - 30px);
+    max-height: calc(85vh - 40px);
 }
 
 /* Iridescent Card Container */
@@ -1334,12 +1298,8 @@ body {
     margin: 0 auto 20px;
     border-radius: 16px;
     overflow: visible;
-    box-shadow: 
-        0 20px 60px rgba(0, 0, 0, 0.4),
-        0 8px 25px rgba(0, 0, 0, 0.3);
     transform-style: preserve-3d;
     perspective: 1000px;
-    transition: transform 0.1s ease-out;
 }
 
 .drawer-card-inner {
@@ -1348,8 +1308,18 @@ body {
     border-radius: 16px;
     overflow: hidden;
     transform-style: preserve-3d;
-    transition: transform 0.15s ease-out;
+    transition: transform 0.15s ease-out, box-shadow 0.15s ease-out;
     will-change: transform;
+    box-shadow: 
+        0 20px 60px rgba(0, 0, 0, 0.4),
+        0 8px 25px rgba(0, 0, 0, 0.3);
+}
+
+/* Dynamic shadow that moves with tilt */
+.drawer-card-inner.tilting {
+    box-shadow: 
+        var(--shadow-x, 0px) var(--shadow-y, 20px) 60px rgba(0, 0, 0, 0.5),
+        var(--shadow-x2, 0px) var(--shadow-y2, 8px) 25px rgba(0, 0, 0, 0.35);
 }
 
 .drawer-card-img {
@@ -1367,22 +1337,28 @@ body {
     bottom: 0;
     background: linear-gradient(
         var(--iridescent-angle, 135deg),
-        rgba(255, 0, 128, 0.18) 0%,
-        rgba(255, 100, 0, 0.14) 15%,
-        rgba(255, 200, 0, 0.12) 30%,
-        rgba(0, 255, 100, 0.14) 45%,
-        rgba(0, 200, 255, 0.18) 60%,
-        rgba(100, 0, 255, 0.14) 75%,
-        rgba(255, 0, 200, 0.18) 90%,
-        rgba(255, 0, 128, 0.18) 100%
+        rgba(255, 0, 128, 0.22) 0%,
+        rgba(255, 100, 0, 0.18) 15%,
+        rgba(255, 200, 0, 0.15) 30%,
+        rgba(0, 255, 100, 0.18) 45%,
+        rgba(0, 200, 255, 0.22) 60%,
+        rgba(100, 0, 255, 0.18) 75%,
+        rgba(255, 0, 200, 0.22) 90%,
+        rgba(255, 0, 128, 0.22) 100%
     );
     background-size: 400% 400%;
     background-position: var(--iridescent-pos, 50% 50%);
-    animation: iridescentShift 6s ease-in-out infinite;
     mix-blend-mode: overlay;
     pointer-events: none;
     border-radius: 16px;
-    transition: background-position 0.1s ease-out;
+    transition: background-position 0.15s ease-out;
+    opacity: 0;
+}
+
+/* Only show iridescent when card is being tilted */
+.drawer-card-inner.tilting .drawer-card-iridescent {
+    opacity: 1;
+    transition: opacity 0.2s ease-out, background-position 0.15s ease-out;
 }
 
 .drawer-card-iridescent::after {
@@ -1394,11 +1370,11 @@ body {
     bottom: 0;
     background: radial-gradient(
         ellipse at var(--shine-x, 50%) var(--shine-y, 30%),
-        rgba(255, 255, 255, 0.25) 0%,
-        rgba(255, 255, 255, 0.1) 30%,
+        rgba(255, 255, 255, 0.35) 0%,
+        rgba(255, 255, 255, 0.15) 30%,
         transparent 60%
     );
-    transition: all 0.1s ease-out;
+    transition: all 0.15s ease-out;
 }
 
 .drawer-card-iridescent::before {
@@ -1411,13 +1387,13 @@ body {
     background: linear-gradient(
         45deg,
         transparent 0%,
-        rgba(255, 255, 255, 0.06) 40%,
-        rgba(255, 255, 255, 0.12) 50%,
-        rgba(255, 255, 255, 0.06) 60%,
+        rgba(255, 255, 255, 0.08) 40%,
+        rgba(255, 255, 255, 0.15) 50%,
+        rgba(255, 255, 255, 0.08) 60%,
         transparent 100%
     );
     background-size: 200% 200%;
-    animation: iridescentShift 4s ease-in-out infinite reverse;
+    background-position: var(--iridescent-pos, 50% 50%);
 }
 
 /* Card Info */

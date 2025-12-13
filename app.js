@@ -62,24 +62,20 @@ class AmexApp {
             item.addEventListener('click', (e) => {
                 e.preventDefault();
                 const target = item.getAttribute('data-target');
-                this.navigateTo(target);
+                this.navigateInstant(target);
             });
         });
     }
 
-    async navigateTo(targetPage) {
-        if (targetPage === this.currentPage || this.isTransitioning) return;
+    // Instant navigation for nav icon clicks - no animation
+    async navigateInstant(targetPage) {
+        if (targetPage === this.currentPage) return;
         
-        this.isTransitioning = true;
-
-        const pagesContainer = document.querySelector('.pages-container');
-        const currentEl = document.querySelector('.page.active');
+        // Use this.currentPage as source of truth for current element
+        const currentEl = document.querySelector(`.page[data-page="${this.currentPage}"]`);
         const targetEl = document.querySelector(`.page[data-page="${targetPage}"]`);
         
-        // Determine direction
-        const currentIndex = this.pageOrder.indexOf(this.currentPage);
-        const targetIndex = this.pageOrder.indexOf(targetPage);
-        const direction = targetIndex > currentIndex ? 'forward' : 'backward';
+        if (!currentEl || !targetEl) return;
 
         // Load page content if not cached
         if (!this.pageCache[targetPage]) {
@@ -88,37 +84,29 @@ class AmexApp {
             targetEl.innerHTML = this.pageCache[targetPage];
         }
 
-        // Re-setup touch handlers for new content
+        // Cleanup: remove active from ALL pages first
+        document.querySelectorAll('.page.active').forEach(p => p.classList.remove('active'));
+        
+        // Add active only to target
+        targetEl.classList.add('active');
+        
+        this.currentPage = targetPage;
+        
+        // Re-setup handlers
         this.setupTouchHandlers();
         this.setupCardDrawer();
-
-        // Add transition classes for the morphing effect
-        currentEl.classList.add('transitioning-out', `morph-${direction}`);
-        targetEl.classList.add('transitioning-in', `morph-${direction}`);
         
-        // Small delay to ensure classes are applied
-        requestAnimationFrame(() => {
-            requestAnimationFrame(() => {
-                currentEl.classList.add('out');
-                targetEl.classList.add('active', 'in');
-            });
-        });
-
-        // After animation completes
-        setTimeout(() => {
-            currentEl.classList.remove('active', 'transitioning-out', 'out', 'morph-forward', 'morph-backward');
-            targetEl.classList.remove('transitioning-in', 'in', 'morph-forward', 'morph-backward');
-            
-            this.currentPage = targetPage;
-            this.isTransitioning = false;
-            
-            // Scroll to top
-            targetEl.scrollTop = 0;
-            window.scrollTo(0, 0);
-        }, 500);
-
-        // Update nav active state
+        // Scroll to top
+        targetEl.scrollTop = 0;
+        window.scrollTo(0, 0);
+        
+        // Update nav
         this.updateNavState(targetPage);
+    }
+
+    // Keep old method for compatibility
+    async navigateTo(targetPage) {
+        return this.navigateInstant(targetPage);
     }
 
     async loadPage(pageName) {
@@ -225,48 +213,210 @@ class AmexApp {
         const pagesContainer = document.querySelector('.pages-container');
         if (!pagesContainer) return;
         
+        let startX = 0;
+        let startY = 0;
+        let currentX = 0;
+        let isDragging = false;
+        let direction = null;
+        let targetPage = null;
+        let currentEl = null;
+        let targetEl = null;
+        let initialDirection = null; // Lock in direction at start
+        
         pagesContainer.addEventListener('touchstart', (e) => {
             if (this.isTransitioning) return;
             
             const touch = e.touches[0];
-            this.touchStartX = touch.clientX;
-            this.touchStartY = touch.clientY;
-            this.touchStartTime = Date.now();
+            startX = touch.clientX;
+            startY = touch.clientY;
+            currentX = startX;
+            isDragging = false;
+            direction = null;
+            initialDirection = null;
+            targetPage = null;
+            // Use this.currentPage as source of truth
+            currentEl = document.querySelector(`.page[data-page="${this.currentPage}"]`);
+            targetEl = null;
+            
+            // Ensure only current page has active class (cleanup any stale active states)
+            document.querySelectorAll('.page.active').forEach(p => {
+                if (p.getAttribute('data-page') !== this.currentPage) {
+                    p.classList.remove('active');
+                }
+            });
+            // Ensure current page has active class
+            if (currentEl && !currentEl.classList.contains('active')) {
+                currentEl.classList.add('active');
+            }
+        }, { passive: true });
+        
+        pagesContainer.addEventListener('touchmove', async (e) => {
+            if (this.isTransitioning || !currentEl) return;
+            
+            const touch = e.touches[0];
+            const deltaX = touch.clientX - startX;
+            const deltaY = touch.clientY - startY;
+            currentX = touch.clientX;
+            
+            // Only start dragging if horizontal movement is dominant
+            if (!isDragging) {
+                if (Math.abs(deltaX) > 10 && Math.abs(deltaX) > Math.abs(deltaY)) {
+                    // Determine direction and target ONCE at the start
+                    const currentIndex = this.pageOrder.indexOf(this.currentPage);
+                    
+                    // Lock in direction based on initial swipe
+                    initialDirection = deltaX > 0 ? 'backward' : 'forward';
+                    
+                    if (initialDirection === 'backward' && currentIndex > 0) {
+                        // Swiping right - go to previous page
+                        direction = 'backward';
+                        targetPage = this.pageOrder[currentIndex - 1];
+                    } else if (initialDirection === 'forward' && currentIndex < this.pageOrder.length - 1) {
+                        // Swiping left - go to next page
+                        direction = 'forward';
+                        targetPage = this.pageOrder[currentIndex + 1];
+                    } else {
+                        // Can't go in this direction, don't start dragging
+                        return;
+                    }
+                    
+                    // Now we have a valid target
+                    isDragging = true;
+                    targetEl = document.querySelector(`.page[data-page="${targetPage}"]`);
+                    
+                    if (!targetEl) return;
+                    
+                    // Load content if needed
+                    if (!this.pageCache[targetPage]) {
+                        await this.loadPage(targetPage);
+                    } else {
+                        targetEl.innerHTML = this.pageCache[targetPage];
+                    }
+                    
+                    // Setup pages for swiping
+                    pagesContainer.classList.add('swiping');
+                    targetEl.classList.add('active');
+                    
+                    // Position target page to the side based on direction
+                    if (direction === 'forward') {
+                        targetEl.style.transform = 'translateX(100%)';
+                    } else {
+                        targetEl.style.transform = 'translateX(-100%)';
+                    }
+                } else {
+                    return;
+                }
+            }
+            
+            if (!isDragging || !targetEl || !direction) return;
+            
+            // Constrain movement to the valid direction
+            let constrainedDeltaX = deltaX;
+            if (direction === 'forward' && deltaX > 0) {
+                constrainedDeltaX = 0; // Don't allow swiping right when going forward
+            } else if (direction === 'backward' && deltaX < 0) {
+                constrainedDeltaX = 0; // Don't allow swiping left when going backward
+            }
+            
+            // Move both pages with finger
+            const screenWidth = window.innerWidth;
+            
+            if (direction === 'forward') {
+                // Swiping left - current goes left, target comes from right
+                currentEl.style.transform = `translateX(${constrainedDeltaX}px)`;
+                targetEl.style.transform = `translateX(${screenWidth + constrainedDeltaX}px)`;
+            } else {
+                // Swiping right - current goes right, target comes from left
+                currentEl.style.transform = `translateX(${constrainedDeltaX}px)`;
+                targetEl.style.transform = `translateX(${-screenWidth + constrainedDeltaX}px)`;
+            }
         }, { passive: true });
         
         pagesContainer.addEventListener('touchend', (e) => {
-            if (this.isTransitioning) return;
-            
-            const touch = e.changedTouches[0];
-            const deltaX = touch.clientX - this.touchStartX;
-            const deltaY = touch.clientY - this.touchStartY;
-            const deltaTime = Date.now() - this.touchStartTime;
-            
-            // Check if it's a horizontal swipe (more horizontal than vertical)
-            if (Math.abs(deltaX) < Math.abs(deltaY)) return;
-            
-            // Check if swipe started from edge
-            const screenWidth = window.innerWidth;
-            const startedFromLeftEdge = this.touchStartX < this.edgeThreshold;
-            const startedFromRightEdge = this.touchStartX > screenWidth - this.edgeThreshold;
-            
-            // Check swipe distance and speed
-            const isValidSwipe = Math.abs(deltaX) > this.swipeThreshold || 
-                                 (Math.abs(deltaX) > 40 && deltaTime < 300);
-            
-            if (!isValidSwipe) return;
-            
-            const currentIndex = this.pageOrder.indexOf(this.currentPage);
-            
-            // Swipe right from left edge = go back
-            if (startedFromLeftEdge && deltaX > 0 && currentIndex > 0) {
-                this.navigateTo(this.pageOrder[currentIndex - 1]);
+            if (!isDragging || !targetEl || !currentEl) {
+                this.resetSwipeState(pagesContainer, currentEl, targetEl);
+                isDragging = false;
+                return;
             }
-            // Swipe left from right edge = go forward
-            else if (startedFromRightEdge && deltaX < 0 && currentIndex < this.pageOrder.length - 1) {
-                this.navigateTo(this.pageOrder[currentIndex + 1]);
+            
+            const deltaX = currentX - startX;
+            const screenWidth = window.innerWidth;
+            const threshold = screenWidth * 0.3; // 30% of screen to commit
+            
+            pagesContainer.classList.remove('swiping');
+            pagesContainer.classList.add('snapping');
+            
+            // Determine if we should complete the swipe or snap back
+            const shouldComplete = (direction === 'forward' && deltaX < -threshold) ||
+                                   (direction === 'backward' && deltaX > threshold);
+            
+            if (shouldComplete && targetPage) {
+                // Complete the swipe
+                currentEl.style.transform = direction === 'forward' ? 'translateX(-100%)' : 'translateX(100%)';
+                targetEl.style.transform = 'translateX(0)';
+                
+                setTimeout(() => {
+                    currentEl.classList.remove('active');
+                    currentEl.style.transform = '';
+                    targetEl.style.transform = '';
+                    pagesContainer.classList.remove('snapping');
+                    
+                    this.currentPage = targetPage;
+                    this.updateNavState(targetPage);
+                    
+                    // Re-setup handlers
+                    this.setupTouchHandlers();
+                    this.setupCardDrawer();
+                    
+                    // Reset locals
+                    isDragging = false;
+                    direction = null;
+                    targetPage = null;
+                    targetEl = null;
+                    currentEl = null;
+                }, 300);
+            } else {
+                // Snap back
+                currentEl.style.transform = 'translateX(0)';
+                if (direction === 'forward') {
+                    targetEl.style.transform = 'translateX(100%)';
+                } else {
+                    targetEl.style.transform = 'translateX(-100%)';
+                }
+                
+                setTimeout(() => {
+                    targetEl.classList.remove('active');
+                    targetEl.style.transform = '';
+                    currentEl.style.transform = '';
+                    pagesContainer.classList.remove('snapping');
+                    
+                    // Reset locals
+                    isDragging = false;
+                    direction = null;
+                    targetPage = null;
+                    targetEl = null;
+                    currentEl = null;
+                }, 300);
             }
         }, { passive: true });
+        
+        pagesContainer.addEventListener('touchcancel', () => {
+            this.resetSwipeState(pagesContainer, currentEl, targetEl);
+            isDragging = false;
+            direction = null;
+            targetPage = null;
+            targetEl = null;
+            currentEl = null;
+        }, { passive: true });
+    }
+    
+    resetSwipeState(container, currentEl, targetEl) {
+        container?.classList.remove('swiping', 'snapping');
+        if (currentEl) currentEl.style.transform = '';
+        if (targetEl) {
+            targetEl.classList.remove('active');
+            targetEl.style.transform = '';
+        }
     }
 
     setupCardDrawer() {
@@ -290,13 +440,91 @@ class AmexApp {
             this.closeDrawer();
         });
         
-        // Close on drawer handle swipe down (simple version - just click)
+        // Setup drawer pull-down gesture
+        this.setupDrawerPullDown(drawer, overlay);
+    }
+    
+    setupDrawerPullDown(drawer, overlay) {
         const handle = drawer.querySelector('.drawer-handle');
-        if (handle) {
-            handle.addEventListener('click', () => {
+        if (!handle) return;
+        
+        let startY = 0;
+        let currentY = 0;
+        let isDragging = false;
+        const drawerHeight = window.innerHeight * 0.85; // max-height: 85vh
+        
+        // Tap to close
+        handle.addEventListener('click', (e) => {
+            if (!isDragging) {
                 this.closeDrawer();
-            });
-        }
+            }
+        });
+        
+        // Touch start
+        handle.addEventListener('touchstart', (e) => {
+            startY = e.touches[0].clientY;
+            isDragging = false;
+            drawer.style.transition = 'none';
+            overlay.style.transition = 'none';
+        }, { passive: true });
+        
+        // Touch move - drag the drawer
+        handle.addEventListener('touchmove', (e) => {
+            currentY = e.touches[0].clientY;
+            const deltaY = currentY - startY;
+            
+            // Only allow dragging down
+            if (deltaY > 5) {
+                isDragging = true;
+                
+                // Move drawer down
+                drawer.style.transform = `translateY(${deltaY}px)`;
+                
+                // Fade overlay based on how far down we've dragged
+                const progress = Math.min(deltaY / (drawerHeight * 0.4), 1);
+                const overlayOpacity = 1 - progress;
+                const blurAmount = 4 * (1 - progress);
+                
+                overlay.style.opacity = overlayOpacity;
+                overlay.style.backdropFilter = `blur(${blurAmount}px)`;
+                overlay.style.webkitBackdropFilter = `blur(${blurAmount}px)`;
+            }
+        }, { passive: true });
+        
+        // Touch end - snap closed or back open
+        handle.addEventListener('touchend', (e) => {
+            const deltaY = currentY - startY;
+            
+            // Re-enable transitions
+            drawer.style.transition = '';
+            overlay.style.transition = '';
+            
+            if (isDragging && deltaY > 80) {
+                // Dragged far enough - close
+                this.closeDrawer();
+            } else {
+                // Snap back open
+                drawer.style.transform = '';
+                overlay.style.opacity = '';
+                overlay.style.backdropFilter = '';
+                overlay.style.webkitBackdropFilter = '';
+            }
+            
+            isDragging = false;
+            startY = 0;
+            currentY = 0;
+        }, { passive: true });
+        
+        // Touch cancel
+        handle.addEventListener('touchcancel', () => {
+            drawer.style.transition = '';
+            overlay.style.transition = '';
+            drawer.style.transform = '';
+            overlay.style.opacity = '';
+            overlay.style.backdropFilter = '';
+            overlay.style.webkitBackdropFilter = '';
+            isDragging = false;
+        }, { passive: true });
     }
     
     openDrawer() {
@@ -306,6 +534,11 @@ class AmexApp {
         if (drawer && overlay) {
             drawer.classList.add('active');
             overlay.classList.add('active');
+            // Reset any inline styles from dragging
+            drawer.style.transform = '';
+            overlay.style.opacity = '';
+            overlay.style.backdropFilter = '';
+            overlay.style.webkitBackdropFilter = '';
             document.body.style.overflow = 'hidden';
             
             // Start gyroscope tilt effect
@@ -320,6 +553,11 @@ class AmexApp {
         if (drawer && overlay) {
             drawer.classList.remove('active');
             overlay.classList.remove('active');
+            // Reset any inline styles from dragging
+            drawer.style.transform = '';
+            overlay.style.opacity = '';
+            overlay.style.backdropFilter = '';
+            overlay.style.webkitBackdropFilter = '';
             document.body.style.overflow = '';
             
             // Stop gyroscope tilt effect
@@ -350,22 +588,41 @@ class AmexApp {
                     let beta = e.beta || 0;   // Front/back tilt (-180 to 180)
                     
                     // Clamp values
-                    gamma = Math.max(-30, Math.min(30, gamma));
-                    beta = Math.max(-30, Math.min(30, beta - 45)); // Offset for natural holding position
+                    gamma = Math.max(-45, Math.min(45, gamma));
+                    beta = Math.max(-45, Math.min(45, beta - 45)); // Offset for natural holding position
                     
-                    // Apply 3D transform
-                    const rotateX = beta * 0.4;
-                    const rotateY = gamma * 0.4;
+                    // Check if there's significant tilt
+                    const isTilting = Math.abs(gamma) > 2 || Math.abs(beta) > 2;
+                    
+                    if (isTilting) {
+                        cardInner.classList.add('tilting');
+                    } else {
+                        cardInner.classList.remove('tilting');
+                    }
+                    
+                    // Apply 3D transform - INCREASED sensitivity (0.8 instead of 0.4)
+                    const rotateX = beta * 0.8;
+                    const rotateY = gamma * 0.8;
                     
                     cardInner.style.transform = `rotateX(${-rotateX}deg) rotateY(${rotateY}deg)`;
                     
-                    // Move the iridescent shine
+                    // Move shadow based on tilt (opposite direction for realistic lighting)
+                    const shadowX = -gamma * 0.5;
+                    const shadowY = 20 - beta * 0.3;
+                    const shadowX2 = -gamma * 0.3;
+                    const shadowY2 = 8 - beta * 0.2;
+                    cardInner.style.setProperty('--shadow-x', `${shadowX}px`);
+                    cardInner.style.setProperty('--shadow-y', `${shadowY}px`);
+                    cardInner.style.setProperty('--shadow-x2', `${shadowX2}px`);
+                    cardInner.style.setProperty('--shadow-y2', `${shadowY2}px`);
+                    
+                    // Move the iridescent shine based on tilt
                     if (iridescent) {
-                        const shineX = 50 + gamma;
-                        const shineY = 30 + beta * 0.5;
+                        const shineX = 50 + gamma * 1.5;
+                        const shineY = 30 + beta;
                         iridescent.style.setProperty('--shine-x', `${shineX}%`);
                         iridescent.style.setProperty('--shine-y', `${shineY}%`);
-                        iridescent.style.setProperty('--iridescent-pos', `${50 + gamma}% ${50 + beta}%`);
+                        iridescent.style.setProperty('--iridescent-pos', `${50 + gamma * 2}% ${50 + beta * 2}%`);
                     }
                 };
                 
@@ -389,20 +646,36 @@ class AmexApp {
             const deltaX = (touch.clientX - centerX) / (rect.width / 2);
             const deltaY = (touch.clientY - centerY) / (rect.height / 2);
             
-            const rotateY = deltaX * 15;
-            const rotateX = -deltaY * 15;
+            // Add tilting class to show iridescent effect
+            cardInner.classList.add('tilting');
+            
+            // INCREASED rotation (25 instead of 15)
+            const rotateY = deltaX * 25;
+            const rotateX = -deltaY * 25;
             
             cardInner.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
             
+            // Move shadow based on tilt (opposite direction for realistic lighting)
+            const shadowX = -deltaX * 15;
+            const shadowY = 20 - deltaY * 10;
+            const shadowX2 = -deltaX * 8;
+            const shadowY2 = 8 - deltaY * 5;
+            cardInner.style.setProperty('--shadow-x', `${shadowX}px`);
+            cardInner.style.setProperty('--shadow-y', `${shadowY}px`);
+            cardInner.style.setProperty('--shadow-x2', `${shadowX2}px`);
+            cardInner.style.setProperty('--shadow-y2', `${shadowY2}px`);
+            
             if (iridescent) {
-                const shineX = 50 + deltaX * 30;
-                const shineY = 30 + deltaY * 20;
+                const shineX = 50 + deltaX * 50;
+                const shineY = 30 + deltaY * 40;
                 iridescent.style.setProperty('--shine-x', `${shineX}%`);
                 iridescent.style.setProperty('--shine-y', `${shineY}%`);
+                iridescent.style.setProperty('--iridescent-pos', `${50 + deltaX * 80}% ${50 + deltaY * 80}%`);
             }
         };
         
         this.touchTiltEndHandler = () => {
+            cardInner.classList.remove('tilting');
             cardInner.style.transform = 'rotateX(0deg) rotateY(0deg)';
             if (iridescent) {
                 iridescent.style.setProperty('--shine-x', '50%');
