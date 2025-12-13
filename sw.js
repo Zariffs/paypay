@@ -1,5 +1,5 @@
 // AMEX PWA Service Worker - Simple and robust caching
-const CACHE_NAME = 'amex-pwa-v2';
+const CACHE_NAME = 'amex-pwa-v3';
 
 // Static assets to cache
 const STATIC_ASSETS = [
