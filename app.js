@@ -54,6 +54,9 @@ class AmexApp {
         // Setup edge swipe navigation
         this.setupEdgeSwipe();
         
+        // Setup pull-to-refresh
+        this.setupPullToRefresh();
+        
         // Register service worker
         this.registerServiceWorker();
         
@@ -1063,6 +1066,109 @@ class AmexApp {
         const cardInner = document.querySelector('.drawer-card-inner');
         if (cardInner) {
             cardInner.style.transform = 'rotateX(0deg) rotateY(0deg)';
+        }
+    }
+    
+    setupPullToRefresh() {
+        const pages = document.querySelectorAll('.page');
+        let startY = 0;
+        let currentY = 0;
+        let isPulling = false;
+        let isRefreshing = false;
+        const pullThreshold = 80;
+        
+        pages.forEach(page => {
+            page.addEventListener('touchstart', (e) => {
+                // Only trigger when at top of scroll
+                if (page.scrollTop <= 0 && !isRefreshing) {
+                    startY = e.touches[0].clientY;
+                    isPulling = true;
+                }
+            }, { passive: true });
+            
+            page.addEventListener('touchmove', (e) => {
+                if (!isPulling || isRefreshing) return;
+                
+                currentY = e.touches[0].clientY;
+                const pullDistance = currentY - startY;
+                
+                // Only if pulling down
+                if (pullDistance > 0 && page.scrollTop <= 0) {
+                    // Show visual feedback - could add indicator here
+                }
+            }, { passive: true });
+            
+            page.addEventListener('touchend', (e) => {
+                if (!isPulling || isRefreshing) return;
+                
+                const pullDistance = currentY - startY;
+                
+                if (pullDistance > pullThreshold && page.scrollTop <= 0) {
+                    // Trigger refresh
+                    this.triggerRefresh();
+                }
+                
+                isPulling = false;
+                startY = 0;
+                currentY = 0;
+            }, { passive: true });
+        });
+    }
+    
+    async triggerRefresh() {
+        const refreshBar = document.getElementById('refreshBar');
+        const progress = refreshBar?.querySelector('.refresh-bar-progress');
+        
+        if (!refreshBar || !progress) return;
+        
+        // Show loading bar
+        refreshBar.classList.add('active');
+        
+        // Animate progress bar
+        progress.style.transition = 'none';
+        progress.style.width = '0%';
+        
+        // Force reflow
+        progress.offsetWidth;
+        
+        // Start animation - quick start, slow middle, fast finish
+        progress.style.transition = 'width 0.3s ease-out';
+        progress.style.width = '30%';
+        
+        try {
+            // Refresh data
+            await Promise.all([
+                this.updateCryptoPrices(),
+                this.loadVersion(),
+                new Promise(resolve => setTimeout(resolve, 300)) // Min visual time
+            ]);
+            
+            // Quick jump to 70%
+            progress.style.transition = 'width 0.2s ease-out';
+            progress.style.width = '70%';
+            
+            await new Promise(resolve => setTimeout(resolve, 150));
+            
+            // Complete
+            progress.style.transition = 'width 0.15s ease-out';
+            progress.style.width = '100%';
+            
+            await new Promise(resolve => setTimeout(resolve, 150));
+            
+            // Fade out
+            refreshBar.classList.add('complete');
+            
+            await new Promise(resolve => setTimeout(resolve, 400));
+            
+            // Reset
+            refreshBar.classList.remove('active', 'complete');
+            progress.style.width = '0%';
+            
+        } catch (error) {
+            console.error('Refresh failed:', error);
+            // Still hide the bar
+            refreshBar.classList.remove('active', 'complete');
+            progress.style.width = '0%';
         }
     }
 

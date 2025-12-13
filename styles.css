@@ -669,6 +669,60 @@ body {
     }
 }
 
+/* Refresh Loading Bar */
+.refresh-bar {
+    position: fixed;
+    bottom: calc(72px + env(safe-area-inset-bottom));
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: rgba(255, 255, 255, 0.05);
+    z-index: 999;
+    opacity: 0;
+    transform: scaleY(0);
+    transform-origin: bottom;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    overflow: hidden;
+}
+
+.refresh-bar.active {
+    opacity: 1;
+    transform: scaleY(1);
+}
+
+.refresh-bar.complete {
+    opacity: 0;
+    transition: opacity 0.4s ease;
+}
+
+.refresh-bar-progress {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(
+        90deg,
+        #00d4aa 0%,
+        #4a9eff 25%,
+        #a855f7 50%,
+        #4a9eff 75%,
+        #00d4aa 100%
+    );
+    background-size: 200% 100%;
+    animation: refreshGradient 1.5s ease-in-out infinite;
+    box-shadow: 
+        0 0 10px rgba(74, 158, 255, 0.5),
+        0 0 20px rgba(74, 158, 255, 0.3);
+    border-radius: 0 2px 2px 0;
+}
+
+@keyframes refreshGradient {
+    0%, 100% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+}
+
 .nav {
     position: fixed;
     bottom: 0;

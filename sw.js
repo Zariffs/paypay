@@ -66,6 +66,11 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
     const url = new URL(event.request.url);
     
+    // Skip non-http(s) requests (chrome-extension, etc.)
+    if (!url.protocol.startsWith('http')) {
+        return;
+    }
+    
     // Handle API requests (crypto prices) - network first, cache fallback
     if (url.hostname === 'api.coingecko.com') {
         event.respondWith(
@@ -129,11 +134,13 @@ self.addEventListener('fetch', (event) => {
                             return response;
                         }
                         
-                        // Cache new resources
+                        // Cache new resources (only http/https)
                         const responseToCache = response.clone();
-                        caches.open(CACHE_NAME).then((cache) => {
-                            cache.put(event.request, responseToCache);
-                        });
+                        if (event.request.url.startsWith('http')) {
+                            caches.open(CACHE_NAME).then((cache) => {
+                                cache.put(event.request, responseToCache);
+                            });
+                        }
                         
                         return response;
                     });
