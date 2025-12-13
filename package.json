@@ -1,0 +1,25 @@
+{
+  "dependencies": {
+    "canvas": "^3.2.0",
+    "sharp": "^0.34.5"
+  },
+  "name": "paypay",
+  "version": "1.0.0",
+  "description": "woah",
+  "main": "generate-icons.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Zariffs/paypay.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Zariffs/paypay/issues"
+  },
+  "homepage": "https://github.com/Zariffs/paypay#readme"
+}
