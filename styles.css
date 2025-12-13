@@ -15,6 +15,19 @@
 }
 
 /* ========================================
+   Version Footer
+   ======================================== */
+.version-footer {
+    text-align: center;
+    padding: 24px 16px 40px;
+    font-size: 11px;
+    color: var(--muted2);
+    opacity: 0.5;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
+    letter-spacing: 0.3px;
+}
+
+/* ========================================
    Base & Reset
    ======================================== */
 * {
@@ -1256,6 +1269,8 @@ body {
     z-index: 1002;
     overflow: hidden;
     box-shadow: 0 -10px 50px rgba(0, 0, 0, 0.5);
+    overscroll-behavior: contain;
+    touch-action: none;
 }
 
 .card-drawer.active {
@@ -1288,6 +1303,9 @@ body {
     padding: 16px 22px 40px;
     overflow-y: auto;
     max-height: calc(85vh - 40px);
+    overscroll-behavior: contain;
+    touch-action: pan-y;
+    -webkit-overflow-scrolling: touch;
 }
 
 /* Iridescent Card Container */
@@ -1300,6 +1318,12 @@ body {
     overflow: visible;
     transform-style: preserve-3d;
     perspective: 1000px;
+    touch-action: none;
+    cursor: grab;
+}
+
+.drawer-card-container:active {
+    cursor: grabbing;
 }
 
 .drawer-card-inner {

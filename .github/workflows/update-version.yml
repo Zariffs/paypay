@@ -1,0 +1,43 @@
+name: Update Version
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - 'version.json'
+
+jobs:
+  update-version:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Update version.json
+        run: |
+          COMMIT=$(git rev-parse --short HEAD)
+          BUILD=$(git rev-list --count HEAD)
+          DATE=$(date +%Y-%m-%d)
+          
+          cat > version.json << EOF
+          {
+            "commit": "$COMMIT",
+            "build": $BUILD,
+            "date": "$DATE"
+          }
+          EOF
+          
+          echo "Updated to v$BUILD ($COMMIT)"
+      
+      - name: Commit version update
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add version.json
+          git diff --staged --quiet || git commit -m "chore: update version to $(cat version.json | grep build | grep -o '[0-9]*')"
+          git push

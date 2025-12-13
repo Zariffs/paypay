@@ -53,6 +53,9 @@ class AmexApp {
         
         // Register service worker
         this.registerServiceWorker();
+        
+        // Load and display version
+        this.loadVersion();
     }
 
     setupNavigation() {
@@ -539,7 +542,28 @@ class AmexApp {
             overlay.style.opacity = '';
             overlay.style.backdropFilter = '';
             overlay.style.webkitBackdropFilter = '';
+            
+            // Prevent background scrolling
             document.body.style.overflow = 'hidden';
+            document.body.style.position = 'fixed';
+            document.body.style.width = '100%';
+            document.body.style.top = `-${window.scrollY}px`;
+            this.savedScrollY = window.scrollY;
+            
+            // Prevent touch events from reaching background
+            this.preventBgScroll = (e) => {
+                // Allow scrolling inside drawer content
+                const drawerContent = drawer.querySelector('.drawer-content');
+                const card = document.getElementById('tiltCard');
+                if (drawerContent?.contains(e.target) || card?.contains(e.target)) {
+                    return;
+                }
+                // Block all other touches on overlay
+                if (overlay.contains(e.target)) {
+                    e.preventDefault();
+                }
+            };
+            overlay.addEventListener('touchmove', this.preventBgScroll, { passive: false });
             
             // Start gyroscope tilt effect
             this.startGyroscopeTilt();
@@ -558,7 +582,21 @@ class AmexApp {
             overlay.style.opacity = '';
             overlay.style.backdropFilter = '';
             overlay.style.webkitBackdropFilter = '';
+            
+            // Restore background scrolling
             document.body.style.overflow = '';
+            document.body.style.position = '';
+            document.body.style.width = '';
+            document.body.style.top = '';
+            if (this.savedScrollY !== undefined) {
+                window.scrollTo(0, this.savedScrollY);
+            }
+            
+            // Remove touch prevention listener
+            if (this.preventBgScroll) {
+                overlay.removeEventListener('touchmove', this.preventBgScroll);
+                this.preventBgScroll = null;
+            }
             
             // Stop gyroscope tilt effect
             this.stopGyroscopeTilt();
@@ -635,7 +673,16 @@ class AmexApp {
     }
     
     setupTouchTilt(card, cardInner, iridescent) {
+        let isTouchingCard = false;
+        
+        // Only start tilt when touching the card
+        card.addEventListener('touchstart', (e) => {
+            isTouchingCard = true;
+            e.stopPropagation();
+        }, { passive: true });
+        
         this.touchTiltHandler = (e) => {
+            if (!isTouchingCard) return;
             if (!document.getElementById('cardDrawer')?.classList.contains('active')) return;
             
             const touch = e.touches[0];
@@ -675,13 +722,23 @@ class AmexApp {
         };
         
         this.touchTiltEndHandler = () => {
+            if (!isTouchingCard) return;
+            isTouchingCard = false;
             cardInner.classList.remove('tilting');
             cardInner.style.transform = 'rotateX(0deg) rotateY(0deg)';
+            // Reset shadow
+            cardInner.style.setProperty('--shadow-x', '0px');
+            cardInner.style.setProperty('--shadow-y', '20px');
+            cardInner.style.setProperty('--shadow-x2', '0px');
+            cardInner.style.setProperty('--shadow-y2', '8px');
             if (iridescent) {
                 iridescent.style.setProperty('--shine-x', '50%');
                 iridescent.style.setProperty('--shine-y', '30%');
             }
         };
+        
+        // Store reference for cleanup
+        this.cardTouchStartHandler = () => { isTouchingCard = true; };
         
         document.addEventListener('touchmove', this.touchTiltHandler, { passive: true });
         document.addEventListener('touchend', this.touchTiltEndHandler, { passive: true });
@@ -711,6 +768,30 @@ class AmexApp {
             navigator.serviceWorker.register('sw.js').catch(err => {
                 console.log('SW registration failed:', err);
             });
+        }
+    }
+
+    async loadVersion() {
+        try {
+            // Add cache-busting to ensure fresh version
+            const response = await fetch(`version.json?t=${Date.now()}`);
+            if (response.ok) {
+                const version = await response.json();
+                const versionText = `v${version.build} • ${version.commit}`;
+                
+                // Update all version footers (could be multiple on different pages)
+                document.querySelectorAll('#versionFooter, .version-footer').forEach(el => {
+                    el.textContent = versionText;
+                });
+                
+                // Store version info for later page loads
+                this.versionText = versionText;
+                
+                // Console log for debugging
+                console.log(`AMEX App v${version.build} (${version.commit}) - ${version.date}`);
+            }
+        } catch (e) {
+            console.log('Version info not available');
         }
     }
 }
