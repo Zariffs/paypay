@@ -918,10 +918,10 @@ body {
     scroll-snap-type: x mandatory;
     -webkit-overflow-scrolling: touch;
     padding-bottom: 8px;
-    margin-left: -22px;
-    margin-right: -22px;
-    padding-left: 22px;
+    padding-left: 0;
     padding-right: 22px;
+    margin-left: 0;
+    margin-right: -22px;
 }
 
 .upcoming-trips::-webkit-scrollbar {
@@ -936,7 +936,10 @@ body {
     box-shadow: 0 14px 34px rgba(0,0,0,0.45);
     flex-shrink: 0;
     width: 240px;
+    height: 214px;
     scroll-snap-align: start;
+    display: flex;
+    flex-direction: column;
 }
 
 .upcoming-img {
@@ -944,10 +947,14 @@ body {
     height: 120px;
     object-fit: cover;
     display: block;
+    flex-shrink: 0;
 }
 
 .upcoming-info {
     padding: 14px 16px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
 }
 
 .upcoming-name {
@@ -1674,7 +1681,7 @@ body {
     border: 1.5px dashed rgba(255, 255, 255, 0.2);
     border-radius: 16px;
     width: 240px;
-    height: 190px;
+    height: 214px;
     flex-shrink: 0;
     display: flex;
     flex-direction: column;
@@ -1684,6 +1691,7 @@ body {
     cursor: pointer;
     transition: all 0.2s ease;
     scroll-snap-align: start;
+    box-shadow: 0 14px 34px rgba(0,0,0,0.45);
 }
 
 .add-trip-card:active {

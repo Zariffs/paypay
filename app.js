@@ -348,7 +348,7 @@ class AmexApp {
         
         pagesContainer.addEventListener('touchstart', (e) => {
             if (this.isTransitioning) return;
-            
+
             const touch = e.touches[0];
             startX = touch.clientX;
             startY = touch.clientY;
@@ -361,7 +361,11 @@ class AmexApp {
             targetPage = null;
             currentEl = document.querySelector(`.page[data-page="${this.currentPage}"]`);
             targetEl = null;
-            
+
+            // Check if touch started on a horizontally scrollable element
+            const upcomingTrips = e.target.closest('.upcoming-trips');
+            this.isScrollingHorizontalContent = upcomingTrips !== null;
+
             // Disable nav indicator transition during swipe
             if (indicator) {
                 indicator.style.transition = 'none';
@@ -370,10 +374,13 @@ class AmexApp {
         
         pagesContainer.addEventListener('touchmove', async (e) => {
             if (this.isTransitioning || !currentEl) return;
-            
+
+            // Don't trigger page swipe if scrolling horizontal content
+            if (this.isScrollingHorizontalContent) return;
+
             const touch = e.touches[0];
             const now = Date.now();
-            
+
             // Calculate velocity
             if (now - lastTime > 10) {
                 velocity = (touch.clientX - lastX) / (now - lastTime);
@@ -383,7 +390,7 @@ class AmexApp {
             const deltaX = touch.clientX - startX;
             const deltaY = touch.clientY - startY;
             const screenWidth = window.innerWidth;
-            
+
             // Determine if we should start swiping
             if (!isSwiping && Math.abs(deltaX) > 10 && Math.abs(deltaX) > Math.abs(deltaY)) {
                 const currentIndex = this.pageOrder.indexOf(this.currentPage);
@@ -446,7 +453,10 @@ class AmexApp {
             if (indicator) {
                 indicator.style.transition = '';
             }
-            
+
+            // Reset horizontal scrolling flag
+            this.isScrollingHorizontalContent = false;
+
             if (!isSwiping || !currentEl) {
                 if (currentEl) currentEl.style.opacity = '';
                 isSwiping = false;
@@ -547,6 +557,7 @@ class AmexApp {
                 targetEl.style.transition = '';
             }
             this.updateNavState(this.currentPage);
+            this.isScrollingHorizontalContent = false;
             isSwiping = false;
             direction = null;
             targetPage = null;
