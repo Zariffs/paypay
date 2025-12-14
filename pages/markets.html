@@ -1,0 +1,91 @@
+<!-- Markets Header -->
+<div class="markets-header">
+    <button class="markets-back-btn pressable" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M19 12H5M12 19l-7-7 7-7"/>
+        </svg>
+    </button>
+</div>
+
+<!-- Crypto Holdings Overview -->
+<div class="markets-holdings-overview">
+    <div class="markets-portfolio-value">
+        <div class="markets-portfolio-label">Total Portfolio Value</div>
+        <div class="markets-portfolio-amount" id="marketsPortfolioValue">$0.00</div>
+        <div class="markets-portfolio-change" id="marketsPortfolioChange">+0.00%</div>
+    </div>
+</div>
+
+<!-- Crypto Holdings List -->
+<div class="markets-holdings-list" id="marketsHoldingsList">
+    <!-- Holdings will be populated dynamically -->
+</div>
+
+<!-- Chart Modal -->
+<div class="markets-chart-modal" id="marketsChartModal" style="display: none;">
+    <div class="markets-chart-header">
+        <button class="markets-chart-close" id="marketsChartClose" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M18 6L6 18M6 6l12 12"/>
+            </svg>
+        </button>
+        <div class="markets-chart-title-section">
+            <div class="markets-chart-coin-name" id="chartCoinName">Bitcoin</div>
+            <div class="markets-chart-coin-symbol" id="chartCoinSymbol">BTC</div>
+        </div>
+        <div class="markets-chart-price-section">
+            <div class="markets-chart-current-price" id="chartCurrentPrice">$0.00</div>
+            <div class="markets-chart-price-change" id="chartPriceChange">+0.00%</div>
+        </div>
+    </div>
+
+    <!-- Timeframe Selector -->
+    <div class="markets-chart-timeframes">
+        <button class="markets-timeframe-btn" data-timeframe="1H">1H</button>
+        <button class="markets-timeframe-btn active" data-timeframe="24H">24H</button>
+        <button class="markets-timeframe-btn" data-timeframe="7D">7D</button>
+        <button class="markets-timeframe-btn" data-timeframe="30D">30D</button>
+        <button class="markets-timeframe-btn" data-timeframe="1Y">1Y</button>
+    </div>
+
+    <!-- Chart Container -->
+    <div class="markets-chart-container">
+        <canvas id="marketsChart"></canvas>
+    </div>
+
+    <!-- Stats Grid -->
+    <div class="markets-chart-stats">
+        <div class="markets-stat-item">
+            <div class="markets-stat-label">24h High</div>
+            <div class="markets-stat-value" id="stat24hHigh">$0.00</div>
+        </div>
+        <div class="markets-stat-item">
+            <div class="markets-stat-label">24h Low</div>
+            <div class="markets-stat-value" id="stat24hLow">$0.00</div>
+        </div>
+        <div class="markets-stat-item">
+            <div class="markets-stat-label">Market Cap</div>
+            <div class="markets-stat-value" id="statMarketCap">$0.00</div>
+        </div>
+        <div class="markets-stat-item">
+            <div class="markets-stat-label">24h Volume</div>
+            <div class="markets-stat-value" id="stat24hVolume">$0.00</div>
+        </div>
+    </div>
+
+    <!-- Buy/Sell Actions -->
+    <div class="markets-chart-actions">
+        <button class="markets-action-btn markets-buy-btn" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 5V19M12 5L6 11M12 5L18 11" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span>Buy</span>
+        </button>
+        <button class="markets-action-btn markets-sell-btn" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 19V5M12 19L6 13M12 19L18 13" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span>Sell</span>
+        </button>
+    </div>
+</div>

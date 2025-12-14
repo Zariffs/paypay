@@ -31,7 +31,7 @@ class AmexApp {
 
     async setup() {
         // Populate home page from userConfig
-        this.populateHomePage();
+        await this.populateHomePage();
         
         // Cache home page content (already loaded)
         const homePage = document.querySelector('.page[data-page="home"]');
@@ -118,9 +118,58 @@ class AmexApp {
         }
     }
     
-    populateHomePage() {
+    async calculateCryptoBalance() {
+        // Initialize markets manager if not already initialized
+        if (!this.marketsManager) {
+            this.marketsManager = {
+                holdings: userConfig.cards.cryptojade.holdings.map(h => ({...h})),
+                priceCache: { data: null, timestamp: 0 },
+                sparklineCache: {},
+                cacheDuration: 30000,
+                coinCapIds: {
+                    'BTC': 'bitcoin',
+                    'ETH': 'ethereum',
+                    'SOL': 'solana',
+                    'XRP': 'xrp',
+                    'ADA': 'cardano',
+                    'DOGE': 'dogecoin'
+                },
+                coinIcons: {
+                    'BTC': 'https://raw.githubusercontent.com/spothq/cryptocurrency-icons/master/svg/color/btc.svg',
+                    'ETH': 'https://raw.githubusercontent.com/spothq/cryptocurrency-icons/master/svg/color/eth.svg',
+                    'SOL': 'https://raw.githubusercontent.com/spothq/cryptocurrency-icons/master/svg/color/sol.svg',
+                    'XRP': 'https://raw.githubusercontent.com/spothq/cryptocurrency-icons/master/svg/color/xrp.svg',
+                    'ADA': 'https://raw.githubusercontent.com/spothq/cryptocurrency-icons/master/svg/color/ada.svg',
+                    'DOGE': 'https://raw.githubusercontent.com/spothq/cryptocurrency-icons/master/svg/color/doge.svg'
+                }
+            };
+        }
+
+        // Fetch current prices
+        let prices;
+        try {
+            prices = await this.fetchMarketsPrices();
+        } catch (e) {
+            prices = this.getFallbackPrices();
+        }
+
+        // Calculate total value
+        let totalValue = 0;
+        this.marketsManager.holdings.forEach(holding => {
+            const coinId = this.marketsManager.coinCapIds[holding.symbol];
+            const priceData = prices[coinId];
+            if (priceData) {
+                const valueUSD = holding.amount * priceData.price;
+                totalValue += valueUSD;
+            }
+        });
+
+        return `$${totalValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    }
+
+    async populateHomePage() {
         if (typeof userConfig === 'undefined') return;
-        
+
         // Populate current date
         const dateEl = document.getElementById('currentDate');
         if (dateEl) {
@@ -130,23 +179,34 @@ class AmexApp {
             dateEl.textContent = `${days[now.getDay()]}, ${months[now.getMonth()]} ${now.getDate()}`;
             console.log(dateEl.textContent);
         }
-        
+
         // Populate accounts
         const accountsContainer = document.getElementById('accountsContainer');
         if (accountsContainer && userConfig.cards) {
             const cards = Object.values(userConfig.cards);
+
+            // Calculate crypto card balance dynamically
+            const cryptoCard = cards.find(card => card.isCrypto);
+            if (cryptoCard) {
+                const cryptoBalance = await this.calculateCryptoBalance();
+                cryptoCard.displayBalance = cryptoBalance;
+            }
+
             accountsContainer.innerHTML = cards.map((card, index) => `
                 ${index > 0 ? '<div class="account-divider"></div>' : ''}
                 <div class="account" data-card="${card.id}">
                     <div class="account-top">
                         <img class="account-card" src="${card.image}" alt="" aria-hidden="true">
                         <div>
-                            <div class="account-balance">${card.balance}</div>
+                            <div class="account-balance">${card.isCrypto && card.displayBalance ? card.displayBalance : card.balance}</div>
                             <div class="account-sub">${card.name} (•••${card.lastFour})</div>
                         </div>
                     </div>
                 </div>
             `).join('');
+
+            // Re-setup card drawer after DOM update
+            this.setupCardDrawer();
         }
         
         // Populate rewards points
@@ -211,6 +271,11 @@ class AmexApp {
         // Repopulate home page if navigating to it
         if (targetPage === 'home') {
             this.populateHomePage();
+        }
+
+        // Initialize markets page if navigating to it
+        if (targetPage === 'markets') {
+            this.initializeMarketsPage();
         }
 
         // Cleanup: remove active from ALL pages first
@@ -286,7 +351,7 @@ class AmexApp {
     }
 
     setupTouchHandlers() {
-        const pressableButtons = document.querySelectorAll('.section-plus, .rewards-btn, .insights-link, .offer-add-btn, .offer-action, .action-card, .menu-item');
+        const pressableButtons = document.querySelectorAll('.section-plus, .rewards-btn, .insights-link, .offer-add-btn, .offer-action, .action-card, .menu-item, .pressable');
         
         pressableButtons.forEach(btn => {
             // Clone to remove all existing listeners
@@ -358,7 +423,7 @@ class AmexApp {
         const velocityThreshold = 0.5; // pixels per millisecond for quick swipe
         
         pagesContainer.addEventListener('touchstart', (e) => {
-            if (this.isTransitioning) return;
+            if (this.isTransitioning || this.disableEdgeSwipe) return;
 
             const touch = e.touches[0];
             startX = touch.clientX;
@@ -385,7 +450,7 @@ class AmexApp {
         }, { passive: true });
         
         pagesContainer.addEventListener('touchmove', async (e) => {
-            if (this.isTransitioning || !currentEl) return;
+            if (this.isTransitioning || !currentEl || this.disableEdgeSwipe) return;
 
             // Don't trigger page swipe if scrolling horizontal content
             if (this.isScrollingHorizontalContent) return;
@@ -670,7 +735,20 @@ class AmexApp {
         overlay.addEventListener('click', () => {
             this.closeDrawer();
         });
-        
+
+        // Setup markets button
+        const marketsBtn = document.querySelector('.markets-btn');
+        if (marketsBtn) {
+            // Remove old listener by cloning
+            const newMarketsBtn = marketsBtn.cloneNode(true);
+            marketsBtn.parentNode.replaceChild(newMarketsBtn, marketsBtn);
+
+            newMarketsBtn.addEventListener('click', () => {
+                this.closeDrawer();
+                this.openMarketsPage();
+            });
+        }
+
         // Setup drawer pull-down gesture
         this.setupDrawerPullDown(drawer, overlay);
     }
@@ -810,33 +888,28 @@ class AmexApp {
             }
         }
         
-        // Update section title and list based on card type
-        const sectionTitle = document.querySelector('.drawer-section-title');
+        // Show/hide crypto holdings section and transactions section
+        const cryptoHoldingsSection = document.querySelector('.drawer-crypto-holdings');
+        const transactionsHeader = document.querySelector('.drawer-transactions-header');
         const transactionsList = document.querySelector('.transactions-list');
-        
+
         if (card.isCrypto && card.holdings) {
-            // Show crypto holdings
-            if (sectionTitle) sectionTitle.textContent = 'Holdings';
-            if (transactionsList) {
-                transactionsList.innerHTML = card.holdings.map(holding => `
-                    <div class="transaction-item crypto-holding">
-                        <div class="transaction-icon crypto-icon">
-                            <span>${holding.icon}</span>
-                        </div>
-                        <div class="transaction-details">
-                            <div class="transaction-name">${holding.name}</div>
-                            <div class="transaction-date">${holding.amount.toLocaleString()} ${holding.symbol}</div>
-                        </div>
-                        <div class="crypto-value">
-                            <div class="transaction-amount">$${(holding.valueUSD || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
-                            <div class="crypto-price">@$${(holding.price || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
-                        </div>
-                    </div>
-                `).join('');
-            }
-        } else if (transactionsList && card.transactions) {
+            // Show crypto holdings, hide transactions
+            if (cryptoHoldingsSection) cryptoHoldingsSection.style.display = 'block';
+            if (transactionsHeader) transactionsHeader.style.display = 'none';
+            if (transactionsList) transactionsList.style.display = 'none';
+
+            // Load and render crypto holdings with live data
+            this.loadDrawerCryptoHoldings(card);
+        } else {
+            // Hide crypto holdings, show transactions
+            if (cryptoHoldingsSection) cryptoHoldingsSection.style.display = 'none';
+            if (transactionsHeader) transactionsHeader.style.display = 'flex';
+            if (transactionsList) transactionsList.style.display = 'flex';
+        }
+
+        if (transactionsList && card.transactions && !card.isCrypto) {
             // Show regular transactions
-            if (sectionTitle) sectionTitle.textContent = 'Recent Transactions';
             transactionsList.innerHTML = card.transactions.map(tx => `
                 <div class="transaction-item">
                     <div class="transaction-icon">
@@ -851,7 +924,204 @@ class AmexApp {
             `).join('');
         }
     }
-    
+
+    async loadDrawerCryptoHoldings(card) {
+        const holdingsList = document.getElementById('drawerCryptoList');
+        if (!holdingsList || !card.holdings) return;
+
+        // Initialize markets manager if needed
+        if (!this.marketsManager) {
+            this.marketsManager = {
+                holdings: card.holdings.map(h => ({...h})),
+                priceCache: { data: null, timestamp: 0 },
+                sparklineCache: {},
+                cacheDuration: 10000, // 10 second cache for fast updates
+                coinCapIds: {
+                    'BTC': 'bitcoin',
+                    'ETH': 'ethereum',
+                    'SOL': 'solana',
+                    'XRP': 'xrp',
+                    'ADA': 'cardano',
+                    'DOGE': 'dogecoin'
+                },
+                coinIcons: {
+                    'BTC': 'https://raw.githubusercontent.com/spothq/cryptocurrency-icons/master/svg/color/btc.svg',
+                    'ETH': 'https://raw.githubusercontent.com/spothq/cryptocurrency-icons/master/svg/color/eth.svg',
+                    'SOL': 'https://raw.githubusercontent.com/spothq/cryptocurrency-icons/master/svg/color/sol.svg',
+                    'XRP': 'https://raw.githubusercontent.com/spothq/cryptocurrency-icons/master/svg/color/xrp.svg',
+                    'ADA': 'https://raw.githubusercontent.com/spothq/cryptocurrency-icons/master/svg/color/ada.svg',
+                    'DOGE': 'https://raw.githubusercontent.com/spothq/cryptocurrency-icons/master/svg/color/doge.svg'
+                }
+            };
+        }
+
+        // Fetch prices and render
+        await this.updateDrawerCryptoHoldings();
+
+        // Set up auto-refresh every 10 seconds
+        if (this.cryptoUpdateInterval) {
+            clearInterval(this.cryptoUpdateInterval);
+        }
+        this.cryptoUpdateInterval = setInterval(() => {
+            this.updateDrawerCryptoHoldings();
+        }, 10000);
+    }
+
+    async updateDrawerCryptoHoldings() {
+        const holdingsList = document.getElementById('drawerCryptoList');
+        if (!holdingsList || !this.marketsManager) return;
+
+        // Fetch current prices
+        let prices;
+        try {
+            prices = await this.fetchMarketsPrices();
+        } catch (e) {
+            prices = this.getFallbackPrices();
+        }
+
+        // Update holdings with prices
+        this.marketsManager.holdings.forEach(holding => {
+            const coinId = this.marketsManager.coinCapIds[holding.symbol];
+            const priceData = prices[coinId];
+            if (priceData) {
+                holding.price = priceData.price;
+                holding.change24h = priceData.change24h || 0;
+                holding.valueUSD = holding.amount * priceData.price;
+            }
+        });
+
+        // Render holdings
+        this.renderDrawerCryptoHoldings();
+
+        // Update portfolio value in drawer
+        const balanceAmount = document.querySelector('.drawer-balance-amount');
+        const availableRow = document.querySelector('.drawer-balance-available');
+        if (balanceAmount) {
+            const totalValue = this.marketsManager.holdings.reduce((sum, h) => sum + (h.valueUSD || 0), 0);
+            balanceAmount.textContent = `$${totalValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+            // Calculate weighted average change
+            let weightedChange = 0;
+            this.marketsManager.holdings.forEach(holding => {
+                const weight = (holding.valueUSD || 0) / totalValue;
+                weightedChange += (holding.change24h || 0) * weight;
+            });
+
+            if (availableRow) {
+                const changeClass = weightedChange >= 0 ? '' : 'negative';
+                const changeSymbol = weightedChange >= 0 ? '+' : '';
+                availableRow.innerHTML = `
+                    <span class="available-label">24h Change</span>
+                    <span class="available-amount ${changeClass}">${changeSymbol}${weightedChange.toFixed(2)}%</span>
+                `;
+            }
+        }
+    }
+
+    renderDrawerCryptoHoldings() {
+        const holdingsList = document.getElementById('drawerCryptoList');
+        if (!holdingsList || !this.marketsManager) return;
+
+        const holdingsHTML = this.marketsManager.holdings.map(holding => {
+            const changeClass = (holding.change24h || 0) >= 0 ? '' : 'negative';
+            const changeSymbol = (holding.change24h || 0) >= 0 ? '+' : '';
+            const iconUrl = this.marketsManager.coinIcons[holding.symbol] || '';
+
+            return `
+                <div class="drawer-crypto-item">
+                    <div class="drawer-crypto-icon">
+                        <img src="${iconUrl}" alt="${holding.symbol}" onerror="this.style.display='none'; this.parentElement.textContent='${holding.icon}'">
+                    </div>
+                    <div class="drawer-crypto-info">
+                        <div class="drawer-crypto-name">${holding.name}</div>
+                        <div class="drawer-crypto-amount">${holding.amount.toLocaleString()} ${holding.symbol}</div>
+                    </div>
+                    <div class="drawer-crypto-price-info">
+                        <div class="drawer-crypto-price">$${(holding.price || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 6 })}</div>
+                        <div class="drawer-crypto-change ${changeClass}">${changeSymbol}${(holding.change24h || 0).toFixed(2)}%</div>
+                    </div>
+                    <canvas class="drawer-crypto-sparkline" data-symbol="${holding.symbol}"></canvas>
+                </div>
+            `;
+        }).join('');
+
+        holdingsList.innerHTML = holdingsHTML;
+
+        // Render sparklines after DOM update
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+                this.marketsManager.holdings.forEach(holding => {
+                    this.renderDrawerSparkline(holding);
+                });
+            });
+        });
+    }
+
+    async renderDrawerSparkline(holding) {
+        const canvas = document.querySelector(`.drawer-crypto-sparkline[data-symbol="${holding.symbol}"]`);
+        if (!canvas) return;
+
+        // Generate or fetch sparkline data
+        const prices = this.generateFallbackSparkline(holding);
+        if (!prices || prices.length === 0) return;
+
+        // Wait for canvas to have dimensions
+        await new Promise(resolve => requestAnimationFrame(resolve));
+
+        const ctx = canvas.getContext('2d');
+        const dpr = window.devicePixelRatio || 1;
+        const width = canvas.offsetWidth || canvas.parentElement.offsetWidth || 300;
+        const height = canvas.offsetHeight || 40;
+
+        canvas.width = width * dpr;
+        canvas.height = height * dpr;
+        ctx.scale(dpr, dpr);
+
+        const max = Math.max(...prices);
+        const min = Math.min(...prices);
+        const range = max - min || 1;
+
+        // Determine line color based on trend
+        const isPositive = prices[prices.length - 1] >= prices[0];
+        const lineColor = isPositive ? '#00d4aa' : '#ff6b6b';
+        const fillColor = isPositive ? 'rgba(0, 212, 170, 0.1)' : 'rgba(255, 107, 107, 0.1)';
+
+        // Draw gradient fill
+        const gradient = ctx.createLinearGradient(0, 0, 0, height);
+        gradient.addColorStop(0, fillColor);
+        gradient.addColorStop(1, 'transparent');
+
+        ctx.beginPath();
+        ctx.moveTo(0, height);
+
+        prices.forEach((price, i) => {
+            const x = (i / (prices.length - 1)) * width;
+            const y = height - ((price - min) / range) * height;
+            ctx.lineTo(x, y);
+        });
+
+        ctx.lineTo(width, height);
+        ctx.closePath();
+        ctx.fillStyle = gradient;
+        ctx.fill();
+
+        // Draw line
+        ctx.beginPath();
+        prices.forEach((price, i) => {
+            const x = (i / (prices.length - 1)) * width;
+            const y = height - ((price - min) / range) * height;
+            if (i === 0) {
+                ctx.moveTo(x, y);
+            } else {
+                ctx.lineTo(x, y);
+            }
+        });
+
+        ctx.strokeStyle = lineColor;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+    }
+
     openDrawer(cardId = 'centurion') {
         // Render the drawer content for this card
         this.renderDrawerForCard(cardId);
@@ -1838,6 +2108,664 @@ class AmexApp {
             cardName.textContent = card.name;
             cardNumber.textContent = card.fullNumber;
         }
+    }
+
+    // Open Markets Page
+    async openMarketsPage() {
+        // Load markets page if not cached
+        if (!this.pageCache['markets']) {
+            await this.loadPage('markets');
+        }
+
+        const marketsPage = document.querySelector('.page[data-page="markets"]');
+        const currentPage = document.querySelector('.page.active');
+        const navbar = document.querySelector('.nav');
+
+        if (!marketsPage || !currentPage) return;
+
+        // Hide current page
+        currentPage.classList.remove('active');
+
+        // Show markets page
+        marketsPage.classList.add('active');
+        this.currentPage = 'markets';
+
+        // Hide navbar
+        if (navbar) {
+            navbar.style.display = 'none';
+        }
+
+        // Disable edge swipe navigation
+        this.disableEdgeSwipe = true;
+
+        // Initialize markets page
+        this.initializeMarketsPage();
+
+        // Setup markets back button
+        this.setupMarketsBackButton();
+    }
+
+    setupMarketsBackButton() {
+        const backBtn = document.querySelector('.markets-back-btn');
+        if (backBtn && !backBtn.dataset.listenerAdded) {
+            backBtn.dataset.listenerAdded = 'true';
+            backBtn.addEventListener('click', () => {
+                this.closeMarketsPage();
+            });
+        }
+    }
+
+    closeMarketsPage() {
+        const marketsPage = document.querySelector('.page[data-page="markets"]');
+        const homePage = document.querySelector('.page[data-page="home"]');
+        const navbar = document.querySelector('.nav');
+
+        if (marketsPage && homePage) {
+            marketsPage.classList.remove('active');
+            homePage.classList.add('active');
+            this.currentPage = 'home';
+
+            // Show navbar again
+            if (navbar) {
+                navbar.style.display = '';
+            }
+
+            // Re-enable edge swipe navigation
+            this.disableEdgeSwipe = false;
+
+            // Repopulate home page
+            this.populateHomePage();
+        }
+    }
+
+    // Markets page functionality
+    initializeMarketsPage() {
+        if (!this.marketsManager) {
+            this.marketsManager = {
+                chart: null,
+                currentCoin: null,
+                currentTimeframe: '24H',
+                holdings: [],
+                priceUpdateInterval: null,
+                chartUpdateInterval: null,
+                priceCache: {},
+                sparklineCache: {},
+                cacheDuration: 30000, // 30 second cache
+                // CoinCap API IDs (better rate limits: 200 req/min vs CoinGecko's strict limits)
+                coinCapIds: {
+                    'BTC': 'bitcoin',
+                    'ETH': 'ethereum',
+                    'SOL': 'solana',
+                    'XRP': 'xrp',
+                    'ADA': 'cardano',
+                    'DOGE': 'dogecoin'
+                },
+                coinIcons: {
+                    'BTC': 'https://raw.githubusercontent.com/spothq/cryptocurrency-icons/master/svg/color/btc.svg',
+                    'ETH': 'https://raw.githubusercontent.com/spothq/cryptocurrency-icons/master/svg/color/eth.svg',
+                    'SOL': 'https://raw.githubusercontent.com/spothq/cryptocurrency-icons/master/svg/color/sol.svg',
+                    'XRP': 'https://raw.githubusercontent.com/spothq/cryptocurrency-icons/master/svg/color/xrp.svg',
+                    'ADA': 'https://raw.githubusercontent.com/spothq/cryptocurrency-icons/master/svg/color/ada.svg',
+                    'DOGE': 'https://raw.githubusercontent.com/spothq/cryptocurrency-icons/master/svg/color/doge.svg'
+                }
+            };
+        }
+
+        // Clean up any existing intervals
+        if (this.marketsManager.priceUpdateInterval) {
+            clearInterval(this.marketsManager.priceUpdateInterval);
+        }
+        if (this.marketsManager.chartUpdateInterval) {
+            clearInterval(this.marketsManager.chartUpdateInterval);
+        }
+
+        // Get holdings from crypto card
+        const cryptoCard = userConfig.cards.cryptojade;
+        if (cryptoCard && cryptoCard.holdings) {
+            this.marketsManager.holdings = cryptoCard.holdings;
+        }
+
+        this.setupMarketsEventListeners();
+        this.loadMarketsHoldings();
+        this.startMarketsPriceUpdates();
+    }
+
+    setupMarketsEventListeners() {
+        // Chart close button
+        const chartCloseBtn = document.getElementById('marketsChartClose');
+        if (chartCloseBtn && !chartCloseBtn.dataset.listenerAdded) {
+            chartCloseBtn.dataset.listenerAdded = 'true';
+            chartCloseBtn.addEventListener('click', () => {
+                this.closeMarketsChart();
+            });
+        }
+
+        // Timeframe buttons
+        document.querySelectorAll('.markets-timeframe-btn').forEach(btn => {
+            if (!btn.dataset.listenerAdded) {
+                btn.dataset.listenerAdded = 'true';
+                btn.addEventListener('click', (e) => {
+                    document.querySelectorAll('.markets-timeframe-btn').forEach(b => b.classList.remove('active'));
+                    e.target.classList.add('active');
+                    this.marketsManager.currentTimeframe = e.target.dataset.timeframe;
+                    this.updateMarketsChart();
+                });
+            }
+        });
+    }
+
+    async loadMarketsHoldings() {
+        const holdingsList = document.getElementById('marketsHoldingsList');
+        if (!holdingsList) return;
+
+        // Initialize with fallback prices immediately for fast display
+        const fallbackPrices = this.getFallbackPrices();
+        this.renderHoldings(fallbackPrices);
+
+        // Then fetch real prices in background and update
+        const prices = await this.fetchMarketsPrices();
+        this.renderHoldings(prices);
+    }
+
+    renderHoldings(prices) {
+        let totalValue = 0;
+        const holdingsList = document.getElementById('marketsHoldingsList');
+        if (!holdingsList) return;
+
+        // Update holdings with current prices
+        const holdingsHTML = this.marketsManager.holdings.map(holding => {
+            const coinId = this.marketsManager.coinCapIds[holding.symbol];
+            const priceData = prices[coinId];
+
+            if (priceData) {
+                holding.price = priceData.price;
+                holding.change24h = priceData.change24h || 0;
+                holding.valueUSD = holding.amount * priceData.price;
+                totalValue += holding.valueUSD;
+            }
+
+            const changeClass = holding.change24h >= 0 ? '' : 'negative';
+            const changeSymbol = holding.change24h >= 0 ? '+' : '';
+
+            const iconUrl = this.marketsManager.coinIcons[holding.symbol] || '';
+
+            return `
+                <div class="markets-holding-item pressable" data-symbol="${holding.symbol}">
+                    <div class="markets-holding-icon">
+                        <img src="${iconUrl}" alt="${holding.symbol}" onerror="this.style.display='none'; this.parentElement.textContent='${holding.icon}'">
+                    </div>
+                    <div class="markets-holding-info">
+                        <div class="markets-holding-name">${holding.name}</div>
+                        <div class="markets-holding-symbol">${holding.symbol}</div>
+                    </div>
+                    <div class="markets-holding-price-info">
+                        <div class="markets-holding-price">$${holding.price?.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '0.00'}</div>
+                        <div class="markets-holding-change ${changeClass}">${changeSymbol}${holding.change24h?.toFixed(2) || '0.00'}%</div>
+                    </div>
+                    <canvas class="markets-holding-sparkline" data-symbol="${holding.symbol}"></canvas>
+                </div>
+            `;
+        }).join('');
+
+        holdingsList.innerHTML = holdingsHTML;
+
+        // Render sparklines after DOM has settled
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+                this.marketsManager.holdings.forEach(holding => {
+                    this.renderSparkline(holding);
+                });
+            });
+        });
+
+        // Update portfolio total
+        const portfolioValue = document.getElementById('marketsPortfolioValue');
+        const portfolioChange = document.getElementById('marketsPortfolioChange');
+
+        if (portfolioValue) {
+            portfolioValue.textContent = `$${totalValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        }
+
+        // Calculate weighted average change
+        let weightedChange = 0;
+        this.marketsManager.holdings.forEach(holding => {
+            const weight = holding.valueUSD / totalValue;
+            weightedChange += (holding.change24h || 0) * weight;
+        });
+
+        if (portfolioChange) {
+            const changeClass = weightedChange >= 0 ? '' : 'negative';
+            const changeSymbol = weightedChange >= 0 ? '+' : '';
+            portfolioChange.textContent = `${changeSymbol}${weightedChange.toFixed(2)}%`;
+            portfolioChange.className = `markets-portfolio-change ${changeClass}`;
+        }
+
+        // Add click listeners to holdings
+        document.querySelectorAll('.markets-holding-item').forEach(item => {
+            if (!item.dataset.listenerAdded) {
+                item.dataset.listenerAdded = 'true';
+                item.addEventListener('click', () => {
+                    const symbol = item.dataset.symbol;
+                    const holding = this.marketsManager.holdings.find(h => h.symbol === symbol);
+                    if (holding) {
+                        this.openMarketsChart(holding);
+                    }
+                });
+            }
+        });
+
+        // Re-setup touch handlers for new elements
+        this.setupTouchHandlers();
+    }
+
+    async fetchMarketsPrices() {
+        // Check cache first
+        const now = Date.now();
+        if (this.marketsManager.priceCache.data &&
+            (now - this.marketsManager.priceCache.timestamp) < this.marketsManager.cacheDuration) {
+            return this.marketsManager.priceCache.data;
+        }
+
+        // Try multiple APIs - fallback chain for reliability
+        try {
+            return await this.fetchFromBinance();
+        } catch (e1) {
+            try {
+                return await this.fetchFromCoinGecko();
+            } catch (e2) {
+                try {
+                    return await this.fetchFromCoinCap();
+                } catch (e3) {
+                    // All APIs failed - use fallback
+                    return this.marketsManager.priceCache.data || this.getFallbackPrices();
+                }
+            }
+        }
+    }
+
+    async fetchFromBinance() {
+        // Binance public API - no auth, very reliable
+        const symbols = ['BTCUSDT', 'ETHUSDT', 'SOLUSDT', 'XRPUSDT', 'ADAUSDT', 'DOGEUSDT'];
+        const coinMap = { BTCUSDT: 'bitcoin', ETHUSDT: 'ethereum', SOLUSDT: 'solana', XRPUSDT: 'xrp', ADAUSDT: 'cardano', DOGEUSDT: 'dogecoin' };
+
+        const promises = symbols.map(symbol =>
+            fetch(`https://api.binance.com/api/v3/ticker/24hr?symbol=${symbol}`)
+                .then(r => r.ok ? r.json() : null)
+        );
+
+        const results = await Promise.all(promises);
+        const data = {};
+        const now = Date.now();
+
+        results.forEach((ticker, i) => {
+            if (ticker) {
+                data[coinMap[symbols[i]]] = {
+                    price: parseFloat(ticker.lastPrice),
+                    change24h: parseFloat(ticker.priceChangePercent)
+                };
+            }
+        });
+
+        if (Object.keys(data).length > 0) {
+            this.marketsManager.priceCache = { data, timestamp: now };
+            return data;
+        }
+        throw new Error('No data');
+    }
+
+    async fetchFromCoinGecko() {
+        const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana,ripple,cardano,dogecoin&vs_currencies=usd&include_24hr_change=true');
+        if (!response.ok) throw new Error('API error');
+
+        const result = await response.json();
+        const data = {};
+        const now = Date.now();
+
+        Object.entries(result).forEach(([id, values]) => {
+            data[id === 'ripple' ? 'xrp' : id] = {
+                price: values.usd,
+                change24h: values.usd_24h_change || 0
+            };
+        });
+
+        this.marketsManager.priceCache = { data, timestamp: now };
+        return data;
+    }
+
+    async fetchFromCoinCap() {
+        const ids = 'bitcoin,ethereum,solana,xrp,cardano,dogecoin';
+        const response = await fetch(`https://api.coincap.io/v2/assets?ids=${ids}`);
+        if (!response.ok) throw new Error('API error');
+
+        const result = await response.json();
+        const data = {};
+        const now = Date.now();
+
+        if (result.data) {
+            result.data.forEach(asset => {
+                data[asset.id] = {
+                    price: parseFloat(asset.priceUsd),
+                    change24h: parseFloat(asset.changePercent24Hr)
+                };
+            });
+        }
+
+        this.marketsManager.priceCache = { data, timestamp: now };
+        return data;
+    }
+
+    getFallbackPrices() {
+        // Realistic fallback prices (updated Dec 2024)
+        return {
+            bitcoin: { price: 106000, change24h: 1.8 },
+            ethereum: { price: 4000, change24h: 2.3 },
+            solana: { price: 220, change24h: 3.5 },
+            xrp: { price: 2.45, change24h: 5.2 },
+            cardano: { price: 1.12, change24h: 4.1 },
+            dogecoin: { price: 0.42, change24h: 6.8 }
+        };
+    }
+
+    async renderSparkline(holding) {
+        const canvas = document.querySelector(`.markets-holding-sparkline[data-symbol="${holding.symbol}"]`);
+        if (!canvas) return;
+
+        const coinId = this.marketsManager.coinCapIds[holding.symbol];
+        if (!coinId) return;
+
+        // Check sparkline cache
+        const now = Date.now();
+        const cacheKey = holding.symbol;
+        let prices;
+
+        if (this.marketsManager.sparklineCache[cacheKey] &&
+            (now - this.marketsManager.sparklineCache[cacheKey].timestamp) < this.marketsManager.cacheDuration) {
+            prices = this.marketsManager.sparklineCache[cacheKey].data;
+        } else {
+            // Try different APIs for sparkline data (currently disabled due to network blocks)
+            prices = await this.fetchSparklineData();
+
+            if (prices && prices.length > 0) {
+                // Cache successful sparkline data
+                this.marketsManager.sparklineCache[cacheKey] = {
+                    data: prices,
+                    timestamp: now
+                };
+            } else {
+                prices = this.generateFallbackSparkline(holding);
+            }
+        }
+
+        if (!prices || prices.length === 0) return;
+
+        // Wait for canvas to have dimensions (fixes blank sparkline issue)
+        await new Promise(resolve => requestAnimationFrame(resolve));
+
+        const ctx = canvas.getContext('2d');
+
+        // Set canvas size - use explicit dimensions if offsetWidth is 0
+        const dpr = window.devicePixelRatio || 1;
+        const width = canvas.offsetWidth || canvas.parentElement.offsetWidth || 300;
+        const height = canvas.offsetHeight || 50;
+
+        canvas.width = width * dpr;
+        canvas.height = height * dpr;
+        ctx.scale(dpr, dpr);
+
+        const max = Math.max(...prices);
+        const min = Math.min(...prices);
+        const range = max - min || 1; // Prevent division by zero
+
+        // Determine line color based on trend
+        const isPositive = prices[prices.length - 1] >= prices[0];
+        const lineColor = isPositive ? '#00d4aa' : '#ff6b6b';
+        const fillColor = isPositive ? 'rgba(0, 212, 170, 0.1)' : 'rgba(255, 107, 107, 0.1)';
+
+        // Draw gradient fill
+        const gradient = ctx.createLinearGradient(0, 0, 0, height);
+        gradient.addColorStop(0, fillColor);
+        gradient.addColorStop(1, 'transparent');
+
+        ctx.beginPath();
+        ctx.moveTo(0, height);
+
+        prices.forEach((price, i) => {
+            const x = (i / (prices.length - 1)) * width;
+            const y = height - ((price - min) / range) * height;
+
+            if (i === 0) {
+                ctx.lineTo(x, y);
+            } else {
+                ctx.lineTo(x, y);
+            }
+        });
+
+        ctx.lineTo(width, height);
+        ctx.closePath();
+        ctx.fillStyle = gradient;
+        ctx.fill();
+
+        // Draw line
+        ctx.beginPath();
+        prices.forEach((price, i) => {
+            const x = (i / (prices.length - 1)) * width;
+            const y = height - ((price - min) / range) * height;
+
+            if (i === 0) {
+                ctx.moveTo(x, y);
+            } else {
+                ctx.lineTo(x, y);
+            }
+        });
+
+        ctx.strokeStyle = lineColor;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+    }
+
+    async fetchSparklineData() {
+        // Skip API completely - network blocks CoinCap, just use fallback generation
+        // This avoids ERR_NAME_NOT_RESOLVED errors in console
+        return null; // Triggers fallback sparkline generation
+    }
+
+    generateFallbackSparkline(holding) {
+        // Generate realistic-looking sparkline data
+        const basePrice = holding.price || 100;
+        const points = 24;
+        const prices = [];
+
+        for (let i = 0; i < points; i++) {
+            const variance = (Math.random() - 0.5) * (basePrice * 0.05);
+            const trend = (holding.change24h || 0) * (i / points) * (basePrice / 100);
+            prices.push(basePrice + variance + trend);
+        }
+
+        return prices;
+    }
+
+    async openMarketsChart(holding) {
+        this.marketsManager.currentCoin = holding;
+        const modal = document.getElementById('marketsChartModal');
+        if (!modal) return;
+
+        // Update modal header
+        document.getElementById('chartCoinName').textContent = holding.name;
+        document.getElementById('chartCoinSymbol').textContent = holding.symbol;
+        document.getElementById('chartCurrentPrice').textContent = `$${holding.price?.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '0.00'}`;
+
+        const changeClass = holding.change24h >= 0 ? '' : 'negative';
+        const changeSymbol = holding.change24h >= 0 ? '+' : '';
+        const priceChangeEl = document.getElementById('chartPriceChange');
+        priceChangeEl.textContent = `${changeSymbol}${holding.change24h?.toFixed(2) || '0.00'}%`;
+        priceChangeEl.className = `markets-chart-price-change ${changeClass}`;
+
+        // Show modal
+        modal.style.display = 'block';
+
+        // Load chart data
+        await this.updateMarketsChart();
+
+        // Start chart updates
+        this.startMarketsChartUpdates();
+    }
+
+    closeMarketsChart() {
+        const modal = document.getElementById('marketsChartModal');
+        if (modal) {
+            modal.style.display = 'none';
+        }
+
+        if (this.marketsManager.chartUpdateInterval) {
+            clearInterval(this.marketsManager.chartUpdateInterval);
+            this.marketsManager.chartUpdateInterval = null;
+        }
+
+        if (this.marketsManager.chart) {
+            this.marketsManager.chart.destroy();
+            this.marketsManager.chart = null;
+        }
+
+        this.marketsManager.currentCoin = null;
+    }
+
+    async updateMarketsChart() {
+        if (!this.marketsManager.currentCoin) return;
+
+        const geckoId = this.marketsManager.coinGeckoIds[this.marketsManager.currentCoin.symbol];
+        if (!geckoId) return;
+
+        const days = {
+            '1H': 0.04,
+            '24H': 1,
+            '7D': 7,
+            '30D': 30,
+            '1Y': 365
+        }[this.marketsManager.currentTimeframe] || 1;
+
+        try {
+            const response = await fetch(`https://api.coingecko.com/api/v3/coins/${geckoId}/market_chart?vs_currency=usd&days=${days}`);
+            const data = await response.json();
+
+            const coinResponse = await fetch(`https://api.coingecko.com/api/v3/coins/${geckoId}`);
+            const coinData = await coinResponse.json();
+
+            if (coinData.market_data) {
+                document.getElementById('stat24hHigh').textContent = `$${coinData.market_data.high_24h?.usd?.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '0.00'}`;
+                document.getElementById('stat24hLow').textContent = `$${coinData.market_data.low_24h?.usd?.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '0.00'}`;
+                document.getElementById('statMarketCap').textContent = this.formatLargeNumber(coinData.market_data.market_cap?.usd || 0);
+                document.getElementById('stat24hVolume').textContent = this.formatLargeNumber(coinData.market_data.total_volume?.usd || 0);
+            }
+
+            this.renderMarketsChart(data.prices);
+        } catch (error) {
+            console.error('Error updating chart:', error);
+        }
+    }
+
+    renderMarketsChart(priceData) {
+        const canvas = document.getElementById('marketsChart');
+        if (!canvas) return;
+
+        const ctx = canvas.getContext('2d');
+
+        if (this.marketsManager.chart) {
+            this.marketsManager.chart.destroy();
+        }
+
+        const labels = priceData.map(p => new Date(p[0]));
+        const prices = priceData.map(p => p[1]);
+
+        const isPositive = prices[prices.length - 1] >= prices[0];
+        const lineColor = isPositive ? '#00d4aa' : '#ff6b6b';
+        const gradientColor = isPositive ? 'rgba(0, 212, 170, 0.15)' : 'rgba(255, 107, 107, 0.15)';
+
+        const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+        gradient.addColorStop(0, gradientColor);
+        gradient.addColorStop(1, 'transparent');
+
+        this.marketsManager.chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: prices,
+                    borderColor: lineColor,
+                    backgroundColor: gradient,
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 0,
+                    pointHoverRadius: 4,
+                    pointHoverBackgroundColor: lineColor,
+                    pointHoverBorderColor: '#fff',
+                    pointHoverBorderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false,
+                        backgroundColor: 'rgba(15, 15, 35, 0.95)',
+                        titleColor: '#fff',
+                        bodyColor: '#fff',
+                        borderColor: 'rgba(255, 255, 255, 0.1)',
+                        borderWidth: 1,
+                        padding: 12,
+                        displayColors: false,
+                        callbacks: {
+                            label: (context) => `$${context.parsed.y.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                        }
+                    }
+                },
+                scales: {
+                    x: { display: false },
+                    y: {
+                        display: true,
+                        position: 'right',
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.05)',
+                            drawBorder: false
+                        },
+                        ticks: {
+                            color: 'rgba(255, 255, 255, 0.5)',
+                            callback: (value) => '$' + value.toLocaleString('en-US', { maximumFractionDigits: 0 }),
+                            maxTicksLimit: 5
+                        }
+                    }
+                },
+                interaction: {
+                    mode: 'nearest',
+                    axis: 'x',
+                    intersect: false
+                }
+            }
+        });
+    }
+
+    formatLargeNumber(num) {
+        if (num >= 1e9) return '$' + (num / 1e9).toFixed(2) + 'B';
+        if (num >= 1e6) return '$' + (num / 1e6).toFixed(2) + 'M';
+        if (num >= 1e3) return '$' + (num / 1e3).toFixed(2) + 'K';
+        return '$' + num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    startMarketsPriceUpdates() {
+        this.marketsManager.priceUpdateInterval = setInterval(() => {
+            if (this.currentPage === 'markets') {
+                this.loadMarketsHoldings();
+            }
+        }, 30000);
+    }
+
+    startMarketsChartUpdates() {
+        this.marketsManager.chartUpdateInterval = setInterval(() => {
+            this.updateMarketsChart();
+        }, 60000);
     }
 }
 

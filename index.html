@@ -12,6 +12,7 @@
     <link rel="apple-touch-icon" href="icons/icon-192.png">
     <link rel="icon" type="image/png" href="icons/icon-192.png">
     <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <title>AMEX</title>
 </head>
 <body>
@@ -311,7 +312,7 @@
                         </svg>
                         <span>Send</span>
                     </button>
-                    <button class="drawer-action-btn" type="button">
+                    <button class="drawer-action-btn insights-btn" type="button">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                             <path d="M4 20h16" stroke-linecap="round"/>
                             <path d="M4 20V10l4-6h8l4 6v10" stroke-linecap="round" stroke-linejoin="round"/>
@@ -320,9 +321,19 @@
                         <span>Insights</span>
                     </button>
                 </div>
-                
+
+                <!-- Crypto Holdings (for crypto card only) -->
+                <div class="drawer-crypto-holdings" style="display: none;">
+                    <div class="drawer-section-header">
+                        <div class="drawer-section-title">Holdings</div>
+                    </div>
+                    <div class="crypto-holdings-list" id="drawerCryptoList">
+                        <!-- Holdings populated dynamically -->
+                    </div>
+                </div>
+
                 <!-- Transactions -->
-                <div class="drawer-section-header">
+                <div class="drawer-section-header drawer-transactions-header">
                     <div class="drawer-section-title">Recent Transactions</div>
                     <a href="#" class="drawer-section-link">View All</a>
                 </div>
