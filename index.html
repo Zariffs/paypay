@@ -169,6 +169,9 @@
 
             <!-- ACCOUNT PAGE -->
             <div class="page" data-page="account"></div>
+
+            <!-- WALLET PAGE -->
+            <div class="page" data-page="wallet"></div>
         </div>
 
         <!-- Card Drawer Overlay -->
@@ -178,10 +181,13 @@
         <div class="modal-overlay" id="tripModalOverlay">
             <div class="modal" id="tripModal">
                 <div class="modal-header">
-                    <h2 class="modal-title">Add Trip</h2>
                     <button class="modal-close" id="closeTripModal" type="button">
-                        <svg viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M19 12H5M12 19l-7-7 7-7"/>
+                        </svg>
                     </button>
+                    <h2 class="modal-title">Add Trip</h2>
+                    <div style="width: 32px;"></div>
                 </div>
                 <div class="modal-body">
                     <div class="form-group">
@@ -202,26 +208,52 @@
                         <label class="form-label">Image URL (optional)</label>
                         <input type="text" class="form-input" id="tripImage" placeholder="https://...">
                     </div>
+
+                    <!-- Flight Details -->
                     <div class="form-group">
-                        <label class="form-label">What's included?</label>
-                        <div class="form-checkboxes">
-                            <label class="form-checkbox">
-                                <input type="checkbox" id="tripHasFlights">
-                                <span class="checkbox-icon">✈️</span>
-                                <span>Flights</span>
-                            </label>
-                            <label class="form-checkbox">
-                                <input type="checkbox" id="tripHasHotel">
-                                <span class="checkbox-icon">🏨</span>
-                                <span>Hotel</span>
-                            </label>
-                            <label class="form-checkbox">
-                                <input type="checkbox" id="tripHasCar">
-                                <span class="checkbox-icon">🚗</span>
-                                <span>Car Rental</span>
-                            </label>
+                        <label class="form-checkbox form-checkbox-section">
+                            <input type="checkbox" id="tripHasFlights">
+                            <span class="checkbox-icon">✈️</span>
+                            <span>Flight Details</span>
+                        </label>
+                        <div class="form-subsection" id="flightDetails" style="display: none;">
+                            <input type="text" class="form-input" id="tripFlightNumber" placeholder="Flight number (e.g., AA123)">
+                            <div class="form-row" style="margin-top: 8px;">
+                                <input type="time" class="form-input" id="tripDepartureTime" placeholder="Departure">
+                                <input type="time" class="form-input" id="tripArrivalTime" placeholder="Arrival">
+                            </div>
+                            <input type="text" class="form-input" id="tripAirline" placeholder="Airline" style="margin-top: 8px;">
                         </div>
                     </div>
+
+                    <!-- Hotel Details -->
+                    <div class="form-group">
+                        <label class="form-checkbox form-checkbox-section">
+                            <input type="checkbox" id="tripHasHotel">
+                            <span class="checkbox-icon">🏨</span>
+                            <span>Hotel Details</span>
+                        </label>
+                        <div class="form-subsection" id="hotelDetails" style="display: none;">
+                            <input type="text" class="form-input" id="tripHotelName" placeholder="Hotel name">
+                            <input type="text" class="form-input" id="tripHotelAddress" placeholder="Address" style="margin-top: 8px;">
+                            <input type="text" class="form-input" id="tripConfirmation" placeholder="Confirmation number" style="margin-top: 8px;">
+                        </div>
+                    </div>
+
+                    <!-- Car Rental Details -->
+                    <div class="form-group">
+                        <label class="form-checkbox form-checkbox-section">
+                            <input type="checkbox" id="tripHasCar">
+                            <span class="checkbox-icon">🚗</span>
+                            <span>Car Rental Details</span>
+                        </label>
+                        <div class="form-subsection" id="carDetails" style="display: none;">
+                            <input type="text" class="form-input" id="tripCarCompany" placeholder="Rental company">
+                            <input type="text" class="form-input" id="tripCarType" placeholder="Car type" style="margin-top: 8px;">
+                            <input type="text" class="form-input" id="tripCarConfirmation" placeholder="Confirmation number" style="margin-top: 8px;">
+                        </div>
+                    </div>
+
                     <div class="form-group">
                         <label class="form-label">Notes (optional)</label>
                         <textarea class="form-input form-textarea" id="tripNotes" placeholder="Any additional details..."></textarea>
@@ -296,6 +328,74 @@
                 </div>
                 <div class="transactions-list">
                     <!-- Transactions populated dynamically -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Trip Details Drawer -->
+        <div class="trip-drawer" id="tripDrawer">
+            <div class="drawer-handle"></div>
+            <div class="drawer-content">
+                <!-- Trip Hero Image -->
+                <div class="trip-drawer-hero">
+                    <img class="trip-drawer-img" id="tripDrawerImg" src="" alt="">
+                    <div class="trip-drawer-gradient"></div>
+                </div>
+
+                <!-- Trip Info -->
+                <div class="trip-drawer-info">
+                    <div class="trip-drawer-destination" id="tripDrawerDestination"></div>
+                    <div class="trip-drawer-dates" id="tripDrawerDates"></div>
+                </div>
+
+                <!-- Trip Details Sections -->
+                <div id="tripDrawerDetails">
+                    <!-- Flight Details -->
+                    <div class="trip-drawer-section" id="tripDrawerFlightSection" style="display: none;">
+                        <div class="trip-drawer-section-title">Flight Details</div>
+                        <div class="trip-detail-card">
+                            <div class="trip-detail-row" id="tripDrawerFlightNumber"></div>
+                            <div class="trip-detail-row" id="tripDrawerFlightTimes"></div>
+                            <div class="trip-detail-row" id="tripDrawerAirline"></div>
+                        </div>
+                    </div>
+
+                    <!-- Hotel Details -->
+                    <div class="trip-drawer-section" id="tripDrawerHotelSection" style="display: none;">
+                        <div class="trip-drawer-section-title">Hotel Details</div>
+                        <div class="trip-detail-card">
+                            <div class="trip-detail-row" id="tripDrawerHotelName"></div>
+                            <div class="trip-detail-row" id="tripDrawerHotelAddress"></div>
+                            <div class="trip-detail-row" id="tripDrawerHotelConfirmation"></div>
+                        </div>
+                    </div>
+
+                    <!-- Car Rental Details -->
+                    <div class="trip-drawer-section" id="tripDrawerCarSection" style="display: none;">
+                        <div class="trip-drawer-section-title">Car Rental Details</div>
+                        <div class="trip-detail-card">
+                            <div class="trip-detail-row" id="tripDrawerCarCompany"></div>
+                            <div class="trip-detail-row" id="tripDrawerCarType"></div>
+                            <div class="trip-detail-row" id="tripDrawerCarConfirmation"></div>
+                        </div>
+                    </div>
+
+                    <!-- Trip Notes -->
+                    <div class="trip-drawer-section" id="tripDrawerNotesSection" style="display: none;">
+                        <div class="trip-drawer-section-title">Notes</div>
+                        <div class="trip-drawer-notes" id="tripDrawerNotes"></div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="trip-drawer-actions">
+                    <button class="trip-drawer-action-btn trip-drawer-edit-btn" id="tripDrawerEditBtn" type="button">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                        </svg>
+                        <span>Edit Trip</span>
+                    </button>
                 </div>
             </div>
         </div>

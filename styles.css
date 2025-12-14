@@ -1674,6 +1674,234 @@ body {
 }
 
 /* ========================================
+   Trip Details Drawer
+   ======================================== */
+.trip-drawer {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    max-height: 85vh;
+    background: linear-gradient(180deg, #1a1a1c 0%, #0d0d0e 100%);
+    border-top-left-radius: 24px;
+    border-top-right-radius: 24px;
+    transform: translateY(100%);
+    transition: transform 0.4s cubic-bezier(0.32, 0.72, 0, 1);
+    z-index: 1002;
+    overflow: hidden;
+    box-shadow: 0 -10px 50px rgba(0, 0, 0, 0.5);
+    overscroll-behavior: contain;
+    touch-action: none;
+}
+
+.trip-drawer.active {
+    transform: translateY(0);
+}
+
+.trip-drawer-hero {
+    position: relative;
+    width: 100%;
+    height: 200px;
+    overflow: hidden;
+}
+
+.trip-drawer-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.trip-drawer-gradient {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 100px;
+    background: linear-gradient(to bottom, transparent, rgba(13, 13, 14, 0.95));
+}
+
+.trip-drawer-info {
+    padding: 0 22px 20px;
+    margin-top: -40px;
+    position: relative;
+    z-index: 1;
+}
+
+.trip-drawer-destination {
+    font-size: 28px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    margin-bottom: 6px;
+    color: var(--text);
+}
+
+.trip-drawer-dates {
+    font-size: 16px;
+    color: var(--muted);
+    font-weight: 500;
+}
+
+.trip-drawer-services {
+    display: flex;
+    gap: 12px;
+    padding: 0 22px 24px;
+}
+
+.trip-service-badge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    background: var(--card2);
+    border: 1px solid var(--stroke);
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.trip-service-badge svg {
+    width: 18px;
+    height: 18px;
+    stroke: var(--accent);
+    stroke-width: 2;
+    fill: none;
+}
+
+.trip-drawer-section {
+    padding: 0 22px 24px;
+}
+
+.trip-drawer-section-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 12px;
+}
+
+.trip-drawer-notes {
+    font-size: 15px;
+    line-height: 1.6;
+    color: rgba(255, 255, 255, 0.78);
+    background: var(--card2);
+    border: 1px solid var(--stroke);
+    border-radius: 12px;
+    padding: 14px 16px;
+}
+
+.trip-drawer-actions {
+    display: flex;
+    gap: 10px;
+    padding: 0 22px 40px;
+}
+
+.trip-drawer-action-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background: var(--card2);
+    border: 1px solid var(--stroke);
+    border-radius: 12px;
+    color: var(--text);
+    cursor: pointer;
+    padding: 14px 12px;
+    transition: all 0.2s ease;
+}
+
+.trip-drawer-action-btn:active {
+    transform: scale(0.97);
+    background: var(--card);
+}
+
+.trip-drawer-action-btn svg {
+    width: 18px;
+    height: 18px;
+    stroke: var(--text);
+    flex-shrink: 0;
+}
+
+.trip-drawer-action-btn span {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+}
+
+.trip-drawer-edit-btn {
+    background: rgba(74, 166, 255, 0.12);
+    -webkit-backdrop-filter: blur(16px) saturate(180%);
+    backdrop-filter: blur(16px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    box-shadow:
+        0 4px 16px rgba(0, 0, 0, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+    /* Release transition - smooth bounce back */
+    transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1),
+                box-shadow 0.15s ease-out,
+                background 0.15s ease-out,
+                border-color 0.15s ease-out;
+}
+
+.trip-drawer-edit-btn:active {
+    transform: scale(0.92) translateY(1px);
+    background: rgba(74, 166, 255, 0.3);
+    border-color: rgba(74, 166, 255, 0.35);
+    box-shadow:
+        0 0 28px rgba(74, 166, 255, 0.35),
+        0 2px 8px rgba(0, 0, 0, 0.25),
+        inset 0 1px 0 rgba(255, 255, 255, 0.15),
+        inset 0 0 20px rgba(74, 166, 255, 0.1);
+    /* Press-in transition - instant */
+    transition: none;
+}
+
+.trip-drawer-edit-btn svg {
+    stroke: #6bb8ff;
+}
+
+.trip-drawer-edit-btn span {
+    color: #6bb8ff;
+}
+
+.trip-detail-card {
+    background: var(--card2);
+    border: 1px solid var(--stroke);
+    border-radius: 12px;
+    padding: 14px 16px;
+}
+
+.trip-detail-row {
+    font-size: 15px;
+    line-height: 1.6;
+    color: rgba(255, 255, 255, 0.78);
+    padding: 6px 0;
+}
+
+.trip-detail-row:not(:last-child) {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.trip-detail-row strong {
+    color: var(--text);
+    font-weight: 600;
+    margin-right: 8px;
+}
+
+.form-checkbox-section {
+    width: 100%;
+    padding: 12px 16px;
+    margin-bottom: 8px;
+}
+
+.form-subsection {
+    margin-top: 12px;
+    padding-left: 0;
+}
+
+/* ========================================
    Add Trip Card
    ======================================== */
 .add-trip-card {
@@ -1759,6 +1987,226 @@ body {
 }
 
 /* ========================================
+   Wallet Page
+   ======================================== */
+
+/* Hide navbar when on wallet page */
+.page[data-page="wallet"].active ~ .nav {
+    display: none;
+}
+
+.wallet-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 22px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.wallet-back-btn {
+    width: 32px;
+    height: 32px;
+    background: transparent;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    padding: 0;
+    transition: opacity 0.2s ease;
+}
+
+.wallet-back-btn:active {
+    opacity: 0.5;
+}
+
+.wallet-back-btn svg {
+    width: 20px;
+    height: 20px;
+    stroke: var(--text);
+    stroke-width: 2;
+    fill: none;
+    stroke-linecap: round;
+}
+
+.wallet-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text);
+}
+
+.wallet-carousel-container {
+    padding: 60px 0 60px;
+    min-height: 20vh;
+    display: flex;
+    align-items: center;
+}
+
+.wallet-carousel {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    gap: 20px;
+    padding: 0 calc(50% - 140px);
+    width: 100%;
+}
+
+.wallet-carousel::-webkit-scrollbar {
+    display: none;
+}
+
+.wallet-card-wrapper {
+    flex-shrink: 0;
+    width: 280px;
+    scroll-snap-align: center;
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    will-change: transform;
+}
+
+.wallet-card {
+    width: 100%;
+    aspect-ratio: 1.586;
+    border-radius: 20px;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.wallet-card-inner {
+    width: 100%;
+    height: 100%;
+    position: relative;
+}
+
+.wallet-card-bg {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+.wallet-card-iridescent {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg,
+        rgba(255, 255, 255, 0.1) 0%,
+        rgba(255, 255, 255, 0) 50%,
+        rgba(0, 0, 0, 0.2) 100%);
+    pointer-events: none;
+}
+
+.wallet-card-gradient {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.wallet-card-gradient-gold {
+    background: linear-gradient(135deg, #d4af37 0%, #aa8c2c 100%);
+}
+
+.wallet-card-gradient-platinum {
+    background: linear-gradient(135deg, #e5e4e2 0%, #8c8c8c 100%);
+}
+
+.wallet-card-info {
+    padding: 0px 22px 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+}
+
+.wallet-card-name {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text);
+    text-align: center;
+    min-height: 28px;
+    transition: opacity 0.2s ease;
+}
+
+.wallet-card-number {
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--muted);
+    text-align: center;
+    letter-spacing: 0.5px;
+    min-height: 24px;
+    transition: opacity 0.2s ease;
+}
+
+.wallet-card-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 12px;
+    width: 100%;
+    max-width: 400px;
+}
+
+.wallet-action-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 14px 20px;
+    background: rgba(74, 166, 255, 0.12);
+    backdrop-filter: blur(16px) saturate(180%);
+    -webkit-backdrop-filter: blur(16px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 12px;
+    color: #6bb8ff;
+    cursor: pointer;
+    font-size: 15px;
+    font-weight: 600;
+    box-shadow:
+        0 4px 16px rgba(0, 0, 0, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1),
+                box-shadow 0.15s ease-out,
+                background 0.15s ease-out,
+                border-color 0.15s ease-out;
+}
+
+.wallet-action-btn:active {
+    transform: scale(0.92) translateY(1px);
+    background: rgba(74, 166, 255, 0.3);
+    border-color: rgba(74, 166, 255, 0.35);
+    box-shadow:
+        0 0 28px rgba(74, 166, 255, 0.35),
+        0 2px 8px rgba(0, 0, 0, 0.25),
+        inset 0 1px 0 rgba(255, 255, 255, 0.15),
+        inset 0 0 20px rgba(74, 166, 255, 0.1);
+    transition: none;
+}
+
+.wallet-action-btn svg {
+    width: 18px;
+    height: 18px;
+    stroke: #6bb8ff;
+    flex-shrink: 0;
+}
+
+.wallet-action-btn span {
+    color: #6bb8ff;
+}
+
+
+/* ========================================
    Modal Styles
    ======================================== */
 .modal-overlay {
@@ -1818,19 +2266,24 @@ body {
 .modal-close {
     width: 32px;
     height: 32px;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.1);
+    background: transparent;
     border: none;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
+    padding: 0;
+    transition: opacity 0.2s ease;
+}
+
+.modal-close:active {
+    opacity: 0.5;
 }
 
 .modal-close svg {
-    width: 18px;
-    height: 18px;
-    stroke: var(--muted);
+    width: 20px;
+    height: 20px;
+    stroke: var(--text);
     stroke-width: 2;
     fill: none;
     stroke-linecap: round;
@@ -1933,27 +2386,57 @@ body {
 /* Modal Buttons */
 .modal-btn {
     flex: 1;
-    padding: 16px;
-    border-radius: 14px;
-    font-size: 16px;
+    padding: 14px 24px;
+    border-radius: 12px;
+    font-size: 14px;
     font-weight: 600;
     border: none;
     cursor: pointer;
-    transition: all 0.2s ease;
+    -webkit-user-select: none;
+    user-select: none;
+    touch-action: manipulation;
+    /* Release transition - smooth bounce back */
+    transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1),
+                box-shadow 0.15s ease-out,
+                background 0.15s ease-out,
+                border-color 0.15s ease-out;
 }
 
 .modal-btn-secondary {
     background: var(--card2);
     color: var(--text);
+    border: 1px solid var(--stroke);
+}
+
+.modal-btn-secondary:active {
+    transform: scale(0.96);
+    background: var(--card);
+    transition: none;
 }
 
 .modal-btn-primary {
-    background: var(--accent);
-    color: #000;
+    background: rgba(74, 166, 255, 0.12);
+    -webkit-backdrop-filter: blur(16px) saturate(180%);
+    backdrop-filter: blur(16px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: #6bb8ff;
+    box-shadow:
+        0 4px 16px rgba(0, 0, 0, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.1);
 }
 
-.modal-btn:active {
-    transform: scale(0.98);
+.modal-btn-primary:active {
+    transform: scale(0.92) translateY(1px);
+    background: rgba(74, 166, 255, 0.3);
+    border-color: rgba(74, 166, 255, 0.35);
+    box-shadow:
+        0 0 28px rgba(74, 166, 255, 0.35),
+        0 2px 8px rgba(0, 0, 0, 0.25),
+        inset 0 1px 0 rgba(255, 255, 255, 0.15),
+        inset 0 0 20px rgba(74, 166, 255, 0.1);
+    /* Press-in transition - instant */
+    transition: none;
 }
 
 

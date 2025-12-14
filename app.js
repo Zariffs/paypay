@@ -50,10 +50,13 @@ class AmexApp {
         
         // Setup card drawer
         this.setupCardDrawer();
-        
+
+        // Setup wallet button
+        this.setupWalletButton();
+
         // Setup edge swipe navigation
         this.setupEdgeSwipe();
-        
+
         // Register service worker
         this.registerServiceWorker();
         
@@ -165,6 +168,14 @@ class AmexApp {
         const memberSinceYear = document.getElementById('memberSinceYear');
         if (memberSinceYear && userConfig.profile) {
             memberSinceYear.textContent = userConfig.profile.memberSince;
+        }
+
+        // Populate version footer if available
+        if (this.versionText) {
+            const versionFooter = document.getElementById('versionFooter');
+            if (versionFooter) {
+                versionFooter.textContent = this.versionText;
+            }
         }
     }
 
@@ -364,7 +375,8 @@ class AmexApp {
 
             // Check if touch started on a horizontally scrollable element
             const upcomingTrips = e.target.closest('.upcoming-trips');
-            this.isScrollingHorizontalContent = upcomingTrips !== null;
+            const walletCarousel = e.target.closest('.wallet-carousel');
+            this.isScrollingHorizontalContent = (upcomingTrips !== null) || (walletCarousel !== null);
 
             // Disable nav indicator transition during swipe
             if (indicator) {
@@ -499,11 +511,16 @@ class AmexApp {
                     if (_targetEl) {
                         _targetEl.style.transition = '';
                     }
-                    
+
+                    // Repopulate home page if swiping to it
+                    if (_targetPage === 'home') {
+                        this.populateHomePage();
+                    }
+
                     // Re-setup handlers
                     this.setupTouchHandlers();
                     this.setupCardDrawer();
-                    
+
                     this.isTransitioning = false;
                 }, 200);
             } else {
@@ -1129,9 +1146,9 @@ class AmexApp {
     renderTrips() {
         const container = document.getElementById('upcomingTrips');
         if (!container) return;
-        
+
         const trips = this.getTrips();
-        
+
         // Render trip cards + add button
         container.innerHTML = trips.map(trip => `
             <div class="upcoming-card" data-trip-id="${trip.id}">
@@ -1167,7 +1184,18 @@ class AmexApp {
                 <div class="add-trip-text">Add Trip</div>
             </div>
         `;
-        
+
+        // Setup trip card click handlers
+        container.querySelectorAll('.upcoming-card').forEach(card => {
+            card.addEventListener('click', (e) => {
+                // Don't open drawer if delete button was clicked
+                if (e.target.closest('.trip-delete-btn')) return;
+
+                const tripId = card.dataset.tripId;
+                this.openTripDrawer(tripId);
+            });
+        });
+
         // Setup delete handlers
         container.querySelectorAll('.trip-delete-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
@@ -1176,12 +1204,15 @@ class AmexApp {
                 this.deleteTrip(tripId);
             });
         });
-        
+
         // Setup add button handler
         const addBtn = document.getElementById('addTripBtn');
         if (addBtn) {
             addBtn.addEventListener('click', () => this.openTripModal());
         }
+
+        // Setup trip drawer handlers
+        this.setupTripDrawer();
     }
     
     deleteTrip(tripId) {
@@ -1196,38 +1227,105 @@ class AmexApp {
         const closeBtn = document.getElementById('closeTripModal');
         const cancelBtn = document.getElementById('cancelTripModal');
         const saveBtn = document.getElementById('saveTripBtn');
-        
+
         if (!overlay) return;
-        
+
         // Close handlers
         closeBtn?.addEventListener('click', () => this.closeTripModal());
         cancelBtn?.addEventListener('click', () => this.closeTripModal());
         overlay.addEventListener('click', (e) => {
             if (e.target === overlay) this.closeTripModal();
         });
-        
+
         // Save handler
         saveBtn?.addEventListener('click', () => this.saveTrip());
+
+        // Toggle subsections based on checkboxes
+        const flightCheckbox = document.getElementById('tripHasFlights');
+        const hotelCheckbox = document.getElementById('tripHasHotel');
+        const carCheckbox = document.getElementById('tripHasCar');
+
+        flightCheckbox?.addEventListener('change', (e) => {
+            document.getElementById('flightDetails').style.display = e.target.checked ? 'block' : 'none';
+        });
+
+        hotelCheckbox?.addEventListener('change', (e) => {
+            document.getElementById('hotelDetails').style.display = e.target.checked ? 'block' : 'none';
+        });
+
+        carCheckbox?.addEventListener('change', (e) => {
+            document.getElementById('carDetails').style.display = e.target.checked ? 'block' : 'none';
+        });
     }
     
-    openTripModal() {
+    openTripModal(tripToEdit = null) {
         const overlay = document.getElementById('tripModalOverlay');
+        const modalTitle = document.querySelector('#tripModal .modal-title');
+
         if (overlay) {
+            this.editingTripId = tripToEdit?.id || null;
+
+            if (tripToEdit) {
+                // Editing existing trip
+                modalTitle.textContent = 'Edit Trip';
+                this.populateTripForm(tripToEdit);
+            } else {
+                // Creating new trip
+                modalTitle.textContent = 'Add Trip';
+                // Set default dates
+                const today = new Date();
+                const nextWeek = new Date(today);
+                nextWeek.setDate(nextWeek.getDate() + 7);
+
+                document.getElementById('tripStartDate').value = today.toISOString().split('T')[0];
+                document.getElementById('tripEndDate').value = nextWeek.toISOString().split('T')[0];
+            }
+
             overlay.classList.add('active');
-            // Set default dates
-            const today = new Date();
-            const nextWeek = new Date(today);
-            nextWeek.setDate(nextWeek.getDate() + 7);
-            
-            document.getElementById('tripStartDate').value = today.toISOString().split('T')[0];
-            document.getElementById('tripEndDate').value = nextWeek.toISOString().split('T')[0];
         }
     }
-    
+
+    populateTripForm(trip) {
+        // Basic info
+        document.getElementById('tripDestination').value = trip.name || '';
+        document.getElementById('tripImage').value = trip.image || '';
+        document.getElementById('tripNotes').value = trip.notes || '';
+
+        // Dates - convert from formatted dates back to ISO if needed
+        if (trip.startDateISO) document.getElementById('tripStartDate').value = trip.startDateISO;
+        if (trip.endDateISO) document.getElementById('tripEndDate').value = trip.endDateISO;
+
+        // Flight details
+        const hasFlights = trip.hasFlights || false;
+        document.getElementById('tripHasFlights').checked = hasFlights;
+        document.getElementById('flightDetails').style.display = hasFlights ? 'block' : 'none';
+        if (trip.flightNumber) document.getElementById('tripFlightNumber').value = trip.flightNumber;
+        if (trip.departureTime) document.getElementById('tripDepartureTime').value = trip.departureTime;
+        if (trip.arrivalTime) document.getElementById('tripArrivalTime').value = trip.arrivalTime;
+        if (trip.airline) document.getElementById('tripAirline').value = trip.airline;
+
+        // Hotel details
+        const hasHotel = trip.hasHotel || false;
+        document.getElementById('tripHasHotel').checked = hasHotel;
+        document.getElementById('hotelDetails').style.display = hasHotel ? 'block' : 'none';
+        if (trip.hotelName) document.getElementById('tripHotelName').value = trip.hotelName;
+        if (trip.hotelAddress) document.getElementById('tripHotelAddress').value = trip.hotelAddress;
+        if (trip.hotelConfirmation) document.getElementById('tripConfirmation').value = trip.hotelConfirmation;
+
+        // Car rental details
+        const hasCar = trip.hasCar || false;
+        document.getElementById('tripHasCar').checked = hasCar;
+        document.getElementById('carDetails').style.display = hasCar ? 'block' : 'none';
+        if (trip.carCompany) document.getElementById('tripCarCompany').value = trip.carCompany;
+        if (trip.carType) document.getElementById('tripCarType').value = trip.carType;
+        if (trip.carConfirmation) document.getElementById('tripCarConfirmation').value = trip.carConfirmation;
+    }
+
     closeTripModal() {
         const overlay = document.getElementById('tripModalOverlay');
         if (overlay) {
             overlay.classList.remove('active');
+            this.editingTripId = null;
             // Clear form
             document.getElementById('tripDestination').value = '';
             document.getElementById('tripImage').value = '';
@@ -1235,6 +1333,25 @@ class AmexApp {
             document.getElementById('tripHasFlights').checked = false;
             document.getElementById('tripHasHotel').checked = false;
             document.getElementById('tripHasCar').checked = false;
+
+            // Clear flight details
+            document.getElementById('tripFlightNumber').value = '';
+            document.getElementById('tripDepartureTime').value = '';
+            document.getElementById('tripArrivalTime').value = '';
+            document.getElementById('tripAirline').value = '';
+            document.getElementById('flightDetails').style.display = 'none';
+
+            // Clear hotel details
+            document.getElementById('tripHotelName').value = '';
+            document.getElementById('tripHotelAddress').value = '';
+            document.getElementById('tripConfirmation').value = '';
+            document.getElementById('hotelDetails').style.display = 'none';
+
+            // Clear car details
+            document.getElementById('tripCarCompany').value = '';
+            document.getElementById('tripCarType').value = '';
+            document.getElementById('tripCarConfirmation').value = '';
+            document.getElementById('carDetails').style.display = 'none';
         }
     }
     
@@ -1243,43 +1360,484 @@ class AmexApp {
         const startDate = document.getElementById('tripStartDate').value;
         const endDate = document.getElementById('tripEndDate').value;
         const image = document.getElementById('tripImage').value.trim();
-        const hasFlights = document.getElementById('tripHasFlights').checked;
-        const hasHotel = document.getElementById('tripHasHotel').checked;
-        const hasCar = document.getElementById('tripHasCar').checked;
         const notes = document.getElementById('tripNotes').value.trim();
-        
+
         if (!destination) {
-            // Highlight the field
             document.getElementById('tripDestination').style.borderColor = '#ff6b6b';
             return;
         }
-        
+
         // Format dates nicely
         const formatDate = (dateStr) => {
             const date = new Date(dateStr);
             return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
         };
-        
-        const newTrip = {
-            id: `trip-${Date.now()}`,
+
+        // Gather flight details
+        const hasFlights = document.getElementById('tripHasFlights').checked;
+        const flightNumber = document.getElementById('tripFlightNumber').value.trim();
+        const departureTime = document.getElementById('tripDepartureTime').value;
+        const arrivalTime = document.getElementById('tripArrivalTime').value;
+        const airline = document.getElementById('tripAirline').value.trim();
+
+        // Gather hotel details
+        const hasHotel = document.getElementById('tripHasHotel').checked;
+        const hotelName = document.getElementById('tripHotelName').value.trim();
+        const hotelAddress = document.getElementById('tripHotelAddress').value.trim();
+        const hotelConfirmation = document.getElementById('tripConfirmation').value.trim();
+
+        // Gather car rental details
+        const hasCar = document.getElementById('tripHasCar').checked;
+        const carCompany = document.getElementById('tripCarCompany').value.trim();
+        const carType = document.getElementById('tripCarType').value.trim();
+        const carConfirmation = document.getElementById('tripCarConfirmation').value.trim();
+
+        const tripData = {
             name: destination,
             image: image || 'images/AMEX/italy.jpg',
             startDate: formatDate(startDate),
             endDate: formatDate(endDate),
+            startDateISO: startDate,
+            endDateISO: endDate,
             type: 'trip',
             hasFlights,
             hasHotel,
             hasCar,
             notes,
-            createdAt: new Date().toISOString()
+            // Flight details
+            flightNumber,
+            departureTime,
+            arrivalTime,
+            airline,
+            // Hotel details
+            hotelName,
+            hotelAddress,
+            hotelConfirmation,
+            // Car rental details
+            carCompany,
+            carType,
+            carConfirmation
         };
-        
+
         const trips = this.getTrips();
-        trips.push(newTrip);
+
+        if (this.editingTripId) {
+            // Update existing trip
+            const index = trips.findIndex(t => t.id === this.editingTripId);
+            if (index !== -1) {
+                trips[index] = { ...trips[index], ...tripData };
+            }
+        } else {
+            // Create new trip
+            tripData.id = `trip-${Date.now()}`;
+            tripData.createdAt = new Date().toISOString();
+            trips.push(tripData);
+        }
+
         this.saveTrips(trips);
-        
         this.closeTripModal();
         this.renderTrips();
+    }
+
+    // ========================================
+    // Trip Drawer
+    // ========================================
+
+    setupTripDrawer() {
+        const drawer = document.getElementById('tripDrawer');
+        const overlay = document.getElementById('drawerOverlay');
+
+        if (!drawer || !overlay) return;
+
+        // Setup drawer pull-down gesture
+        this.setupTripDrawerPullDown(drawer, overlay);
+    }
+
+    setupTripDrawerPullDown(drawer, overlay) {
+        const handle = drawer.querySelector('.drawer-handle');
+        if (!handle) return;
+
+        let startY = 0;
+        let currentY = 0;
+        let isDragging = false;
+        const drawerHeight = window.innerHeight * 0.85;
+
+        // Tap to close
+        handle.addEventListener('click', () => {
+            if (!isDragging) {
+                this.closeTripDrawer();
+            }
+        });
+
+        // Touch start
+        handle.addEventListener('touchstart', (e) => {
+            startY = e.touches[0].clientY;
+            isDragging = false;
+            drawer.style.transition = 'none';
+            overlay.style.transition = 'none';
+        }, { passive: true });
+
+        // Touch move
+        handle.addEventListener('touchmove', (e) => {
+            currentY = e.touches[0].clientY;
+            const deltaY = currentY - startY;
+
+            if (deltaY > 5) {
+                isDragging = true;
+                drawer.style.transform = `translateY(${deltaY}px)`;
+
+                const progress = Math.min(deltaY / (drawerHeight * 0.4), 1);
+                const overlayOpacity = 1 - progress;
+                const blurAmount = 4 * (1 - progress);
+
+                overlay.style.opacity = overlayOpacity;
+                overlay.style.backdropFilter = `blur(${blurAmount}px)`;
+                overlay.style.webkitBackdropFilter = `blur(${blurAmount}px)`;
+            }
+        }, { passive: true });
+
+        // Touch end
+        handle.addEventListener('touchend', () => {
+            const deltaY = currentY - startY;
+
+            drawer.style.transition = '';
+            overlay.style.transition = '';
+
+            if (isDragging && deltaY > 80) {
+                this.closeTripDrawer();
+            } else {
+                drawer.style.transform = '';
+                overlay.style.opacity = '';
+                overlay.style.backdropFilter = '';
+                overlay.style.webkitBackdropFilter = '';
+            }
+
+            isDragging = false;
+            startY = 0;
+            currentY = 0;
+        }, { passive: true });
+
+        // Touch cancel
+        handle.addEventListener('touchcancel', () => {
+            drawer.style.transition = '';
+            overlay.style.transition = '';
+            drawer.style.transform = '';
+            overlay.style.opacity = '';
+            overlay.style.backdropFilter = '';
+            overlay.style.webkitBackdropFilter = '';
+            isDragging = false;
+        }, { passive: true });
+    }
+
+    openTripDrawer(tripId) {
+        const trips = this.getTrips();
+        const trip = trips.find(t => t.id === tripId);
+        if (!trip) return;
+
+        const drawer = document.getElementById('tripDrawer');
+        const overlay = document.getElementById('drawerOverlay');
+
+        if (!drawer || !overlay) return;
+
+        // Store current trip ID for editing
+        this.currentTripId = tripId;
+
+        // Populate drawer with trip data
+        const tripImg = document.getElementById('tripDrawerImg');
+        const tripDestination = document.getElementById('tripDrawerDestination');
+        const tripDates = document.getElementById('tripDrawerDates');
+
+        if (tripImg) {
+            tripImg.src = trip.image || 'images/AMEX/italy.jpg';
+            tripImg.alt = trip.name;
+        }
+
+        if (tripDestination) {
+            tripDestination.textContent = trip.name;
+        }
+
+        if (tripDates) {
+            tripDates.textContent = `${trip.startDate} - ${trip.endDate}`;
+        }
+
+        // Flight Details
+        const flightSection = document.getElementById('tripDrawerFlightSection');
+        if (trip.hasFlights && (trip.flightNumber || trip.airline || trip.departureTime)) {
+            const flightDetails = [];
+            if (trip.flightNumber) flightDetails.push(`<strong>Flight:</strong> ${trip.flightNumber}`);
+            if (trip.departureTime && trip.arrivalTime) {
+                flightDetails.push(`<strong>Times:</strong> ${trip.departureTime} - ${trip.arrivalTime}`);
+            } else if (trip.departureTime) {
+                flightDetails.push(`<strong>Departure:</strong> ${trip.departureTime}`);
+            }
+            if (trip.airline) flightDetails.push(`<strong>Airline:</strong> ${trip.airline}`);
+
+            document.getElementById('tripDrawerFlightNumber').innerHTML = flightDetails[0] || '';
+            document.getElementById('tripDrawerFlightTimes').innerHTML = flightDetails[1] || '';
+            document.getElementById('tripDrawerAirline').innerHTML = flightDetails[2] || '';
+            flightSection.style.display = 'block';
+        } else {
+            flightSection.style.display = 'none';
+        }
+
+        // Hotel Details
+        const hotelSection = document.getElementById('tripDrawerHotelSection');
+        if (trip.hasHotel && (trip.hotelName || trip.hotelAddress || trip.hotelConfirmation)) {
+            const hotelDetails = [];
+            if (trip.hotelName) hotelDetails.push(`<strong>Hotel:</strong> ${trip.hotelName}`);
+            if (trip.hotelAddress) hotelDetails.push(`<strong>Address:</strong> ${trip.hotelAddress}`);
+            if (trip.hotelConfirmation) hotelDetails.push(`<strong>Confirmation:</strong> ${trip.hotelConfirmation}`);
+
+            document.getElementById('tripDrawerHotelName').innerHTML = hotelDetails[0] || '';
+            document.getElementById('tripDrawerHotelAddress').innerHTML = hotelDetails[1] || '';
+            document.getElementById('tripDrawerHotelConfirmation').innerHTML = hotelDetails[2] || '';
+            hotelSection.style.display = 'block';
+        } else {
+            hotelSection.style.display = 'none';
+        }
+
+        // Car Rental Details
+        const carSection = document.getElementById('tripDrawerCarSection');
+        if (trip.hasCar && (trip.carCompany || trip.carType || trip.carConfirmation)) {
+            const carDetails = [];
+            if (trip.carCompany) carDetails.push(`<strong>Company:</strong> ${trip.carCompany}`);
+            if (trip.carType) carDetails.push(`<strong>Vehicle:</strong> ${trip.carType}`);
+            if (trip.carConfirmation) carDetails.push(`<strong>Confirmation:</strong> ${trip.carConfirmation}`);
+
+            document.getElementById('tripDrawerCarCompany').innerHTML = carDetails[0] || '';
+            document.getElementById('tripDrawerCarType').innerHTML = carDetails[1] || '';
+            document.getElementById('tripDrawerCarConfirmation').innerHTML = carDetails[2] || '';
+            carSection.style.display = 'block';
+        } else {
+            carSection.style.display = 'none';
+        }
+
+        // Notes
+        const tripNotes = document.getElementById('tripDrawerNotes');
+        const tripNotesSection = document.getElementById('tripDrawerNotesSection');
+        if (trip.notes && trip.notes.trim()) {
+            if (tripNotes) tripNotes.textContent = trip.notes;
+            if (tripNotesSection) tripNotesSection.style.display = 'block';
+        } else {
+            if (tripNotesSection) tripNotesSection.style.display = 'none';
+        }
+
+        // Show drawer and overlay
+        drawer.classList.add('active');
+        overlay.classList.add('active');
+
+        // Reset any inline styles from dragging
+        drawer.style.transform = '';
+        overlay.style.opacity = '';
+        overlay.style.backdropFilter = '';
+        overlay.style.webkitBackdropFilter = '';
+
+        // Prevent background scrolling
+        document.body.style.overflow = 'hidden';
+        document.body.style.position = 'fixed';
+        document.body.style.width = '100%';
+        document.body.style.top = `-${window.scrollY}px`;
+        this.savedScrollY = window.scrollY;
+
+        // Close on overlay click
+        const overlayClickHandler = () => {
+            this.closeTripDrawer();
+        };
+        overlay.addEventListener('click', overlayClickHandler, { once: true });
+
+        // Setup edit button
+        const editBtn = document.getElementById('tripDrawerEditBtn');
+        if (editBtn) {
+            // Remove old listener by cloning
+            const newEditBtn = editBtn.cloneNode(true);
+            editBtn.parentNode.replaceChild(newEditBtn, editBtn);
+
+            newEditBtn.addEventListener('click', () => {
+                this.closeTripDrawer();
+                setTimeout(() => {
+                    this.openTripModal(trip);
+                }, 300);
+            });
+        }
+    }
+
+    closeTripDrawer() {
+        const drawer = document.getElementById('tripDrawer');
+        const overlay = document.getElementById('drawerOverlay');
+
+        if (drawer && overlay) {
+            drawer.classList.remove('active');
+            overlay.classList.remove('active');
+
+            // Reset any inline styles from dragging
+            drawer.style.transform = '';
+            overlay.style.opacity = '';
+            overlay.style.backdropFilter = '';
+            overlay.style.webkitBackdropFilter = '';
+
+            // Restore background scrolling
+            document.body.style.overflow = '';
+            document.body.style.position = '';
+            document.body.style.width = '';
+            document.body.style.top = '';
+            if (this.savedScrollY !== undefined) {
+                window.scrollTo(0, this.savedScrollY);
+            }
+        }
+    }
+
+    // ========================================
+    // Wallet Page
+    // ========================================
+
+    setupWalletButton() {
+        const walletBtn = document.querySelector('.top-wallet');
+        if (walletBtn) {
+            walletBtn.addEventListener('click', () => {
+                this.openWalletPage();
+            });
+        }
+    }
+
+    async openWalletPage() {
+        // Load wallet page if not cached
+        if (!this.pageCache['wallet']) {
+            await this.loadPage('wallet');
+        }
+
+        const walletPage = document.querySelector('.page[data-page="wallet"]');
+        const currentPage = document.querySelector('.page.active');
+        const navbar = document.querySelector('.nav');
+
+        if (!walletPage || !currentPage) return;
+
+        // Hide current page
+        currentPage.classList.remove('active');
+
+        // Show wallet page
+        walletPage.classList.add('active');
+        this.currentPage = 'wallet';
+
+        // Hide navbar
+        if (navbar) {
+            navbar.style.display = 'none';
+        }
+
+        // Setup wallet carousel and back button
+        this.setupWalletCarousel();
+        this.setupWalletBackButton();
+    }
+
+    setupWalletBackButton() {
+        const backBtn = document.getElementById('walletBackBtn');
+        if (backBtn) {
+            // Remove old listener by cloning
+            const newBackBtn = backBtn.cloneNode(true);
+            backBtn.parentNode.replaceChild(newBackBtn, backBtn);
+
+            newBackBtn.addEventListener('click', () => {
+                this.closeWalletPage();
+            });
+        }
+    }
+
+    closeWalletPage() {
+        const walletPage = document.querySelector('.page[data-page="wallet"]');
+        const homePage = document.querySelector('.page[data-page="home"]');
+        const navbar = document.querySelector('.nav');
+
+        if (walletPage && homePage) {
+            walletPage.classList.remove('active');
+            homePage.classList.add('active');
+            this.currentPage = 'home';
+
+            // Show navbar again
+            if (navbar) {
+                navbar.style.display = '';
+            }
+
+            // Repopulate home page
+            this.populateHomePage();
+        }
+    }
+
+    setupWalletCarousel() {
+        const carousel = document.getElementById('walletCarousel');
+        if (!carousel) return;
+
+        // Populate cards from user-config
+        const allCards = getAllCards();
+        carousel.innerHTML = '';
+
+        allCards.forEach((card, index) => {
+            const cardWrapper = document.createElement('div');
+            cardWrapper.className = 'wallet-card-wrapper';
+            cardWrapper.dataset.cardIndex = index;
+
+            cardWrapper.innerHTML = `
+                <div class="wallet-card">
+                    <div class="wallet-card-inner">
+                        <img src="${card.image}" alt="${card.name}" class="wallet-card-bg">
+                        <div class="wallet-card-iridescent"></div>
+                    </div>
+                </div>
+            `;
+
+            carousel.appendChild(cardWrapper);
+        });
+
+        const cards = carousel.querySelectorAll('.wallet-card-wrapper');
+
+        const updateCardScales = () => {
+            const carouselRect = carousel.getBoundingClientRect();
+            const centerX = carouselRect.left + carouselRect.width / 2;
+            let closestCard = null;
+            let closestDistance = Infinity;
+
+            cards.forEach((card) => {
+                const cardRect = card.getBoundingClientRect();
+                const cardCenterX = cardRect.left + cardRect.width / 2;
+                const distanceFromCenter = Math.abs(centerX - cardCenterX);
+                const maxDistance = carouselRect.width / 2;
+
+                // Track closest card to center
+                if (distanceFromCenter < closestDistance) {
+                    closestDistance = distanceFromCenter;
+                    closestCard = card;
+                }
+
+                // Calculate scale based on distance from center
+                // Center card = 1.0 scale, edge cards = 0.8 scale (20% difference)
+                const normalizedDistance = Math.min(distanceFromCenter / maxDistance, 1);
+                const scale = 1.0 - (normalizedDistance * 0.2);
+
+                card.style.transform = `scale(${scale})`;
+            });
+
+            // Update card info for the centered card
+            if (closestCard) {
+                const cardIndex = parseInt(closestCard.dataset.cardIndex);
+                this.updateWalletCardInfo(allCards[cardIndex]);
+            }
+        };
+
+        // Update scales on scroll
+        carousel.addEventListener('scroll', updateCardScales, { passive: true });
+
+        // Initial scale update and card info
+        setTimeout(() => {
+            updateCardScales();
+        }, 100);
+    }
+
+    updateWalletCardInfo(card) {
+        const cardName = document.getElementById('walletCardName');
+        const cardNumber = document.getElementById('walletCardNumber');
+
+        if (cardName && cardNumber) {
+            cardName.textContent = card.name;
+            cardNumber.textContent = card.fullNumber;
+        }
     }
 }
 
