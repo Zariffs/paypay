@@ -266,7 +266,128 @@
                 </div>
             </div>
         </div>
-        
+
+        <!-- Send Money Modal -->
+        <div class="modal-overlay" id="sendModalOverlay">
+            <div class="modal" id="sendModal">
+                <div class="modal-header">
+                    <button class="modal-close" id="closeSendModal" type="button">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M19 12H5M12 19l-7-7 7-7"/>
+                        </svg>
+                    </button>
+                    <h2 class="modal-title">Send Money</h2>
+                    <div style="width: 32px;"></div>
+                </div>
+                <div class="modal-body">
+                    <!-- Recipient Section -->
+                    <div class="form-group">
+                        <label class="form-label">Recipient</label>
+                        <input type="text" class="form-input" id="sendRecipient" placeholder="Name, email, or phone number">
+                    </div>
+
+                    <!-- Recent Recipients -->
+                    <div class="recent-recipients">
+                        <div class="recent-recipient-item">
+                            <div class="recipient-avatar">JD</div>
+                            <div class="recipient-name">John Doe</div>
+                        </div>
+                        <div class="recent-recipient-item">
+                            <div class="recipient-avatar">SK</div>
+                            <div class="recipient-name">Sarah Kim</div>
+                        </div>
+                        <div class="recent-recipient-item">
+                            <div class="recipient-avatar">MJ</div>
+                            <div class="recipient-name">Mike Jones</div>
+                        </div>
+                    </div>
+
+                    <!-- Amount Section -->
+                    <div class="form-group">
+                        <label class="form-label">Amount</label>
+                        <div class="amount-input-wrapper">
+                            <span class="amount-currency">$</span>
+                            <input type="number" class="form-input amount-input" id="sendAmount" placeholder="0.00" step="0.01" min="0">
+                        </div>
+                    </div>
+
+                    <!-- Quick Amount Buttons -->
+                    <div class="quick-amounts">
+                        <button class="quick-amount-btn" type="button" data-amount="25">$25</button>
+                        <button class="quick-amount-btn" type="button" data-amount="50">$50</button>
+                        <button class="quick-amount-btn" type="button" data-amount="100">$100</button>
+                        <button class="quick-amount-btn" type="button" data-amount="500">$500</button>
+                    </div>
+
+                    <!-- Payment Method -->
+                    <div class="form-group">
+                        <label class="form-label">From</label>
+                        <div class="payment-method-selector" id="paymentMethodSelector">
+                            <img class="payment-method-card" src="images/AMEX/centurion.jpeg" alt="">
+                            <div class="payment-method-info">
+                                <div class="payment-method-name">Centurion Black Card</div>
+                                <div class="payment-method-number">••••7838</div>
+                            </div>
+                            <svg class="payment-method-chevron" viewBox="0 0 24 24">
+                                <path d="M9 6l6 6-6 6"/>
+                            </svg>
+                        </div>
+                    </div>
+
+                    <!-- Note Section -->
+                    <div class="form-group">
+                        <label class="form-label">Note (optional)</label>
+                        <input type="text" class="form-input" id="sendNote" placeholder="What's this for?">
+                    </div>
+
+                    <!-- Send Type -->
+                    <div class="form-group">
+                        <label class="form-label">Send Speed</label>
+                        <div class="send-speed-options">
+                            <label class="send-speed-option">
+                                <input type="radio" name="sendSpeed" value="instant" checked>
+                                <div class="send-speed-card">
+                                    <div class="send-speed-header">
+                                        <span class="send-speed-title">Instant</span>
+                                        <span class="send-speed-fee">$1.75 fee</span>
+                                    </div>
+                                    <div class="send-speed-desc">Arrives in seconds</div>
+                                </div>
+                            </label>
+                            <label class="send-speed-option">
+                                <input type="radio" name="sendSpeed" value="standard">
+                                <div class="send-speed-card">
+                                    <div class="send-speed-header">
+                                        <span class="send-speed-title">Standard</span>
+                                        <span class="send-speed-fee">Free</span>
+                                    </div>
+                                    <div class="send-speed-desc">Arrives in 1-3 business days</div>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="modal-btn modal-btn-secondary" id="cancelSendModal" type="button">Cancel</button>
+                    <button class="modal-btn modal-btn-primary" id="sendMoneyBtn" type="button">Send</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Send Processing Modal -->
+        <div class="modal-overlay" id="sendProcessingOverlay" style="display: none;">
+            <div class="modal send-processing-modal" id="sendProcessingModal">
+                <div class="send-processing-content">
+                    <div class="send-processing-icon" id="sendProcessingIcon">
+                        <!-- Loading spinner -->
+                        <div class="send-spinner"></div>
+                    </div>
+                    <div class="send-processing-title" id="sendProcessingTitle">Sending...</div>
+                    <div class="send-processing-status" id="sendProcessingStatus">Verifying recipient</div>
+                </div>
+            </div>
+        </div>
+
         <!-- Card Details Drawer -->
         <div class="card-drawer" id="cardDrawer">
             <div class="drawer-handle"></div>

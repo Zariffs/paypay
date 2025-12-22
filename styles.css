@@ -2535,7 +2535,302 @@ body {
     transition: none;
 }
 
+/* ========================================
+   Send Money Modal Styles
+   ======================================== */
 
+/* Recent Recipients */
+.recent-recipients {
+    display: flex;
+    gap: 16px;
+    overflow-x: auto;
+    padding: 8px 0;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+}
+
+.recent-recipients::-webkit-scrollbar {
+    display: none;
+}
+
+.recent-recipient-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    min-width: 70px;
+    padding: 8px;
+    border-radius: 12px;
+    transition: background 0.2s ease;
+}
+
+.recent-recipient-item:active {
+    background: var(--card2);
+}
+
+.recipient-avatar {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    font-weight: 600;
+    color: white;
+}
+
+.recipient-name {
+    font-size: 12px;
+    color: var(--text);
+    text-align: center;
+}
+
+/* Amount Input */
+.amount-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.amount-currency {
+    position: absolute;
+    left: 16px;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text);
+    pointer-events: none;
+}
+
+.amount-input {
+    padding-left: 36px;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+/* Quick Amount Buttons */
+.quick-amounts {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+}
+
+.quick-amount-btn {
+    padding: 12px;
+    background: var(--card2);
+    border: 1px solid var(--stroke);
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.quick-amount-btn:active {
+    transform: scale(0.95);
+    background: rgba(74, 166, 255, 0.15);
+    border-color: var(--accent);
+}
+
+/* Payment Method Selector */
+.payment-method-selector {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    background: var(--card2);
+    border: 1px solid var(--stroke);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.payment-method-selector:active {
+    background: var(--card);
+}
+
+.payment-method-card {
+    width: 44px;
+    height: 28px;
+    border-radius: 4px;
+    object-fit: cover;
+}
+
+.payment-method-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.payment-method-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+}
+
+.payment-method-number {
+    font-size: 12px;
+    color: var(--muted);
+}
+
+.payment-method-chevron {
+    width: 16px;
+    height: 16px;
+    stroke: var(--muted);
+    fill: none;
+    stroke-width: 2;
+}
+
+/* Send Speed Options */
+.send-speed-options {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.send-speed-option {
+    cursor: pointer;
+}
+
+.send-speed-option input[type="radio"] {
+    display: none;
+}
+
+.send-speed-card {
+    padding: 14px 16px;
+    background: var(--card2);
+    border: 2px solid var(--stroke);
+    border-radius: 12px;
+    transition: all 0.2s ease;
+}
+
+.send-speed-option input[type="radio"]:checked + .send-speed-card {
+    background: rgba(74, 166, 255, 0.12);
+    border-color: var(--accent);
+}
+
+.send-speed-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 4px;
+}
+
+.send-speed-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+}
+
+.send-speed-fee {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--accent);
+}
+
+.send-speed-desc {
+    font-size: 13px;
+    color: var(--muted);
+}
+
+/* ========================================
+   Send Processing Modal
+   ======================================== */
+
+.send-processing-modal {
+    background: var(--card);
+    border-radius: 24px;
+    width: calc(100% - 40px);
+    max-width: 320px;
+    max-height: none;
+    padding: 40px 32px;
+    transform: scale(0.8);
+    opacity: 0;
+    transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1),
+                opacity 0.3s ease;
+}
+
+.modal-overlay.active .send-processing-modal {
+    transform: scale(1);
+    opacity: 1;
+}
+
+.send-processing-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    text-align: center;
+}
+
+.send-processing-icon {
+    width: 80px;
+    height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Loading Spinner */
+.send-spinner {
+    width: 60px;
+    height: 60px;
+    border: 4px solid var(--stroke);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.send-processing-title {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--text);
+}
+
+.send-processing-status {
+    font-size: 15px;
+    color: var(--muted);
+    font-weight: 500;
+}
+
+/* Success Checkmark Animation */
+.send-success-checkmark {
+    width: 80px;
+    height: 80px;
+}
+
+.send-success-circle {
+    stroke-dasharray: 166;
+    stroke-dashoffset: 166;
+    stroke-width: 2;
+    stroke-miterlimit: 10;
+    stroke: #4aa6ff;
+    animation: stroke 0.6s cubic-bezier(0.65, 0, 0.45, 1) forwards;
+}
+
+.send-success-check {
+    transform-origin: 50% 50%;
+    stroke-dasharray: 48;
+    stroke-dashoffset: 48;
+    stroke-width: 3;
+    stroke: #4aa6ff;
+    stroke-linecap: round;
+    animation: stroke 0.3s cubic-bezier(0.65, 0, 0.45, 1) 0.4s forwards;
+}
+
+@keyframes stroke {
+    100% {
+        stroke-dashoffset: 0;
+    }
+}
 
 /* ========================================
    Aurora Background

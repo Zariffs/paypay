@@ -54,6 +54,9 @@ class AmexApp {
         // Setup wallet button
         this.setupWalletButton();
 
+        // Setup send money modal
+        this.setupSendModal();
+
         // Setup edge swipe navigation
         this.setupEdgeSwipe();
 
@@ -2108,6 +2111,164 @@ class AmexApp {
             cardName.textContent = card.name;
             cardNumber.textContent = card.fullNumber;
         }
+    }
+
+    // ========================================
+    // Send Money Modal
+    // ========================================
+
+    setupSendModal() {
+        // Get all the drawer Send buttons
+        const drawerActions = document.querySelector('.drawer-actions');
+
+        // Use event delegation for Send buttons in drawer
+        if (drawerActions) {
+            drawerActions.addEventListener('click', (e) => {
+                const sendBtn = e.target.closest('.drawer-action-btn');
+                if (sendBtn && sendBtn.textContent.includes('Send')) {
+                    this.openSendModal();
+                }
+            });
+        }
+
+        // Setup modal controls
+        const sendModalOverlay = document.getElementById('sendModalOverlay');
+        const closeSendModal = document.getElementById('closeSendModal');
+        const cancelSendModal = document.getElementById('cancelSendModal');
+        const sendMoneyBtn = document.getElementById('sendMoneyBtn');
+
+        // Close modal handlers
+        if (closeSendModal) {
+            closeSendModal.addEventListener('click', () => this.closeSendModal());
+        }
+        if (cancelSendModal) {
+            cancelSendModal.addEventListener('click', () => this.closeSendModal());
+        }
+        if (sendModalOverlay) {
+            sendModalOverlay.addEventListener('click', (e) => {
+                if (e.target === sendModalOverlay) {
+                    this.closeSendModal();
+                }
+            });
+        }
+
+        // Send money button handler
+        if (sendMoneyBtn) {
+            sendMoneyBtn.addEventListener('click', () => this.processSendMoney());
+        }
+
+        // Quick amount buttons
+        const quickAmountBtns = document.querySelectorAll('.quick-amount-btn');
+        const sendAmount = document.getElementById('sendAmount');
+        quickAmountBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                if (sendAmount) {
+                    sendAmount.value = btn.dataset.amount;
+                }
+            });
+        });
+
+        // Recent recipients
+        const recipientItems = document.querySelectorAll('.recent-recipient-item');
+        const sendRecipient = document.getElementById('sendRecipient');
+        recipientItems.forEach(item => {
+            item.addEventListener('click', () => {
+                const name = item.querySelector('.recipient-name').textContent;
+                if (sendRecipient) {
+                    sendRecipient.value = name;
+                }
+            });
+        });
+    }
+
+    openSendModal() {
+        const sendModalOverlay = document.getElementById('sendModalOverlay');
+        if (sendModalOverlay) {
+            sendModalOverlay.style.display = 'flex';
+            // Add animation
+            setTimeout(() => {
+                sendModalOverlay.classList.add('active');
+            }, 10);
+        }
+    }
+
+    closeSendModal() {
+        const sendModalOverlay = document.getElementById('sendModalOverlay');
+        if (sendModalOverlay) {
+            sendModalOverlay.classList.remove('active');
+            setTimeout(() => {
+                sendModalOverlay.style.display = 'none';
+                // Reset form
+                document.getElementById('sendRecipient').value = '';
+                document.getElementById('sendAmount').value = '';
+                document.getElementById('sendNote').value = '';
+            }, 300);
+        }
+    }
+
+    async processSendMoney() {
+        const recipient = document.getElementById('sendRecipient').value;
+        const amount = document.getElementById('sendAmount').value;
+        const note = document.getElementById('sendNote').value;
+        const sendSpeed = document.querySelector('input[name="sendSpeed"]:checked').value;
+
+        // Basic validation
+        if (!recipient || !amount || parseFloat(amount) <= 0) {
+            alert('Please enter a recipient and valid amount.');
+            return;
+        }
+
+        // Close the send modal
+        this.closeSendModal();
+
+        // Show processing modal
+        const processingOverlay = document.getElementById('sendProcessingOverlay');
+        const processingIcon = document.getElementById('sendProcessingIcon');
+        const processingTitle = document.getElementById('sendProcessingTitle');
+        const processingStatus = document.getElementById('sendProcessingStatus');
+
+        if (processingOverlay) {
+            processingOverlay.style.display = 'flex';
+            setTimeout(() => {
+                processingOverlay.classList.add('active');
+            }, 10);
+        }
+
+        // Simulate multi-step sending process
+        const steps = [
+            { title: 'Sending...', status: 'Verifying recipient', duration: 1200 },
+            { title: 'Sending...', status: 'Processing payment', duration: 1500 },
+            { title: 'Sending...', status: 'Securing transaction', duration: 1300 },
+            { title: 'Sending...', status: 'Confirming transfer', duration: 1000 }
+        ];
+
+        for (const step of steps) {
+            processingTitle.textContent = step.title;
+            processingStatus.textContent = step.status;
+            await new Promise(resolve => setTimeout(resolve, step.duration));
+        }
+
+        // Show success state
+        processingIcon.innerHTML = `
+            <svg class="send-success-checkmark" viewBox="0 0 52 52">
+                <circle class="send-success-circle" cx="26" cy="26" r="25" fill="none"/>
+                <path class="send-success-check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
+            </svg>
+        `;
+        processingTitle.textContent = 'Sent!';
+        processingStatus.textContent = `$${parseFloat(amount).toFixed(2)} sent to ${recipient}`;
+
+        // Close processing modal after showing success
+        setTimeout(() => {
+            processingOverlay.classList.remove('active');
+            setTimeout(() => {
+                processingOverlay.style.display = 'none';
+                // Reset to loading state for next time
+                processingIcon.innerHTML = '<div class="send-spinner"></div>';
+                processingTitle.textContent = 'Sending...';
+                processingStatus.textContent = 'Verifying recipient';
+            }, 300);
+        }, 2500);
     }
 
     // Open Markets Page
