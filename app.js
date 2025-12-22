@@ -8,7 +8,7 @@ class AmexApp {
         this.currentPage = 'home';
         this.isTransitioning = false;
         this.pageCache = {};
-        this.pageOrder = ['home', 'membership', 'offers', 'account'];
+        this.pageOrder = ['home', 'dashboard', 'membership', 'offers', 'account'];
         
         // Swipe tracking
         this.touchStartX = 0;
