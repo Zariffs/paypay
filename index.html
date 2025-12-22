@@ -273,14 +273,6 @@
         <!-- Send Money Modal -->
         <div class="modal-overlay" id="sendModalOverlay">
             <div class="modal send-modal" id="sendModal">
-                <div class="send-modal-header">
-                    <button class="send-modal-close" id="closeSendModal" type="button">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M6 18L18 6M6 6l12 12"/>
-                        </svg>
-                    </button>
-                </div>
-
                 <div class="send-modal-content">
                     <!-- Step 1: Recipient -->
                     <div class="send-step send-step-recipient active" id="sendStepRecipient">
@@ -321,10 +313,11 @@
                             </svg>
                         </button>
 
-                        <div class="send-recipient-preview" id="sendRecipientPreview">
-                            <div class="send-recipient-avatar" id="sendRecipientAvatar">JD</div>
-                            <div class="send-recipient-name" id="sendRecipientName">John Doe</div>
-                        </div>
+                        <button class="send-add-recipient-btn" id="sendAddRecipient">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 5v14M5 12h14"/>
+                            </svg>
+                        </button>
 
                         <div class="send-amount-display">
                             <span class="send-amount-currency">$</span>
@@ -365,6 +358,43 @@
                             </svg>
                         </button>
                     </div>
+
+                    <!-- Step 3: Confirmation -->
+                    <div class="send-step send-step-confirmation" id="sendStepConfirmation">
+                        <button class="send-back-btn" id="sendBackFromConfirmation">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M19 12H5M12 19l-7-7 7-7"/>
+                            </svg>
+                        </button>
+
+                        <div class="send-confirmation-content">
+                            <div class="send-confirmation-icon" id="sendConfirmationIcon">
+                                <!-- Will show spinner then checkmark -->
+                            </div>
+                            <div class="send-confirmation-title" id="sendConfirmationTitle">Sending...</div>
+                            <div class="send-confirmation-status" id="sendConfirmationStatus">Verifying recipient</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recipient Selector Modal -->
+        <div class="modal-overlay" id="recipientSelectorOverlay" style="display: none;">
+            <div class="modal recipient-selector-modal" id="recipientSelectorModal">
+                <div class="modal-header">
+                    <button class="modal-close" id="closeRecipientSelector" type="button">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M19 12H5M12 19l-7-7 7-7"/>
+                        </svg>
+                    </button>
+                    <h2 class="modal-title">Select Recipient</h2>
+                    <div style="width: 32px;"></div>
+                </div>
+                <div class="modal-body">
+                    <div class="recipient-selector-list" id="recipientSelectorList">
+                        <!-- Recipients populated dynamically -->
+                    </div>
                 </div>
             </div>
         </div>
@@ -385,20 +415,6 @@
                     <div class="card-selector-list" id="cardSelectorList">
                         <!-- Cards populated dynamically -->
                     </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Send Processing Modal -->
-        <div class="modal-overlay" id="sendProcessingOverlay" style="display: none;">
-            <div class="modal send-processing-modal" id="sendProcessingModal">
-                <div class="send-processing-content">
-                    <div class="send-processing-icon" id="sendProcessingIcon">
-                        <!-- Loading spinner -->
-                        <div class="send-spinner"></div>
-                    </div>
-                    <div class="send-processing-title" id="sendProcessingTitle">Sending...</div>
-                    <div class="send-processing-status" id="sendProcessingStatus">Verifying recipient</div>
                 </div>
             </div>
         </div>

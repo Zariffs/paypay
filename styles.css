@@ -2518,39 +2518,8 @@ body {
     transform: translateX(0);
 }
 
-.send-modal-header {
-    padding: 16px 20px;
-    display: flex;
-    justify-content: flex-end;
-    align-items: center;
-}
-
-.send-modal-close {
-    width: 40px;
-    height: 40px;
-    background: var(--card2);
-    border: none;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.send-modal-close:active {
-    transform: scale(0.9);
-    background: var(--card);
-}
-
-.send-modal-close svg {
-    width: 20px;
-    height: 20px;
-    stroke: var(--text);
-}
-
 .send-modal-content {
-    height: calc(100vh - 72px);
+    height: 100vh;
     position: relative;
 }
 
@@ -2746,55 +2715,52 @@ body {
 
 /* Amount Step */
 .send-back-btn {
-    width: 40px;
-    height: 40px;
-    background: var(--card2);
+    background: transparent;
     border: none;
-    border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
     margin-bottom: 24px;
-    transition: all 0.2s ease;
+    padding: 8px;
+    transition: opacity 0.2s ease;
 }
 
 .send-back-btn:active {
-    transform: scale(0.9);
-    background: var(--card);
+    opacity: 0.5;
 }
 
 .send-back-btn svg {
-    width: 20px;
-    height: 20px;
+    width: 24px;
+    height: 24px;
     stroke: var(--text);
+    stroke-width: 2.5;
 }
 
-.send-recipient-preview {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    margin-bottom: 40px;
-}
-
-.send-recipient-avatar {
-    width: 72px;
-    height: 72px;
+/* Add Recipient Button */
+.send-add-recipient-btn {
+    width: 56px;
+    height: 56px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: var(--card2);
+    border: 2px dashed var(--stroke);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 28px;
-    font-weight: 600;
-    color: white;
-    margin-bottom: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin: 0 auto 40px;
 }
 
-.send-recipient-name {
-    font-size: 18px;
-    font-weight: 600;
-    color: var(--text);
+.send-add-recipient-btn:active {
+    transform: scale(0.95);
+    background: var(--card);
+}
+
+.send-add-recipient-btn svg {
+    width: 24px;
+    height: 24px;
+    stroke: var(--muted);
 }
 
 /* Large Amount Display */
@@ -2823,8 +2789,9 @@ body {
     color: var(--text);
     text-align: center;
     width: 100%;
-    max-width: 400px;
+    max-width: 500px;
     caret-color: var(--accent);
+    min-width: 60px;
 }
 
 .send-amount-input::placeholder {
@@ -2947,6 +2914,68 @@ body {
 .send-pay-btn svg {
     width: 20px;
     height: 20px;
+}
+
+/* Recipient Selector Modal */
+.recipient-selector-modal {
+    max-height: 70vh;
+}
+
+.recipient-selector-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.recipient-selector-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    background: var(--card2);
+    border: 2px solid transparent;
+    border-radius: 16px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.recipient-selector-item.selected {
+    border-color: var(--accent);
+    background: rgba(74, 166, 255, 0.1);
+}
+
+.recipient-selector-item:active {
+    transform: scale(0.98);
+}
+
+.recipient-selector-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    font-weight: 600;
+    color: white;
+    flex-shrink: 0;
+}
+
+.recipient-selector-info {
+    flex: 1;
+}
+
+.recipient-selector-name {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 2px;
+}
+
+.recipient-selector-detail {
+    font-size: 14px;
+    color: var(--muted);
 }
 
 /* Card Selector Modal */
@@ -3230,35 +3259,26 @@ body {
    Send Processing Modal
    ======================================== */
 
-.send-processing-modal {
-    background: var(--card);
-    border-radius: 24px;
-    width: calc(100% - 40px);
-    max-width: 320px;
-    max-height: none;
-    padding: 40px 32px;
-    transform: scale(0.8);
-    opacity: 0;
-    transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1),
-                opacity 0.3s ease;
+/* Confirmation Step */
+.send-step-confirmation {
+    display: flex;
+    flex-direction: column;
 }
 
-.modal-overlay.active .send-processing-modal {
-    transform: scale(1);
-    opacity: 1;
-}
-
-.send-processing-content {
+.send-confirmation-content {
+    flex: 1;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 20px;
+    justify-content: center;
+    gap: 24px;
     text-align: center;
+    padding: 0 20px;
 }
 
-.send-processing-icon {
-    width: 80px;
-    height: 80px;
+.send-confirmation-icon {
+    width: 100px;
+    height: 100px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -3266,8 +3286,8 @@ body {
 
 /* Loading Spinner */
 .send-spinner {
-    width: 60px;
-    height: 60px;
+    width: 70px;
+    height: 70px;
     border: 4px solid var(--stroke);
     border-top-color: var(--accent);
     border-radius: 50%;
@@ -3278,14 +3298,14 @@ body {
     to { transform: rotate(360deg); }
 }
 
-.send-processing-title {
-    font-size: 24px;
+.send-confirmation-title {
+    font-size: 32px;
     font-weight: 700;
     color: var(--text);
 }
 
-.send-processing-status {
-    font-size: 15px;
+.send-confirmation-status {
+    font-size: 17px;
     color: var(--muted);
     font-weight: 500;
 }
