@@ -2536,10 +2536,534 @@ body {
 }
 
 /* ========================================
-   Send Money Modal Styles
+   Send Money Modal Styles (Cash App Style)
    ======================================== */
 
+.send-modal {
+    background: var(--bg);
+    border-radius: 0;
+    width: 100%;
+    max-height: 100vh;
+    height: 100vh;
+    overflow: hidden;
+    transform: translateX(100%);
+}
+
+.modal-overlay.active .send-modal {
+    transform: translateX(0);
+}
+
+.send-modal-header {
+    padding: 16px 20px;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+}
+
+.send-modal-close {
+    width: 40px;
+    height: 40px;
+    background: var(--card2);
+    border: none;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.send-modal-close:active {
+    transform: scale(0.9);
+    background: var(--card);
+}
+
+.send-modal-close svg {
+    width: 20px;
+    height: 20px;
+    stroke: var(--text);
+}
+
+.send-modal-content {
+    height: calc(100vh - 72px);
+    position: relative;
+}
+
+/* Send Steps */
+.send-step {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    padding: 0 20px 20px;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateX(100%);
+    transition: all 0.4s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.send-step.active {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(0);
+}
+
+.send-step.exiting-left {
+    transform: translateX(-100%);
+    opacity: 0;
+}
+
+.send-step-title {
+    font-size: 32px;
+    font-weight: 700;
+    margin-bottom: 32px;
+    color: var(--text);
+}
+
+/* Recipient Step */
+.send-search-wrapper {
+    position: relative;
+    margin-bottom: 32px;
+}
+
+.send-search-icon {
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+}
+
+.send-search-icon svg {
+    width: 20px;
+    height: 20px;
+    stroke: var(--muted);
+}
+
+.send-search-input {
+    width: 100%;
+    padding: 16px 16px 16px 48px;
+    background: var(--card2);
+    border: 2px solid transparent;
+    border-radius: 16px;
+    font-size: 17px;
+    color: var(--text);
+    outline: none;
+    transition: all 0.2s ease;
+}
+
+.send-search-input:focus {
+    border-color: var(--accent);
+    background: var(--card);
+}
+
+/* Autocomplete */
+.send-autocomplete {
+    background: var(--card);
+    border: 1px solid var(--stroke);
+    border-radius: 16px;
+    margin-bottom: 16px;
+    overflow: hidden;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.send-autocomplete-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    cursor: pointer;
+    transition: background 0.2s ease;
+    border-bottom: 1px solid var(--stroke);
+}
+
+.send-autocomplete-item:last-child {
+    border-bottom: none;
+}
+
+.send-autocomplete-item:active {
+    background: var(--card2);
+}
+
+.send-autocomplete-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    font-weight: 600;
+    color: white;
+    flex-shrink: 0;
+}
+
+.send-autocomplete-info {
+    flex: 1;
+}
+
+.send-autocomplete-name {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 2px;
+}
+
+.send-autocomplete-detail {
+    font-size: 14px;
+    color: var(--muted);
+}
+
 /* Recent Recipients */
+.send-recent-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--muted);
+    margin-bottom: 16px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.send-recent-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.send-recent-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background: var(--card);
+    border-radius: 16px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.send-recent-item:active {
+    transform: scale(0.98);
+    background: var(--card2);
+}
+
+.send-recent-avatar {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    font-weight: 600;
+    color: white;
+    flex-shrink: 0;
+}
+
+.send-recent-info {
+    flex: 1;
+}
+
+.send-recent-name {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 2px;
+}
+
+.send-recent-detail {
+    font-size: 14px;
+    color: var(--muted);
+}
+
+/* Amount Step */
+.send-back-btn {
+    width: 40px;
+    height: 40px;
+    background: var(--card2);
+    border: none;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    margin-bottom: 24px;
+    transition: all 0.2s ease;
+}
+
+.send-back-btn:active {
+    transform: scale(0.9);
+    background: var(--card);
+}
+
+.send-back-btn svg {
+    width: 20px;
+    height: 20px;
+    stroke: var(--text);
+}
+
+.send-recipient-preview {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 40px;
+}
+
+.send-recipient-avatar {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    font-weight: 600;
+    color: white;
+    margin-bottom: 12px;
+}
+
+.send-recipient-name {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text);
+}
+
+/* Large Amount Display */
+.send-amount-display {
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    margin-bottom: 20px;
+    min-height: 100px;
+}
+
+.send-amount-currency {
+    font-size: 56px;
+    font-weight: 300;
+    color: var(--muted);
+    margin-right: 8px;
+    margin-top: 8px;
+}
+
+.send-amount-input {
+    background: transparent;
+    border: none;
+    outline: none;
+    font-size: 72px;
+    font-weight: 600;
+    color: var(--text);
+    text-align: center;
+    width: 100%;
+    max-width: 400px;
+    caret-color: var(--accent);
+}
+
+.send-amount-input::placeholder {
+    color: var(--muted2);
+}
+
+/* Note Input */
+.send-amount-note {
+    margin-bottom: 32px;
+}
+
+.send-note-input {
+    width: 100%;
+    padding: 14px 16px;
+    background: var(--card2);
+    border: 2px solid transparent;
+    border-radius: 14px;
+    font-size: 16px;
+    color: var(--text);
+    text-align: center;
+    outline: none;
+    transition: all 0.2s ease;
+}
+
+.send-note-input:focus {
+    border-color: var(--accent);
+    background: var(--card);
+}
+
+/* Card Display */
+.send-card-display {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    background: var(--card);
+    border-radius: 16px;
+    margin-bottom: 24px;
+}
+
+.send-card-mini {
+    width: 56px;
+    height: 36px;
+    border-radius: 8px;
+    overflow: hidden;
+    flex-shrink: 0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.send-card-mini-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.send-card-info {
+    flex: 1;
+}
+
+.send-card-name {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 2px;
+}
+
+.send-card-number {
+    font-size: 13px;
+    color: var(--muted);
+}
+
+.send-card-change {
+    background: rgba(74, 166, 255, 0.15);
+    border: none;
+    border-radius: 20px;
+    padding: 8px 16px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--accent);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.send-card-change:active {
+    transform: scale(0.95);
+    background: rgba(74, 166, 255, 0.25);
+}
+
+/* Pay Button */
+.send-pay-btn {
+    width: 100%;
+    padding: 18px 24px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    border-radius: 16px;
+    font-size: 18px;
+    font-weight: 700;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 16px rgba(102, 126, 234, 0.4);
+}
+
+.send-pay-btn:disabled {
+    background: var(--card2);
+    color: var(--muted);
+    box-shadow: none;
+    cursor: not-allowed;
+}
+
+.send-pay-btn:not(:disabled):active {
+    transform: scale(0.98);
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+}
+
+.send-pay-btn svg {
+    width: 20px;
+    height: 20px;
+}
+
+/* Card Selector Modal */
+.card-selector-modal {
+    max-height: 70vh;
+}
+
+.card-selector-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.card-selector-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 16px;
+    background: var(--card2);
+    border: 2px solid transparent;
+    border-radius: 16px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.card-selector-item.selected {
+    border-color: var(--accent);
+    background: rgba(74, 166, 255, 0.1);
+}
+
+.card-selector-item:active {
+    transform: scale(0.98);
+}
+
+.card-selector-card-img {
+    width: 64px;
+    height: 40px;
+    border-radius: 8px;
+    object-fit: cover;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.card-selector-info {
+    flex: 1;
+}
+
+.card-selector-card-name {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 4px;
+}
+
+.card-selector-card-details {
+    font-size: 13px;
+    color: var(--muted);
+}
+
+.card-selector-check {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.card-selector-item.selected .card-selector-check {
+    opacity: 1;
+}
+
+.card-selector-check svg {
+    width: 14px;
+    height: 14px;
+    stroke: white;
+    stroke-width: 3;
+}
+
+/* Old styles for backwards compatibility - remove if needed */
 .recent-recipients {
     display: flex;
     gap: 16px;

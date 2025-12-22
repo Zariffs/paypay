@@ -2118,6 +2118,18 @@ class AmexApp {
     // ========================================
 
     setupSendModal() {
+        // Recipient database for autocomplete
+        this.recipients = [
+            { name: 'John Doe', initials: 'JD', cashtag: '$johndoe', email: 'john@example.com', phone: '(555) 123-4567' },
+            { name: 'Sarah Kim', initials: 'SK', cashtag: '$sarahk', email: 'sarah@example.com', phone: '(555) 234-5678' },
+            { name: 'Mike Jones', initials: 'MJ', cashtag: '$mikej', email: 'mike@example.com', phone: '(555) 345-6789' },
+            { name: 'Emily Chen', initials: 'EC', cashtag: '$emilyc', email: 'emily@example.com', phone: '(555) 456-7890' },
+            { name: 'David Smith', initials: 'DS', cashtag: '$dsmith', email: 'david@example.com', phone: '(555) 567-8901' },
+        ];
+
+        this.selectedRecipient = null;
+        this.selectedCard = 'centurion';
+
         // Get all the drawer Send buttons
         const drawerActions = document.querySelector('.drawer-actions');
 
@@ -2134,15 +2146,10 @@ class AmexApp {
         // Setup modal controls
         const sendModalOverlay = document.getElementById('sendModalOverlay');
         const closeSendModal = document.getElementById('closeSendModal');
-        const cancelSendModal = document.getElementById('cancelSendModal');
-        const sendMoneyBtn = document.getElementById('sendMoneyBtn');
 
         // Close modal handlers
         if (closeSendModal) {
             closeSendModal.addEventListener('click', () => this.closeSendModal());
-        }
-        if (cancelSendModal) {
-            cancelSendModal.addEventListener('click', () => this.closeSendModal());
         }
         if (sendModalOverlay) {
             sendModalOverlay.addEventListener('click', (e) => {
@@ -2152,42 +2159,321 @@ class AmexApp {
             });
         }
 
-        // Send money button handler
-        if (sendMoneyBtn) {
-            sendMoneyBtn.addEventListener('click', () => this.processSendMoney());
+        // Recipient search with autocomplete
+        const sendRecipient = document.getElementById('sendRecipient');
+        if (sendRecipient) {
+            sendRecipient.addEventListener('input', (e) => this.handleRecipientSearch(e.target.value));
+            sendRecipient.addEventListener('focus', () => {
+                if (sendRecipient.value) {
+                    this.handleRecipientSearch(sendRecipient.value);
+                }
+            });
         }
 
-        // Quick amount buttons
-        const quickAmountBtns = document.querySelectorAll('.quick-amount-btn');
+        // Populate recent recipients
+        this.populateRecentRecipients();
+
+        // Back button
+        const sendBackToRecipient = document.getElementById('sendBackToRecipient');
+        if (sendBackToRecipient) {
+            sendBackToRecipient.addEventListener('click', () => this.goToRecipientStep());
+        }
+
+        // Amount input
         const sendAmount = document.getElementById('sendAmount');
-        quickAmountBtns.forEach(btn => {
-            btn.addEventListener('click', () => {
-                if (sendAmount) {
-                    sendAmount.value = btn.dataset.amount;
+        if (sendAmount) {
+            sendAmount.addEventListener('input', (e) => {
+                this.formatAmountInput(e.target);
+                this.updatePayButton();
+            });
+        }
+
+        // Pay button
+        const sendPayBtn = document.getElementById('sendPayBtn');
+        if (sendPayBtn) {
+            sendPayBtn.addEventListener('click', () => this.processSendMoney());
+        }
+
+        // Card change button
+        const sendCardChange = document.getElementById('sendCardChange');
+        if (sendCardChange) {
+            sendCardChange.addEventListener('click', () => this.openCardSelector());
+        }
+
+        // Card selector modal
+        this.setupCardSelector();
+    }
+
+    populateRecentRecipients() {
+        const recentList = document.getElementById('sendRecentList');
+        if (!recentList) return;
+
+        recentList.innerHTML = this.recipients.slice(0, 3).map(recipient => `
+            <div class="send-recent-item" data-recipient='${JSON.stringify(recipient)}'>
+                <div class="send-recent-avatar">${recipient.initials}</div>
+                <div class="send-recent-info">
+                    <div class="send-recent-name">${recipient.name}</div>
+                    <div class="send-recent-detail">${recipient.cashtag}</div>
+                </div>
+            </div>
+        `).join('');
+
+        // Add click handlers
+        recentList.querySelectorAll('.send-recent-item').forEach(item => {
+            item.addEventListener('click', () => {
+                const recipient = JSON.parse(item.dataset.recipient);
+                this.selectRecipient(recipient);
+            });
+        });
+    }
+
+    handleRecipientSearch(query) {
+        const autocomplete = document.getElementById('sendAutocomplete');
+        if (!autocomplete) return;
+
+        if (!query || query.length < 1) {
+            autocomplete.style.display = 'none';
+            return;
+        }
+
+        const filtered = this.recipients.filter(r =>
+            r.name.toLowerCase().includes(query.toLowerCase()) ||
+            r.cashtag.toLowerCase().includes(query.toLowerCase()) ||
+            r.email.toLowerCase().includes(query.toLowerCase()) ||
+            r.phone.includes(query)
+        );
+
+        if (filtered.length === 0) {
+            autocomplete.style.display = 'none';
+            return;
+        }
+
+        autocomplete.innerHTML = filtered.map(recipient => `
+            <div class="send-autocomplete-item" data-recipient='${JSON.stringify(recipient)}'>
+                <div class="send-autocomplete-avatar">${recipient.initials}</div>
+                <div class="send-autocomplete-info">
+                    <div class="send-autocomplete-name">${recipient.name}</div>
+                    <div class="send-autocomplete-detail">${recipient.cashtag} • ${recipient.email}</div>
+                </div>
+            </div>
+        `).join('');
+
+        autocomplete.style.display = 'block';
+
+        // Add click handlers
+        autocomplete.querySelectorAll('.send-autocomplete-item').forEach(item => {
+            item.addEventListener('click', () => {
+                const recipient = JSON.parse(item.dataset.recipient);
+                this.selectRecipient(recipient);
+                autocomplete.style.display = 'none';
+            });
+        });
+    }
+
+    selectRecipient(recipient) {
+        this.selectedRecipient = recipient;
+
+        // Update preview
+        const avatar = document.getElementById('sendRecipientAvatar');
+        const name = document.getElementById('sendRecipientName');
+
+        if (avatar) avatar.textContent = recipient.initials;
+        if (name) name.textContent = recipient.name;
+
+        // Go to amount step
+        this.goToAmountStep();
+    }
+
+    goToAmountStep() {
+        const recipientStep = document.getElementById('sendStepRecipient');
+        const amountStep = document.getElementById('sendStepAmount');
+
+        if (recipientStep && amountStep) {
+            recipientStep.classList.add('exiting-left');
+            recipientStep.classList.remove('active');
+
+            amountStep.classList.add('active');
+
+            // Focus on amount input
+            setTimeout(() => {
+                const amountInput = document.getElementById('sendAmount');
+                if (amountInput) amountInput.focus();
+            }, 100);
+        }
+    }
+
+    goToRecipientStep() {
+        const recipientStep = document.getElementById('sendStepRecipient');
+        const amountStep = document.getElementById('sendStepAmount');
+
+        if (recipientStep && amountStep) {
+            amountStep.classList.remove('active');
+            recipientStep.classList.remove('exiting-left');
+            recipientStep.classList.add('active');
+
+            // Clear amount
+            const amountInput = document.getElementById('sendAmount');
+            if (amountInput) amountInput.value = '';
+            this.updatePayButton();
+        }
+    }
+
+    formatAmountInput(input) {
+        // Remove non-numeric characters except decimal point
+        let value = input.value.replace(/[^0-9.]/g, '');
+
+        // Ensure only one decimal point
+        const parts = value.split('.');
+        if (parts.length > 2) {
+            value = parts[0] + '.' + parts.slice(1).join('');
+        }
+
+        // Limit to 2 decimal places
+        if (parts[1] && parts[1].length > 2) {
+            value = parts[0] + '.' + parts[1].slice(0, 2);
+        }
+
+        input.value = value;
+    }
+
+    updatePayButton() {
+        const payBtn = document.getElementById('sendPayBtn');
+        const amountInput = document.getElementById('sendAmount');
+
+        if (payBtn && amountInput) {
+            const amount = parseFloat(amountInput.value);
+            payBtn.disabled = !amount || amount <= 0;
+        }
+    }
+
+    setupCardSelector() {
+        const closeCardSelector = document.getElementById('closeCardSelector');
+        const cardSelectorOverlay = document.getElementById('cardSelectorOverlay');
+
+        if (closeCardSelector) {
+            closeCardSelector.addEventListener('click', () => this.closeCardSelector());
+        }
+
+        if (cardSelectorOverlay) {
+            cardSelectorOverlay.addEventListener('click', (e) => {
+                if (e.target === cardSelectorOverlay) {
+                    this.closeCardSelector();
                 }
             });
+        }
+
+        // Populate cards
+        this.populateCardSelector();
+    }
+
+    populateCardSelector() {
+        const cardSelectorList = document.getElementById('cardSelectorList');
+        if (!cardSelectorList || typeof userConfig === 'undefined' || !userConfig.cards) return;
+
+        const cards = Object.entries(userConfig.cards);
+
+        cardSelectorList.innerHTML = cards.map(([id, card]) => `
+            <div class="card-selector-item ${id === this.selectedCard ? 'selected' : ''}" data-card-id="${id}">
+                <img class="card-selector-card-img" src="${card.image}" alt="${card.name}">
+                <div class="card-selector-info">
+                    <div class="card-selector-card-name">${card.name}</div>
+                    <div class="card-selector-card-details">••••${card.lastFour} • ${card.balance}</div>
+                </div>
+                <div class="card-selector-check">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M5 13l4 4L19 7"/>
+                    </svg>
+                </div>
+            </div>
+        `).join('');
+
+        // Add click handlers
+        cardSelectorList.querySelectorAll('.card-selector-item').forEach(item => {
+            item.addEventListener('click', () => {
+                const cardId = item.dataset.cardId;
+                this.selectCard(cardId);
+            });
+        });
+    }
+
+    selectCard(cardId) {
+        this.selectedCard = cardId;
+
+        const card = userConfig.cards[cardId];
+        if (!card) return;
+
+        // Update card display
+        const cardMiniImg = document.getElementById('sendCardMiniImg');
+        const cardName = document.getElementById('sendCardName');
+        const cardNumber = document.getElementById('sendCardNumber');
+
+        if (cardMiniImg) cardMiniImg.src = card.image;
+        if (cardName) cardName.textContent = card.name;
+        if (cardNumber) cardNumber.textContent = `••••${card.lastFour}`;
+
+        // Update selector UI
+        document.querySelectorAll('.card-selector-item').forEach(item => {
+            item.classList.toggle('selected', item.dataset.cardId === cardId);
         });
 
-        // Recent recipients
-        const recipientItems = document.querySelectorAll('.recent-recipient-item');
-        const sendRecipient = document.getElementById('sendRecipient');
-        recipientItems.forEach(item => {
-            item.addEventListener('click', () => {
-                const name = item.querySelector('.recipient-name').textContent;
-                if (sendRecipient) {
-                    sendRecipient.value = name;
-                }
-            });
-        });
+        // Close selector
+        this.closeCardSelector();
+    }
+
+    openCardSelector() {
+        const cardSelectorOverlay = document.getElementById('cardSelectorOverlay');
+        if (cardSelectorOverlay) {
+            cardSelectorOverlay.style.display = 'flex';
+            setTimeout(() => {
+                cardSelectorOverlay.classList.add('active');
+            }, 10);
+        }
+    }
+
+    closeCardSelector() {
+        const cardSelectorOverlay = document.getElementById('cardSelectorOverlay');
+        if (cardSelectorOverlay) {
+            cardSelectorOverlay.classList.remove('active');
+            setTimeout(() => {
+                cardSelectorOverlay.style.display = 'none';
+            }, 300);
+        }
     }
 
     openSendModal() {
         const sendModalOverlay = document.getElementById('sendModalOverlay');
         if (sendModalOverlay) {
+            // Reset to first step
+            const recipientStep = document.getElementById('sendStepRecipient');
+            const amountStep = document.getElementById('sendStepAmount');
+
+            if (recipientStep) {
+                recipientStep.classList.add('active');
+                recipientStep.classList.remove('exiting-left');
+            }
+            if (amountStep) {
+                amountStep.classList.remove('active');
+            }
+
+            // Clear inputs
+            const sendRecipient = document.getElementById('sendRecipient');
+            const sendAmount = document.getElementById('sendAmount');
+            const sendNote = document.getElementById('sendNote');
+            const sendAutocomplete = document.getElementById('sendAutocomplete');
+
+            if (sendRecipient) sendRecipient.value = '';
+            if (sendAmount) sendAmount.value = '';
+            if (sendNote) sendNote.value = '';
+            if (sendAutocomplete) sendAutocomplete.style.display = 'none';
+
+            this.selectedRecipient = null;
+            this.updatePayButton();
+
             sendModalOverlay.style.display = 'flex';
-            // Add animation
             setTimeout(() => {
                 sendModalOverlay.classList.add('active');
+                // Focus on search input
+                if (sendRecipient) sendRecipient.focus();
             }, 10);
         }
     }
@@ -2198,23 +2484,16 @@ class AmexApp {
             sendModalOverlay.classList.remove('active');
             setTimeout(() => {
                 sendModalOverlay.style.display = 'none';
-                // Reset form
-                document.getElementById('sendRecipient').value = '';
-                document.getElementById('sendAmount').value = '';
-                document.getElementById('sendNote').value = '';
             }, 300);
         }
     }
 
     async processSendMoney() {
-        const recipient = document.getElementById('sendRecipient').value;
         const amount = document.getElementById('sendAmount').value;
         const note = document.getElementById('sendNote').value;
-        const sendSpeed = document.querySelector('input[name="sendSpeed"]:checked').value;
 
         // Basic validation
-        if (!recipient || !amount || parseFloat(amount) <= 0) {
-            alert('Please enter a recipient and valid amount.');
+        if (!this.selectedRecipient || !amount || parseFloat(amount) <= 0) {
             return;
         }
 
@@ -2256,7 +2535,7 @@ class AmexApp {
             </svg>
         `;
         processingTitle.textContent = 'Sent!';
-        processingStatus.textContent = `$${parseFloat(amount).toFixed(2)} sent to ${recipient}`;
+        processingStatus.textContent = `$${parseFloat(amount).toFixed(2)} sent to ${this.selectedRecipient.name}`;
 
         // Close processing modal after showing success
         setTimeout(() => {
