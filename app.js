@@ -2155,36 +2155,16 @@ class AmexApp {
             });
         }
 
-        // Recipient search with autocomplete
-        const sendRecipient = document.getElementById('sendRecipient');
-        if (sendRecipient) {
-            sendRecipient.addEventListener('input', (e) => this.handleRecipientSearch(e.target.value));
-            sendRecipient.addEventListener('focus', () => {
-                if (sendRecipient.value) {
-                    this.handleRecipientSearch(sendRecipient.value);
-                }
-            });
+        // Back button
+        const sendBackBtn = document.getElementById('sendBackBtn');
+        if (sendBackBtn) {
+            sendBackBtn.addEventListener('click', () => this.closeSendModal());
         }
 
-        // Populate recent recipients
-        this.populateRecentRecipients();
-
-        // Back button - from amount to recipient
-        const sendBackToRecipient = document.getElementById('sendBackToRecipient');
-        if (sendBackToRecipient) {
-            sendBackToRecipient.addEventListener('click', () => this.goToRecipientStep());
-        }
-
-        // Back button - from confirmation
-        const sendBackFromConfirmation = document.getElementById('sendBackFromConfirmation');
-        if (sendBackFromConfirmation) {
-            sendBackFromConfirmation.addEventListener('click', () => this.closeSendModal());
-        }
-
-        // Add recipient button
-        const sendAddRecipient = document.getElementById('sendAddRecipient');
-        if (sendAddRecipient) {
-            sendAddRecipient.addEventListener('click', () => this.openRecipientSelector());
+        // Recipient button
+        const sendRecipientBtn = document.getElementById('sendRecipientBtn');
+        if (sendRecipientBtn) {
+            sendRecipientBtn.addEventListener('click', () => this.openRecipientSelector());
         }
 
         // Amount input
@@ -2200,6 +2180,12 @@ class AmexApp {
         const sendPayBtn = document.getElementById('sendPayBtn');
         if (sendPayBtn) {
             sendPayBtn.addEventListener('click', () => this.processSendMoney());
+        }
+
+        // Done button
+        const sendDoneBtn = document.getElementById('sendDoneBtn');
+        if (sendDoneBtn) {
+            sendDoneBtn.addEventListener('click', () => this.closeSendModal());
         }
 
         // Card change button
@@ -2513,6 +2499,19 @@ class AmexApp {
         this.selectedRecipient = recipient;
         this.updatePayButton();
 
+        // Update recipient button UI
+        const recipientBtn = document.getElementById('sendRecipientBtn');
+        const plusIcon = recipientBtn.querySelector('.send-recipient-icon-plus');
+        const avatarIcon = document.getElementById('sendRecipientAvatar');
+        const initialsSpan = document.getElementById('sendRecipientInitials');
+
+        if (recipientBtn && plusIcon && avatarIcon && initialsSpan) {
+            plusIcon.style.display = 'none';
+            avatarIcon.style.display = 'flex';
+            initialsSpan.textContent = recipient.initials;
+            recipientBtn.classList.add('has-recipient');
+        }
+
         // Update selector UI
         document.querySelectorAll('.recipient-selector-item').forEach(item => {
             const itemRecipient = JSON.parse(item.dataset.recipient);
@@ -2547,33 +2546,33 @@ class AmexApp {
     openSendModal() {
         const sendModalOverlay = document.getElementById('sendModalOverlay');
         if (sendModalOverlay) {
-            // Reset to first step
-            const recipientStep = document.getElementById('sendStepRecipient');
+            // Reset to amount step
             const amountStep = document.getElementById('sendStepAmount');
             const confirmationStep = document.getElementById('sendStepConfirmation');
 
-            if (recipientStep) {
-                recipientStep.classList.add('active');
-                recipientStep.classList.remove('exiting-left');
-            }
             if (amountStep) {
-                amountStep.classList.remove('active');
+                amountStep.classList.add('active');
                 amountStep.classList.remove('exiting-left');
             }
             if (confirmationStep) {
                 confirmationStep.classList.remove('active');
             }
 
-            // Clear inputs
-            const sendRecipient = document.getElementById('sendRecipient');
+            // Clear inputs and reset recipient button
             const sendAmount = document.getElementById('sendAmount');
             const sendNote = document.getElementById('sendNote');
-            const sendAutocomplete = document.getElementById('sendAutocomplete');
+            const recipientBtn = document.getElementById('sendRecipientBtn');
+            const plusIcon = recipientBtn?.querySelector('.send-recipient-icon-plus');
+            const avatarIcon = document.getElementById('sendRecipientAvatar');
 
-            if (sendRecipient) sendRecipient.value = '';
             if (sendAmount) sendAmount.value = '';
             if (sendNote) sendNote.value = '';
-            if (sendAutocomplete) sendAutocomplete.style.display = 'none';
+
+            if (recipientBtn && plusIcon && avatarIcon) {
+                plusIcon.style.display = 'block';
+                avatarIcon.style.display = 'none';
+                recipientBtn.classList.remove('has-recipient');
+            }
 
             this.selectedRecipient = null;
             this.updatePayButton();
@@ -2581,8 +2580,8 @@ class AmexApp {
             sendModalOverlay.style.display = 'flex';
             setTimeout(() => {
                 sendModalOverlay.classList.add('active');
-                // Focus on search input
-                if (sendRecipient) sendRecipient.focus();
+                // Focus on amount input
+                if (sendAmount) sendAmount.focus();
             }, 10);
         }
     }
@@ -2595,16 +2594,11 @@ class AmexApp {
                 sendModalOverlay.style.display = 'none';
 
                 // Reset all steps
-                const recipientStep = document.getElementById('sendStepRecipient');
                 const amountStep = document.getElementById('sendStepAmount');
                 const confirmationStep = document.getElementById('sendStepConfirmation');
 
-                if (recipientStep) {
-                    recipientStep.classList.add('active');
-                    recipientStep.classList.remove('exiting-left');
-                }
                 if (amountStep) {
-                    amountStep.classList.remove('active');
+                    amountStep.classList.add('active');
                     amountStep.classList.remove('exiting-left');
                 }
                 if (confirmationStep) {
@@ -2660,16 +2654,28 @@ class AmexApp {
         `;
         confirmationTitle.textContent = 'Sent!';
         confirmationStatus.textContent = `$${parseFloat(amount).toFixed(2)} sent to ${this.selectedRecipient.name}`;
+
+        // Show done button
+        const doneBtn = document.getElementById('sendDoneBtn');
+        if (doneBtn) {
+            doneBtn.style.display = 'block';
+        }
     }
 
     goToConfirmationStep() {
         const amountStep = document.getElementById('sendStepAmount');
         const confirmationStep = document.getElementById('sendStepConfirmation');
+        const doneBtn = document.getElementById('sendDoneBtn');
 
         if (amountStep && confirmationStep) {
             amountStep.classList.add('exiting-left');
             amountStep.classList.remove('active');
             confirmationStep.classList.add('active');
+        }
+
+        // Hide done button initially (shown after success)
+        if (doneBtn) {
+            doneBtn.style.display = 'none';
         }
     }
 

@@ -271,49 +271,21 @@
         <div class="modal-overlay" id="sendModalOverlay">
             <div class="modal send-modal" id="sendModal">
                 <div class="send-modal-content">
-                    <!-- Step 1: Recipient -->
-                    <div class="send-step send-step-recipient active" id="sendStepRecipient">
-                        <h2 class="send-step-title">Send to</h2>
-
-                        <div class="send-search-wrapper">
-                            <div class="send-search-icon">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <circle cx="11" cy="11" r="8"/>
-                                    <path d="m21 21-4.35-4.35"/>
-                                </svg>
-                            </div>
-                            <input
-                                type="text"
-                                class="send-search-input"
-                                id="sendRecipient"
-                                placeholder="Name, $cashtag, email, or phone"
-                                autocomplete="off"
-                            >
-                        </div>
-
-                        <!-- Autocomplete Dropdown -->
-                        <div class="send-autocomplete" id="sendAutocomplete" style="display: none;">
-                            <!-- Populated dynamically -->
-                        </div>
-
-                        <div class="send-recent-label">Recent</div>
-                        <div class="send-recent-list" id="sendRecentList">
-                            <!-- Recent recipients populated dynamically -->
-                        </div>
-                    </div>
-
-                    <!-- Step 2: Amount -->
-                    <div class="send-step send-step-amount" id="sendStepAmount">
-                        <button class="send-back-btn" id="sendBackToRecipient">
+                    <!-- Step 1: Amount -->
+                    <div class="send-step send-step-amount active" id="sendStepAmount">
+                        <button class="send-back-btn" id="sendBackBtn">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M19 12H5M12 19l-7-7 7-7"/>
                             </svg>
                         </button>
 
-                        <button class="send-add-recipient-btn" id="sendAddRecipient">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <button class="send-recipient-btn" id="sendRecipientBtn">
+                            <svg class="send-recipient-icon-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M12 5v14M5 12h14"/>
                             </svg>
+                            <div class="send-recipient-icon-avatar" id="sendRecipientAvatar" style="display: none;">
+                                <span id="sendRecipientInitials">JD</span>
+                            </div>
                         </button>
 
                         <div class="send-amount-display">
@@ -356,14 +328,8 @@
                         </button>
                     </div>
 
-                    <!-- Step 3: Confirmation -->
+                    <!-- Step 2: Confirmation -->
                     <div class="send-step send-step-confirmation" id="sendStepConfirmation">
-                        <button class="send-back-btn" id="sendBackFromConfirmation">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M19 12H5M12 19l-7-7 7-7"/>
-                            </svg>
-                        </button>
-
                         <div class="send-confirmation-content">
                             <div class="send-confirmation-icon" id="sendConfirmationIcon">
                                 <!-- Will show spinner then checkmark -->
@@ -371,6 +337,10 @@
                             <div class="send-confirmation-title" id="sendConfirmationTitle">Sending...</div>
                             <div class="send-confirmation-status" id="sendConfirmationStatus">Verifying recipient</div>
                         </div>
+
+                        <button class="send-done-btn" id="sendDoneBtn" style="display: none;">
+                            Done
+                        </button>
                     </div>
                 </div>
             </div>

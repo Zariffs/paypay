@@ -2737,10 +2737,10 @@ body {
     stroke-width: 2.5;
 }
 
-/* Add Recipient Button */
-.send-add-recipient-btn {
-    width: 56px;
-    height: 56px;
+/* Recipient Button */
+.send-recipient-btn {
+    width: 64px;
+    height: 64px;
     border-radius: 50%;
     background: var(--card2);
     border: 2px dashed var(--stroke);
@@ -2750,17 +2750,40 @@ body {
     cursor: pointer;
     transition: all 0.2s ease;
     margin: 0 auto 40px;
+    position: relative;
 }
 
-.send-add-recipient-btn:active {
+.send-recipient-btn:active {
     transform: scale(0.95);
     background: var(--card);
 }
 
-.send-add-recipient-btn svg {
-    width: 24px;
-    height: 24px;
+.send-recipient-icon-plus {
+    width: 26px;
+    height: 26px;
     stroke: var(--muted);
+    transition: opacity 0.2s ease;
+}
+
+.send-recipient-icon-avatar {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    font-weight: 600;
+    color: white;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+.send-recipient-btn.has-recipient {
+    border: 2px solid var(--accent);
+    background: rgba(74, 166, 255, 0.1);
 }
 
 /* Large Amount Display */
@@ -3308,6 +3331,27 @@ body {
     font-size: 17px;
     color: var(--muted);
     font-weight: 500;
+}
+
+/* Done Button */
+.send-done-btn {
+    width: calc(100% - 40px);
+    margin: 0 20px 32px;
+    padding: 18px 24px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    border-radius: 16px;
+    font-size: 18px;
+    font-weight: 700;
+    color: white;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 16px rgba(102, 126, 234, 0.4);
+}
+
+.send-done-btn:active {
+    transform: scale(0.98);
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
 }
 
 /* Success Checkmark Animation */
