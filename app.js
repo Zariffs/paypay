@@ -311,12 +311,20 @@ class AmexApp {
 
     async loadPage(pageName) {
         try {
+            const pageEl = document.querySelector(`.page[data-page="${pageName}"]`);
+
+            // Skip loading if page already has content (embedded in index.html)
+            if (pageEl && pageEl.innerHTML.trim()) {
+                this.pageCache[pageName] = pageEl.innerHTML;
+                return;
+            }
+
+            // Otherwise, fetch from external file
             const response = await fetch(`pages/${pageName}.html`);
             if (response.ok) {
                 const html = await response.text();
                 this.pageCache[pageName] = html;
-                
-                const pageEl = document.querySelector(`.page[data-page="${pageName}"]`);
+
                 if (pageEl) {
                     pageEl.innerHTML = html;
                 }
