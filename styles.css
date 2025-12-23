@@ -99,17 +99,16 @@ body {
     min-height: -webkit-fill-available;
     background: #000000;
     position: relative;
-    overflow: hidden;
 }
 
 /* Enhanced Aurora Background */
 body::after {
     content: '';
     position: fixed;
-    top: -50%;
+    top: calc(-50% - env(safe-area-inset-top));
     left: -50%;
     width: 200%;
-    height: 200%;
+    height: calc(200% + env(safe-area-inset-top) + env(safe-area-inset-bottom));
     background:
         radial-gradient(ellipse at 20% 30%, rgba(74, 166, 255, 0.15) 0%, transparent 50%),
         radial-gradient(ellipse at 80% 60%, rgba(138, 43, 226, 0.12) 0%, transparent 50%),
