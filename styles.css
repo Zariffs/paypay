@@ -1914,14 +1914,19 @@ body::before {
     right: 0;
     bottom: 0;
     max-height: 85vh;
-    background: linear-gradient(180deg, #1a1a1c 0%, #0d0d0e 100%);
-    border-top-left-radius: 24px;
-    border-top-right-radius: 24px;
+    background: rgba(20, 20, 25, 0.85);
+    -webkit-backdrop-filter: blur(60px) saturate(180%);
+    backdrop-filter: blur(60px) saturate(180%);
+    border-top-left-radius: 28px;
+    border-top-right-radius: 28px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
     transform: translateY(100%);
     transition: transform 0.4s cubic-bezier(0.32, 0.72, 0, 1);
     z-index: 1002;
     overflow: hidden;
-    box-shadow: 0 -10px 50px rgba(0, 0, 0, 0.5);
+    box-shadow:
+        0 -20px 60px rgba(0, 0, 0, 0.8),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08);
     overscroll-behavior: contain;
     touch-action: none;
 }
@@ -1984,11 +1989,16 @@ body::before {
     align-items: center;
     gap: 8px;
     padding: 10px 16px;
-    background: var(--card2);
-    border: 1px solid var(--stroke);
+    background: rgba(30, 30, 35, 0.4);
+    -webkit-backdrop-filter: blur(40px) saturate(180%);
+    backdrop-filter: blur(40px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 12px;
     font-size: 14px;
     font-weight: 600;
+    box-shadow:
+        0 4px 12px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 
 .trip-service-badge svg {
@@ -2016,10 +2026,15 @@ body::before {
     font-size: 15px;
     line-height: 1.6;
     color: rgba(255, 255, 255, 0.78);
-    background: var(--card2);
-    border: 1px solid var(--stroke);
-    border-radius: 12px;
-    padding: 14px 16px;
+    background: rgba(30, 30, 35, 0.4);
+    -webkit-backdrop-filter: blur(40px) saturate(180%);
+    backdrop-filter: blur(40px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    padding: 16px;
+    box-shadow:
+        0 4px 12px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 
 .trip-drawer-actions {
@@ -2099,10 +2114,13 @@ body::before {
 }
 
 .trip-detail-card {
-    background: var(--card2);
-    border: 1px solid var(--stroke);
+    background: rgba(30, 30, 35, 0.4);
+    -webkit-backdrop-filter: blur(40px) saturate(180%);
+    backdrop-filter: blur(40px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 12px;
     padding: 14px 16px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
 .trip-detail-row {
@@ -2354,11 +2372,20 @@ body::before {
 }
 
 .wallet-card-info {
-    padding: 0px 22px 20px;
+    padding: 24px 22px 20px;
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 12px;
+    background: rgba(20, 20, 25, 0.85);
+    -webkit-backdrop-filter: blur(60px) saturate(180%);
+    backdrop-filter: blur(60px) saturate(180%);
+    border-radius: 28px 28px 0 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow:
+        0 -20px 60px rgba(0, 0, 0, 0.8),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    margin-top: -20px;
 }
 
 .wallet-card-name {
@@ -2447,16 +2474,16 @@ body::before {
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0, 0, 0, 0.8);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(20px) saturate(120%);
+    -webkit-backdrop-filter: blur(20px) saturate(120%);
     z-index: 99999;
     display: flex;
     align-items: flex-end;
     justify-content: center;
     opacity: 0;
     visibility: hidden;
-    transition: opacity 0.3s ease, visibility 0.3s ease;
+    transition: opacity 0.4s ease, visibility 0.4s ease, backdrop-filter 0.4s ease;
 }
 
 .modal-overlay.active {
@@ -2465,13 +2492,19 @@ body::before {
 }
 
 .modal {
-    background: var(--card);
-    border-radius: 24px 24px 0 0;
+    background: rgba(20, 20, 25, 0.85);
+    -webkit-backdrop-filter: blur(60px) saturate(180%);
+    backdrop-filter: blur(60px) saturate(180%);
+    border-radius: 28px 28px 0 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
     width: 100%;
     max-height: 90vh;
     overflow-y: auto;
     transform: translateY(100%);
-    transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+    transition: transform 0.4s cubic-bezier(0.32, 0.72, 0, 1);
+    box-shadow:
+        0 -20px 60px rgba(0, 0, 0, 0.8),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
 .modal-overlay.active .modal {
@@ -2483,10 +2516,12 @@ body::before {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    border-bottom: 1px solid var(--stroke);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
     position: sticky;
     top: 0;
-    background: var(--card);
+    background: rgba(20, 20, 25, 0.95);
+    -webkit-backdrop-filter: blur(40px) saturate(180%);
+    backdrop-filter: blur(40px) saturate(180%);
     z-index: 10;
 }
 
@@ -2555,19 +2590,26 @@ body::before {
 }
 
 .form-input {
-    background: var(--card2);
-    border: 1px solid var(--stroke);
+    background: rgba(30, 30, 35, 0.4);
+    -webkit-backdrop-filter: blur(40px) saturate(180%);
+    backdrop-filter: blur(40px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 12px;
     padding: 14px 16px;
     font-size: 16px;
     color: var(--text);
     font-family: inherit;
     outline: none;
-    transition: border-color 0.2s ease;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    transition: all 0.2s ease;
 }
 
 .form-input:focus {
-    border-color: var(--accent);
+    border-color: rgba(107, 184, 255, 0.3);
+    box-shadow:
+        0 12px 32px rgba(0, 0, 0, 0.4),
+        0 0 0 4px rgba(74, 166, 255, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
 .form-input::placeholder {
@@ -2591,15 +2633,19 @@ body::before {
     gap: 8px;
     cursor: pointer;
     padding: 10px 16px;
-    background: var(--card2);
+    background: rgba(30, 30, 35, 0.4);
+    -webkit-backdrop-filter: blur(40px) saturate(180%);
+    backdrop-filter: blur(40px) saturate(180%);
     border-radius: 10px;
-    border: 1px solid var(--stroke);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.05);
     transition: all 0.2s ease;
 }
 
 .form-checkbox:has(input:checked) {
     background: rgba(74, 166, 255, 0.15);
-    border-color: var(--accent);
+    border-color: rgba(107, 184, 255, 0.4);
+    box-shadow: 0 8px 20px rgba(74, 166, 255, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
 .form-checkbox input {
@@ -2914,12 +2960,15 @@ body::before {
     width: 64px;
     height: 64px;
     border-radius: 50%;
-    background: var(--card2);
-    border: 2px dashed var(--stroke);
+    background: rgba(30, 30, 35, 0.4);
+    -webkit-backdrop-filter: blur(40px) saturate(180%);
+    backdrop-filter: blur(40px) saturate(180%);
+    border: 2px dashed rgba(255, 255, 255, 0.1);
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.05);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     margin: 0 auto 40px;
     position: relative;
@@ -2927,13 +2976,13 @@ body::before {
 
 .send-recipient-btn:hover {
     transform: scale(1.05);
-    border-color: var(--accent);
-    box-shadow: 0 4px 12px rgba(74, 166, 255, 0.2);
+    border-color: rgba(107, 184, 255, 0.4);
+    box-shadow: 0 6px 20px rgba(74, 166, 255, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
 .send-recipient-btn:active {
     transform: scale(0.95);
-    background: var(--card);
+    background: rgba(30, 30, 35, 0.6);
 }
 
 .send-recipient-icon-plus {
@@ -2960,8 +3009,9 @@ body::before {
 }
 
 .send-recipient-btn.has-recipient {
-    border: 2px solid var(--accent);
-    background: rgba(74, 166, 255, 0.1);
+    border: 2px solid rgba(107, 184, 255, 0.4);
+    background: rgba(74, 166, 255, 0.15);
+    box-shadow: 0 6px 20px rgba(74, 166, 255, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
 /* Large Amount Display */
@@ -3193,19 +3243,24 @@ body::before {
 .recipient-search-input {
     width: 100%;
     padding: 14px 16px;
-    background: var(--card2);
-    border: 2px solid transparent;
+    background: rgba(30, 30, 35, 0.4);
+    -webkit-backdrop-filter: blur(40px) saturate(180%);
+    backdrop-filter: blur(40px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 12px;
     font-size: 16px;
     color: var(--text);
     outline: none;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.05);
     transition: all 0.2s ease;
 }
 
 .recipient-search-input:focus {
-    border-color: var(--accent);
-    background: var(--card);
-    box-shadow: 0 0 0 4px rgba(74, 166, 255, 0.1);
+    border-color: rgba(107, 184, 255, 0.3);
+    box-shadow:
+        0 12px 32px rgba(0, 0, 0, 0.4),
+        0 0 0 4px rgba(74, 166, 255, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
 .recipient-search-input::placeholder {
@@ -3225,16 +3280,20 @@ body::before {
     align-items: center;
     gap: 12px;
     padding: 14px 16px;
-    background: var(--card2);
-    border: 2px solid transparent;
+    background: rgba(30, 30, 35, 0.4);
+    -webkit-backdrop-filter: blur(40px) saturate(180%);
+    backdrop-filter: blur(40px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 16px;
     cursor: pointer;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.05);
     transition: all 0.2s ease;
 }
 
 .recipient-selector-item.selected {
-    border-color: var(--accent);
-    background: rgba(74, 166, 255, 0.1);
+    border-color: rgba(107, 184, 255, 0.4);
+    background: rgba(74, 166, 255, 0.15);
+    box-shadow: 0 8px 20px rgba(74, 166, 255, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
 .recipient-selector-item:active {
@@ -3287,16 +3346,20 @@ body::before {
     align-items: center;
     gap: 14px;
     padding: 14px 16px;
-    background: var(--card2);
-    border: 2px solid transparent;
+    background: rgba(30, 30, 35, 0.4);
+    -webkit-backdrop-filter: blur(40px) saturate(180%);
+    backdrop-filter: blur(40px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 16px;
     cursor: pointer;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.05);
     transition: all 0.2s ease;
 }
 
 .card-selector-item.selected {
-    border-color: var(--accent);
-    background: rgba(74, 166, 255, 0.1);
+    border-color: rgba(107, 184, 255, 0.4);
+    background: rgba(74, 166, 255, 0.15);
+    box-shadow: 0 8px 20px rgba(74, 166, 255, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
 .card-selector-item:active {
@@ -3430,20 +3493,24 @@ body::before {
 
 .quick-amount-btn {
     padding: 12px;
-    background: var(--card2);
-    border: 1px solid var(--stroke);
+    background: rgba(30, 30, 35, 0.4);
+    -webkit-backdrop-filter: blur(40px) saturate(180%);
+    backdrop-filter: blur(40px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 10px;
     font-size: 14px;
     font-weight: 600;
     color: var(--text);
     cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.05);
     transition: all 0.2s ease;
 }
 
 .quick-amount-btn:active {
     transform: scale(0.95);
     background: rgba(74, 166, 255, 0.15);
-    border-color: var(--accent);
+    border-color: rgba(107, 184, 255, 0.4);
+    box-shadow: 0 6px 16px rgba(74, 166, 255, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
 /* Payment Method Selector */
@@ -3452,15 +3519,19 @@ body::before {
     align-items: center;
     gap: 12px;
     padding: 14px 16px;
-    background: var(--card2);
-    border: 1px solid var(--stroke);
+    background: rgba(30, 30, 35, 0.4);
+    -webkit-backdrop-filter: blur(40px) saturate(180%);
+    backdrop-filter: blur(40px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 12px;
     cursor: pointer;
-    transition: background 0.2s ease;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    transition: all 0.2s ease;
 }
 
 .payment-method-selector:active {
-    background: var(--card);
+    transform: scale(0.98);
+    background: rgba(30, 30, 35, 0.6);
 }
 
 .payment-method-card {
@@ -4073,13 +4144,16 @@ body::before {
 
 .markets-timeframe-btn {
     padding: 8px 16px;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(30, 30, 35, 0.4);
+    -webkit-backdrop-filter: blur(40px) saturate(180%);
+    backdrop-filter: blur(40px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 8px;
     color: var(--muted);
     font-size: 13px;
     font-weight: 600;
     cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.05);
     transition: all 0.2s ease;
     white-space: nowrap;
 }
@@ -4088,6 +4162,7 @@ body::before {
     background: rgba(0, 212, 170, 0.15);
     border-color: rgba(0, 212, 170, 0.3);
     color: #00d4aa;
+    box-shadow: 0 4px 12px rgba(0, 212, 170, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
 .markets-timeframe-btn:active {
@@ -4112,13 +4187,16 @@ body::before {
 }
 
 .markets-stat-item {
-    background: var(--card);
-    border: 1px solid var(--stroke);
+    background: rgba(30, 30, 35, 0.4);
+    -webkit-backdrop-filter: blur(40px) saturate(180%);
+    backdrop-filter: blur(40px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 12px;
     padding: 16px;
     display: flex;
     flex-direction: column;
     gap: 6px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
 .markets-stat-label {
