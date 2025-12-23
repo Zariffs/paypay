@@ -2149,6 +2149,20 @@ class AmexApp {
             });
         }
 
+        // Home page action buttons
+        const homeActionButtons = document.getElementById('homeActionButtons');
+        if (homeActionButtons) {
+            homeActionButtons.addEventListener('click', (e) => {
+                const actionBtn = e.target.closest('.home-action-btn');
+                if (actionBtn) {
+                    const action = actionBtn.dataset.action;
+                    if (action === 'send') {
+                        this.openSendModal();
+                    }
+                }
+            });
+        }
+
         // Setup modal controls
         const sendModalOverlay = document.getElementById('sendModalOverlay');
 

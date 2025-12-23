@@ -748,17 +748,17 @@ body::before {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 8px;
+    gap: 6px;
     background: rgba(74, 166, 255, 0.12);
     -webkit-backdrop-filter: blur(16px) saturate(180%);
     backdrop-filter: blur(16px) saturate(180%);
     border: 1px solid rgba(255, 255, 255, 0.12);
-    border-radius: 12px;
+    border-radius: 10px;
     color: #6bb8ff;
     cursor: pointer;
-    padding: 16px 8px;
+    padding: 12px 6px;
     font-weight: 600;
-    font-size: 11px;
+    font-size: 10px;
     font-family: inherit;
     -webkit-user-select: none;
     user-select: none;
@@ -789,14 +789,14 @@ body::before {
 }
 
 .home-action-btn svg {
-    width: 20px;
-    height: 20px;
+    width: 18px;
+    height: 18px;
     stroke: var(--text);
     flex-shrink: 0;
 }
 
 .home-action-btn span {
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 600;
     color: var(--text);
 }
