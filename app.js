@@ -3563,9 +3563,9 @@ class AmexApp {
         const cardImg = document.getElementById('insightsAccountCard');
         const cardName = document.getElementById('insightsAccountName');
 
-        if (cardImg) cardImg.src = currentCard.image;
+        if (cardImg && currentCard.image) cardImg.src = currentCard.image;
         if (cardName) {
-            const lastFour = currentCard.number.slice(-4);
+            const lastFour = currentCard.number ? currentCard.number.slice(-4) : '0000';
             cardName.textContent = `${currentCard.name} (••••${lastFour})`;
         }
 
