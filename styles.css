@@ -2909,68 +2909,100 @@ body {
 }
 
 .send-card-change {
-    background: rgba(74, 166, 255, 0.15);
-    border: none;
-    border-radius: 20px;
+    background: rgba(74, 166, 255, 0.12);
+    -webkit-backdrop-filter: blur(16px) saturate(180%);
+    backdrop-filter: blur(16px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 12px;
     padding: 8px 16px;
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 600;
-    color: var(--accent);
+    color: #6bb8ff;
     cursor: pointer;
-    transition: all 0.2s ease;
+    -webkit-user-select: none;
+    user-select: none;
+    touch-action: manipulation;
+    box-shadow:
+        0 2px 8px rgba(0, 0, 0, 0.15),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+    /* Release transition - smooth bounce back */
+    transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1),
+                box-shadow 0.2s ease-out,
+                background 0.2s ease-out,
+                border-color 0.2s ease-out;
 }
 
 .send-card-change:active {
-    transform: scale(0.95);
-    background: rgba(74, 166, 255, 0.25);
+    transform: scale(0.92) translateY(1px);
+    background: rgba(74, 166, 255, 0.3);
+    border-color: rgba(74, 166, 255, 0.35);
+    box-shadow:
+        0 0 20px rgba(74, 166, 255, 0.35),
+        0 1px 4px rgba(0, 0, 0, 0.25),
+        inset 0 1px 0 rgba(255, 255, 255, 0.15),
+        inset 0 0 15px rgba(74, 166, 255, 0.1);
+    /* Press-in transition - instant */
+    transition: transform 0.08s ease-out,
+                box-shadow 0.08s ease-out,
+                background 0.08s ease-out,
+                border-color 0.08s ease-out;
 }
 
 /* Pay Button */
 .send-pay-btn {
     width: 100%;
-    padding: 18px 24px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border: none;
-    border-radius: 16px;
-    font-size: 18px;
-    font-weight: 700;
-    color: white;
+    padding: 16px 24px;
+    background: rgba(74, 166, 255, 0.12);
+    -webkit-backdrop-filter: blur(16px) saturate(180%);
+    backdrop-filter: blur(16px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    color: #6bb8ff;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 12px;
     cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4);
-    position: relative;
-    overflow: hidden;
-}
-
-.send-pay-btn::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-    transition: left 0.5s;
-}
-
-.send-pay-btn:not(:disabled):hover::before {
-    left: 100%;
+    -webkit-user-select: none;
+    user-select: none;
+    touch-action: manipulation;
+    box-shadow:
+        0 4px 16px rgba(0, 0, 0, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+    /* Release transition - smooth bounce back */
+    transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1),
+                box-shadow 0.2s ease-out,
+                background 0.2s ease-out,
+                border-color 0.2s ease-out;
 }
 
 .send-pay-btn:disabled {
     background: var(--card2);
     color: var(--muted);
+    border-color: var(--stroke);
     box-shadow: none;
     cursor: not-allowed;
+    opacity: 0.5;
 }
 
 .send-pay-btn:not(:disabled):active {
-    transform: scale(0.98);
-    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+    transform: scale(0.92) translateY(1px);
+    background: rgba(74, 166, 255, 0.3);
+    border-color: rgba(74, 166, 255, 0.35);
+    box-shadow:
+        0 0 28px rgba(74, 166, 255, 0.35),
+        0 2px 8px rgba(0, 0, 0, 0.25),
+        inset 0 1px 0 rgba(255, 255, 255, 0.15),
+        inset 0 0 20px rgba(74, 166, 255, 0.1);
+    /* Press-in transition - instant */
+    transition: transform 0.08s ease-out,
+                box-shadow 0.08s ease-out,
+                background 0.08s ease-out,
+                border-color 0.08s ease-out;
 }
 
 .send-pay-btn svg {
@@ -3428,16 +3460,23 @@ body {
 .send-done-btn {
     width: calc(100% - 40px);
     margin: 0 20px 32px;
-    padding: 18px 24px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border: none;
-    border-radius: 16px;
-    font-size: 18px;
-    font-weight: 700;
-    color: white;
+    padding: 16px 24px;
+    background: rgba(74, 166, 255, 0.12);
+    -webkit-backdrop-filter: blur(16px) saturate(180%);
+    backdrop-filter: blur(16px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    color: #6bb8ff;
     cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 16px rgba(102, 126, 234, 0.4);
+    -webkit-user-select: none;
+    user-select: none;
+    touch-action: manipulation;
+    box-shadow:
+        0 4px 16px rgba(0, 0, 0, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.1);
     animation: slideUpFade 0.4s ease-out 1.4s backwards;
 }
 
@@ -3453,8 +3492,19 @@ body {
 }
 
 .send-done-btn:active {
-    transform: scale(0.98) translateY(0);
-    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+    transform: scale(0.92) translateY(1px);
+    background: rgba(74, 166, 255, 0.3);
+    border-color: rgba(74, 166, 255, 0.35);
+    box-shadow:
+        0 0 28px rgba(74, 166, 255, 0.35),
+        0 2px 8px rgba(0, 0, 0, 0.25),
+        inset 0 1px 0 rgba(255, 255, 255, 0.15),
+        inset 0 0 20px rgba(74, 166, 255, 0.1);
+    /* Press-in transition - instant */
+    transition: transform 0.08s ease-out,
+                box-shadow 0.08s ease-out,
+                background 0.08s ease-out,
+                border-color 0.08s ease-out;
 }
 
 /* Success Checkmark Animation */
