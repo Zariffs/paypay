@@ -2879,6 +2879,13 @@ class AmexApp {
             this.selectedRecipient = null;
             this.updatePayButton();
 
+            // Prevent background scrolling
+            const scrollY = window.scrollY;
+            document.body.style.position = 'fixed';
+            document.body.style.top = `-${scrollY}px`;
+            document.body.style.width = '100%';
+            document.body.style.overflow = 'hidden';
+
             sendModalOverlay.style.display = 'flex';
             setTimeout(() => {
                 sendModalOverlay.classList.add('active');
@@ -2892,6 +2899,15 @@ class AmexApp {
         const sendModalOverlay = document.getElementById('sendModalOverlay');
         if (sendModalOverlay) {
             sendModalOverlay.classList.remove('active');
+
+            // Restore background scrolling
+            const scrollY = document.body.style.top;
+            document.body.style.position = '';
+            document.body.style.top = '';
+            document.body.style.width = '';
+            document.body.style.overflow = '';
+            window.scrollTo(0, parseInt(scrollY || '0') * -1);
+
             setTimeout(() => {
                 sendModalOverlay.style.display = 'none';
 
