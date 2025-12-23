@@ -42,7 +42,45 @@
                     <div class="date" id="currentDate"></div>
                     <div class="welcome">Welcome</div>
 
-                    <!-- Hero Card -->
+                    <!-- Accounts Section (moved to top) -->
+                    <div class="section-head">
+                        <div class="section-name">Accounts</div>
+                        <button class="section-plus" type="button" aria-label="Add account">+</button>
+                    </div>
+
+                    <div class="accounts-container" id="accountsContainer">
+                        <!-- Dynamically populated from userConfig -->
+                    </div>
+
+                    <!-- Quick Actions Grid -->
+                    <section class="quick-actions-grid">
+                        <!-- Membership Rewards Card -->
+                        <div class="quick-action-card rewards-quick-card">
+                            <div class="rewards">
+                                <div class="rewards-label">Rewards Points</div>
+                                <div class="rewards-points-row">
+                                    <div class="rewards-icon">
+                                        <svg viewBox="0 0 24 24"><path d="M12 3l2.2 4.7 5.2.6-3.9 3.4 1.2 5-4.7-2.7-4.7 2.7 1.2-5-3.9-3.4 5.2-.6z"/></svg>
+                                    </div>
+                                    <div class="rewards-points" id="rewardsPoints">0</div>
+                                </div>
+                                <button class="rewards-btn" type="button">Redeem</button>
+                            </div>
+                        </div>
+
+                        <!-- Lounge Access Card -->
+                        <a class="quick-action-card lounge-quick-card" href="#">
+                            <div class="lounge-icon">
+                                <svg viewBox="0 0 24 24">
+                                    <rect x="3" y="8" width="18" height="12" rx="2"/>
+                                    <path d="M7 8V6a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v2"/>
+                                </svg>
+                            </div>
+                            <div class="lounge-text">Airport Lounges</div>
+                        </a>
+                    </section>
+
+                    <!-- Hero Card Benefits -->
                     <a class="hero" href="#" aria-label="Explore card benefits">
                         <div class="hero-inner">
                             <div class="hero-art" aria-hidden="true">
@@ -57,56 +95,6 @@
                                     <svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg>
                                 </div>
                             </div>
-                        </div>
-                    </a>
-
-                    <!-- Accounts Section -->
-                    <div class="section-head">
-                        <div class="section-name">Accounts</div>
-                        <button class="section-plus" type="button" aria-label="Add account">+</button>
-                    </div>
-
-                    <div class="accounts-container" id="accountsContainer">
-                        <!-- Dynamically populated from userConfig -->
-                    </div>
-
-                    <!-- Membership Rewards -->
-                    <section class="rewards-section">
-                        <h2 class="rewards-header">Membership Rewards</h2>
-                        <div class="rewards">
-                            <div class="rewards-label">Membership Rewards® Points</div>
-                            <div class="rewards-points-row">
-                                <div class="rewards-icon">
-                                    <svg viewBox="0 0 24 24"><path d="M12 3l2.2 4.7 5.2.6-3.9 3.4 1.2 5-4.7-2.7-4.7 2.7 1.2-5-3.9-3.4 5.2-.6z"/></svg>
-                                </div>
-                                <div class="rewards-points" id="rewardsPoints">0</div>
-                            </div>
-                            <button class="rewards-btn" type="button">Redeem Rewards</button>
-                        </div>
-                    </section>
-
-                    <!-- Upcoming Section -->
-                    <section class="upcoming">
-                        <div class="upcoming-head">
-                            <h2 class="upcoming-title">Upcoming</h2>
-                            <a class="upcoming-link" href="#">View All</a>
-                        </div>
-                        <div class="upcoming-trips" id="upcomingTrips">
-                            <!-- Dynamically populated from userConfig -->
-                        </div>
-                    </section>
-
-                    <!-- Lounge CTA -->
-                    <a class="lounge-cta" href="#">
-                        <div class="lounge-icon">
-                            <svg viewBox="0 0 24 24">
-                                <rect x="3" y="8" width="18" height="12" rx="2"/>
-                                <path d="M7 8V6a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v2"/>
-                            </svg>
-                        </div>
-                        <div class="lounge-text">Find an airport lounge for your upcoming trip</div>
-                        <div class="lounge-chevron">
-                            <svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg>
                         </div>
                     </a>
 
@@ -145,6 +133,17 @@
                                 <!-- Labels will be generated dynamically -->
                             </div>
                             <button class="insights-link" id="insightsViewBtn" type="button">View Recent Spending</button>
+                        </div>
+                    </section>
+
+                    <!-- Upcoming Trips -->
+                    <section class="upcoming">
+                        <div class="upcoming-head">
+                            <h2 class="upcoming-title">Upcoming Trips</h2>
+                            <a class="upcoming-link" href="#">View All</a>
+                        </div>
+                        <div class="upcoming-trips" id="upcomingTrips">
+                            <!-- Dynamically populated from userConfig -->
                         </div>
                     </section>
 
