@@ -438,7 +438,126 @@ function setPrimaryCard(cardId) {
     return false;
 }
 
+// Seeded Random Number Generator
+class SeededRandom {
+    constructor(seed) {
+        this.seed = seed;
+    }
+
+    next() {
+        this.seed = (this.seed * 9301 + 49297) % 233280;
+        return this.seed / 233280;
+    }
+
+    nextInt(min, max) {
+        return Math.floor(this.next() * (max - min + 1)) + min;
+    }
+
+    choice(array) {
+        return array[Math.floor(this.next() * array.length)];
+    }
+}
+
+// Transaction templates for each card
+const transactionTemplates = {
+    centurion: [
+        { icon: '🏨', merchants: ['Crown Towers Sydney (Villas)', 'Crown Towers Sydney (Penthouse)', 'Park Hyatt Sydney (Presidential)', 'Shangri-La Sydney (Horizon Club)'], category: 'Travel', amountRange: [15000, 55000] },
+        { icon: '💎', merchants: ['Van Cleef & Arpels', 'Tiffany & Co', 'Cartier Sydney', 'Bulgari'], category: 'Luxury', amountRange: [25000, 95000] },
+        { icon: '✈️', merchants: ['Jet-A Fuel (Private Aviation)', 'Private Jet Catering', 'Hangar & Handling Fees', 'Aviation Maintenance'], category: 'Aviation', amountRange: [18000, 45000] },
+        { icon: '👨‍✈️', merchants: ['Flight Crew Services (Payroll)', 'Pilot Training & Certification', 'Aviation Insurance'], category: 'Aviation', amountRange: [15000, 30000] },
+        { icon: '🛥️', merchants: ['Yacht Crew Payroll', 'Marina Berth Fees (Quarterly)', 'Yacht Fuel & Provisioning', 'Superyacht Engineering'], category: 'Yachting', amountRange: [12000, 35000] },
+        { icon: '🛠️', merchants: ['Superyacht Engineering & Maintenance', 'Yacht Refit (Interior)', 'Yacht Electrical Systems', 'Hull & Paint Maintenance'], category: 'Yachting', amountRange: [20000, 70000] },
+        { icon: '🚗', merchants: ['McLaren Sydney (Deposit)', 'Rolls-Royce Motor Cars', 'Lamborghini Sydney', 'Ferrari Sydney', 'Bentley Sydney', 'Porsche Centre Sydney'], category: 'Auto', amountRange: [50000, 900000] }
+    ],
+    platinum: [
+        { icon: '🛒', merchants: ['Woolworths', 'Coles', 'Harris Farm Markets', 'Aldi'], category: 'Groceries', amountRange: [80, 190] },
+        { icon: '☕', merchants: ['Toby\'s Estate Coffee', 'Campos Coffee', 'Single O', 'Paramount Coffee'], category: 'Coffee', amountRange: [5, 8] },
+        { icon: '🚗', merchants: ['Ampol', 'BP', 'Shell', '7-Eleven'], category: 'Fuel', amountRange: [75, 110] },
+        { icon: '🍜', merchants: ['Chat Thai', 'Din Tai Fung', 'Gumshara Ramen', 'Ippudo', 'Ramen Zundo'], category: 'Dining', amountRange: [25, 85] },
+        { icon: '🧾', merchants: ['Telstra', 'Origin Energy', 'AGL Energy', 'Sydney Water'], category: 'Utilities', amountRange: [90, 180] },
+        { icon: '🚕', merchants: ['Uber', 'DiDi', 'Ola'], category: 'Transport', amountRange: [15, 35] },
+        { icon: '💊', merchants: ['Chemist Warehouse', 'Priceline Pharmacy', 'Terry White'], category: 'Health', amountRange: [18, 50] },
+        { icon: '🍔', merchants: ['Grill\'d', 'Guzman y Gomez', 'Oporto', 'Hungry Jack\'s'], category: 'Dining', amountRange: [18, 35] },
+        { icon: '🧰', merchants: ['Bunnings', 'Mitre 10'], category: 'Home', amountRange: [35, 150] },
+        { icon: '🎧', merchants: ['Spotify', 'Apple Music'], category: 'Subscription', amountRange: [12, 18] },
+        { icon: '🍣', merchants: ['Sushi Hub', 'Sushia', 'Sushi Train'], category: 'Dining', amountRange: [14, 25] },
+        { icon: '🧼', merchants: ['Kmart', 'Target', 'Big W'], category: 'Shopping', amountRange: [40, 120] },
+        { icon: '🏋️', merchants: ['Fitness First', 'Anytime Fitness', 'F45'], category: 'Fitness', amountRange: [30, 80] },
+        { icon: '🎬', merchants: ['Netflix', 'Stan', 'Disney+', 'Binge'], category: 'Subscription', amountRange: [12, 26] },
+        { icon: '🛍️', merchants: ['David Jones', 'Myer', 'The Iconic', 'UNIQLO'], category: 'Shopping', amountRange: [60, 250] },
+        { icon: '🍕', merchants: ['Fratelli Fresh', 'Criniti\'s', 'Pizza Madre'], category: 'Dining', amountRange: [45, 100] },
+        { icon: '🚇', merchants: ['Opal Top Up'], category: 'Transport', amountRange: [40, 60] },
+        { icon: '📦', merchants: ['Amazon', 'eBay'], category: 'Shopping', amountRange: [35, 150] },
+        { icon: '📱', merchants: ['Apple (iCloud+)', 'Google One'], category: 'Subscription', amountRange: [4, 15] },
+        { icon: '🛠️', merchants: ['Officeworks', 'JB Hi-Fi'], category: 'Shopping', amountRange: [30, 200] }
+    ],
+    cryptojade: [
+        { icon: '₿', merchants: ['Bitcoin Purchase', 'BTC Buy Order', 'Bitcoin Accumulation'], category: 'Crypto', amountRange: [0.1, 5], isCrypto: true, symbol: 'BTC' },
+        { icon: 'Ξ', merchants: ['ETH Staking Reward', 'Ethereum Purchase', 'ETH DeFi Position'], category: 'Staking', amountRange: [0.5, 10], isCrypto: true, symbol: 'ETH' },
+        { icon: '◎', merchants: ['Solana Accumulation', 'SOL Staking', 'Solana Buy'], category: 'Purchase', amountRange: [50, 500], isCrypto: true, symbol: 'SOL' },
+        { icon: '✕', merchants: ['XRP OTC Purchase', 'Ripple Buy Order'], category: 'OTC', amountRange: [5000, 30000], isCrypto: true, symbol: 'XRP' },
+        { icon: '₿', merchants: ['Cold Storage Transfer', 'Hardware Wallet Transfer'], category: 'Transfer', amountRange: [-10, -1], isCrypto: true, symbol: 'BTC' },
+        { icon: 'Ξ', merchants: ['Blue-chip NFT', 'NFT Mint', 'OpenSea Purchase'], category: 'NFT', amountRange: [-25, -5], isCrypto: true, symbol: 'ETH' }
+    ]
+};
+
+// Generate deterministic transactions for a specific date and card
+function generateDailyTransactions(date, cardId, count = 3) {
+    const card = userConfig.cards[cardId];
+    if (!card) return [];
+
+    // Create seed from date and cardId
+    const dateStr = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
+    const seed = dateStr.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) + cardId.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+
+    const rng = new SeededRandom(seed);
+    const templates = transactionTemplates[cardId] || transactionTemplates.platinum;
+    const transactions = [];
+
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const dateStr2 = `${months[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
+
+    for (let i = 0; i < count; i++) {
+        const template = rng.choice(templates);
+        const merchant = rng.choice(template.merchants);
+        const amount = rng.nextInt(template.amountRange[0] * 100, template.amountRange[1] * 100) / 100;
+
+        let displayAmount;
+        if (template.isCrypto) {
+            const sign = amount >= 0 ? '+' : '';
+            displayAmount = `${sign}${amount.toFixed(template.symbol === 'BTC' || template.symbol === 'ETH' ? 1 : 0)} ${template.symbol}`;
+        } else {
+            displayAmount = `-$${amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        }
+
+        transactions.push({
+            icon: template.icon,
+            merchant: merchant,
+            date: dateStr2,
+            amount: displayAmount,
+            category: template.category
+        });
+    }
+
+    return transactions;
+}
+
+// Get transactions for the last N days for a card
+function getRecentTransactions(cardId, days = 30, perDay = 3) {
+    const transactions = [];
+    const today = new Date();
+
+    for (let i = 0; i < days; i++) {
+        const date = new Date(today);
+        date.setDate(date.getDate() - i);
+        const dailyTransactions = generateDailyTransactions(date, cardId, perDay);
+        transactions.push(...dailyTransactions);
+    }
+
+    return transactions;
+}
+
 // Export for use in app
 if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { userConfig, getCard, getPrimaryCard, getAllCards, getTotalBalance, setPrimaryCard };
+    module.exports = { userConfig, getCard, getPrimaryCard, getAllCards, getTotalBalance, setPrimaryCard, generateDailyTransactions, getRecentTransactions };
 }

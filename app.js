@@ -213,10 +213,15 @@ class AmexApp {
             homeCardNumber.textContent = primaryCard.fullNumber;
         }
 
-        // Populate home transactions from primary card
+        // Populate home transactions from primary card using generated transactions
         const homeTransactionsList = document.getElementById('homeTransactionsList');
-        if (homeTransactionsList && primaryCard && primaryCard.transactions) {
-            homeTransactionsList.innerHTML = primaryCard.transactions.slice(0, 3).map(txn => `
+        if (homeTransactionsList && primaryCard) {
+            // Generate today's transactions for the primary card
+            const todayTransactions = typeof generateDailyTransactions === 'function'
+                ? generateDailyTransactions(new Date(), primaryCard.id, 3)
+                : (primaryCard.transactions || []).slice(0, 3);
+
+            homeTransactionsList.innerHTML = todayTransactions.map(txn => `
                 <div class="home-transaction-item">
                     <div class="home-txn-icon">${txn.icon}</div>
                     <div class="home-txn-details">
@@ -977,8 +982,29 @@ class AmexApp {
             if (transactionsList) transactionsList.style.display = 'flex';
         }
 
-        if (transactionsList && card.transactions && !card.isCrypto) {
-            // Show regular transactions
+        if (transactionsList && !card.isCrypto) {
+            // Show generated transactions for the last 30 days
+            const transactions = typeof getRecentTransactions === 'function'
+                ? getRecentTransactions(cardId, 30, 3)
+                : (card.transactions || []);
+
+            transactionsList.innerHTML = transactions.map(tx => `
+                <div class="transaction-item">
+                    <div class="transaction-icon">
+                        <span style="font-size: 22px;">${tx.icon}</span>
+                    </div>
+                    <div class="transaction-details">
+                        <div class="transaction-name">${tx.merchant}</div>
+                        <div class="transaction-date">${tx.date}</div>
+                    </div>
+                    <div class="transaction-amount ${tx.amount.startsWith('+') ? 'positive' : ''}">${tx.amount}</div>
+                </div>
+            `).join('');
+        }
+
+        // Also handle crypto card transactions
+        if (transactionsList && card.isCrypto && card.transactions) {
+            // For crypto, show the static transactions from config for now
             transactionsList.innerHTML = card.transactions.map(tx => `
                 <div class="transaction-item">
                     <div class="transaction-icon">
