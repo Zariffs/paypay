@@ -113,41 +113,38 @@
                     <!-- Financial Insights -->
                     <section class="insights">
                         <h2 class="insights-title">Financial Insights</h2>
-                        <div class="insights-card">
-                            <div class="insights-subtitle">Weekly Spending</div>
-                            <div class="insights-account">
-                                <img class="insights-account-card" src="images/AMEX/centurion.jpeg" alt="" aria-hidden="true">
-                                <span>Centurion Black Card (••••7838)</span>
+                        <div class="insights-card" id="insightsCard">
+                            <div class="insights-header">
+                                <div class="insights-subtitle" id="insightsSubtitle">Weekly Spending</div>
+                                <button class="insights-card-toggle" id="insightsCardToggle" type="button">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M9 5l7 7-7 7"/>
+                                    </svg>
+                                </button>
+                            </div>
+                            <div class="insights-account" id="insightsAccount">
+                                <img class="insights-account-card" id="insightsAccountCard" src="images/AMEX/centurion.jpeg" alt="" aria-hidden="true">
+                                <span id="insightsAccountName">Centurion Black Card (••••7838)</span>
                             </div>
                             <div class="insights-top">
                                 <div class="insights-period">
-                                    <div class="insights-range">Jul 28 - Aug 3</div>
-                                    <div class="insights-amount">$68.12</div>
+                                    <div class="insights-range" id="insightsRange">Jul 28 - Aug 3</div>
+                                    <div class="insights-amount" id="insightsAmount">$0.00</div>
                                 </div>
                             </div>
                             <div class="insights-chart-wrap">
-                                <div class="insights-y-axis">
+                                <div class="insights-y-axis" id="insightsYAxis">
                                     <span>$120</span>
                                     <span>$60</span>
                                 </div>
-                                <div class="insights-chart">
-                                    <div class="insights-bar-col"><div class="insights-bar" style="height: 15px"></div></div>
-                                    <div class="insights-bar-col"><div class="insights-bar" style="height: 32px"></div></div>
-                                    <div class="insights-bar-col"><div class="insights-bar" style="height: 25px"></div></div>
-                                    <div class="insights-bar-col"><div class="insights-bar active" style="height: 52px"></div></div>
-                                    <div class="insights-bar-col"><div class="insights-bar" style="height: 40px"></div></div>
-                                    <div class="insights-bar-col"><div class="insights-bar" style="height: 28px"></div></div>
+                                <div class="insights-chart" id="insightsChart">
+                                    <!-- Bars will be generated dynamically -->
                                 </div>
                             </div>
-                            <div class="insights-labels">
-                                <span>Week</span>
-                                <span>Jun 30</span>
-                                <span>Jul 7</span>
-                                <span>Jul 14</span>
-                                <span>Jul 21</span>
-                                <span>Jul 28</span>
+                            <div class="insights-labels" id="insightsLabels">
+                                <!-- Labels will be generated dynamically -->
                             </div>
-                            <button class="insights-link" type="button">View Recent Spending</button>
+                            <button class="insights-link" id="insightsViewBtn" type="button">View Recent Spending</button>
                         </div>
                     </section>
 

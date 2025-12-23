@@ -68,6 +68,9 @@ class AmexApp {
         
         // Fetch crypto prices and update crypto cards
         this.updateCryptoPrices();
+
+        // Setup financial insights
+        this.setupFinancialInsights();
     }
     
     async updateCryptoPrices() {
@@ -3511,6 +3514,297 @@ class AmexApp {
         this.marketsManager.chartUpdateInterval = setInterval(() => {
             this.updateMarketsChart();
         }, 60000);
+    }
+
+    // ========================================
+    // Financial Insights
+    // ========================================
+
+    setupFinancialInsights() {
+        this.currentInsightsCardIndex = 0;
+        this.insightsCards = [];
+
+        // Build insights for each card
+        if (typeof userConfig !== 'undefined' && userConfig.cards) {
+            this.insightsCards = Object.values(userConfig.cards);
+        }
+
+        // Setup toggle button
+        const toggleBtn = document.getElementById('insightsCardToggle');
+        if (toggleBtn) {
+            toggleBtn.addEventListener('click', () => {
+                this.currentInsightsCardIndex = (this.currentInsightsCardIndex + 1) % this.insightsCards.length;
+                this.updateInsightsDisplay();
+            });
+        }
+
+        // Setup view button
+        const viewBtn = document.getElementById('insightsViewBtn');
+        if (viewBtn) {
+            viewBtn.addEventListener('click', () => {
+                const currentCard = this.insightsCards[this.currentInsightsCardIndex];
+                if (currentCard) {
+                    this.openDrawer(currentCard.id);
+                }
+            });
+        }
+
+        // Initial display
+        this.updateInsightsDisplay();
+    }
+
+    updateInsightsDisplay() {
+        if (this.insightsCards.length === 0) return;
+
+        const currentCard = this.insightsCards[this.currentInsightsCardIndex];
+        if (!currentCard) return;
+
+        // Update card info
+        const cardImg = document.getElementById('insightsAccountCard');
+        const cardName = document.getElementById('insightsAccountName');
+
+        if (cardImg) cardImg.src = currentCard.image;
+        if (cardName) {
+            const lastFour = currentCard.number.slice(-4);
+            cardName.textContent = `${currentCard.name} (••••${lastFour})`;
+        }
+
+        // Check if crypto card
+        if (currentCard.isCrypto) {
+            this.updateCryptoInsights(currentCard);
+        } else {
+            this.updateSpendingInsights(currentCard);
+        }
+    }
+
+    updateCryptoInsights(card) {
+        // Change subtitle
+        const subtitle = document.getElementById('insightsSubtitle');
+        if (subtitle) subtitle.textContent = 'Portfolio Performance';
+
+        // Calculate gains/losses
+        const transactions = card.transactions || [];
+        const weeklyData = this.calculateCryptoWeeklyPerformance(transactions, card);
+
+        // Update range
+        const range = document.getElementById('insightsRange');
+        if (range && weeklyData.labels.length > 0) {
+            const firstDate = weeklyData.labels[0];
+            const lastDate = weeklyData.labels[weeklyData.labels.length - 1];
+            range.textContent = `${firstDate} - ${lastDate}`;
+        }
+
+        // Update amount (current value)
+        const amount = document.getElementById('insightsAmount');
+        if (amount) {
+            const currentValue = card.balanceRaw || 0;
+            const weekChange = weeklyData.weekChange || 0;
+            const changePercent = weeklyData.weekChangePercent || 0;
+            const isPositive = weekChange >= 0;
+
+            amount.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 8px; justify-content: flex-end;">
+                    <span>${this.formatCurrency(currentValue)}</span>
+                    <span style="font-size: 14px; color: ${isPositive ? '#00d4aa' : '#ff6b6b'};">
+                        ${isPositive ? '+' : ''}${changePercent.toFixed(2)}%
+                    </span>
+                </div>
+            `;
+        }
+
+        // Update chart
+        this.renderInsightsChart(weeklyData.values, weeklyData.labels, true);
+
+        // Update button text
+        const viewBtn = document.getElementById('insightsViewBtn');
+        if (viewBtn) viewBtn.textContent = 'View Portfolio Details';
+    }
+
+    updateSpendingInsights(card) {
+        // Change subtitle
+        const subtitle = document.getElementById('insightsSubtitle');
+        if (subtitle) subtitle.textContent = 'Weekly Spending';
+
+        // Calculate weekly spending
+        const transactions = card.transactions || [];
+        const weeklyData = this.calculateWeeklySpending(transactions);
+
+        // Update range
+        const range = document.getElementById('insightsRange');
+        if (range && weeklyData.labels.length > 0) {
+            const firstDate = weeklyData.labels[0];
+            const lastDate = weeklyData.labels[weeklyData.labels.length - 1];
+            range.textContent = `${firstDate} - ${lastDate}`;
+        }
+
+        // Update amount (current week total)
+        const amount = document.getElementById('insightsAmount');
+        if (amount) {
+            const currentWeekTotal = weeklyData.values[weeklyData.values.length - 1] || 0;
+            amount.textContent = this.formatCurrency(currentWeekTotal);
+        }
+
+        // Update chart
+        this.renderInsightsChart(weeklyData.values, weeklyData.labels, false);
+
+        // Update button text
+        const viewBtn = document.getElementById('insightsViewBtn');
+        if (viewBtn) viewBtn.textContent = 'View Recent Spending';
+    }
+
+    calculateWeeklySpending(transactions) {
+        const weeks = 6;
+        const weeklyTotals = [];
+        const labels = [];
+        const now = new Date();
+
+        // Get spending transactions only (negative amounts)
+        const spendingTransactions = transactions.filter(t =>
+            t.amount < 0 && t.type !== 'payment_received'
+        );
+
+        for (let i = weeks - 1; i >= 0; i--) {
+            const weekEnd = new Date(now);
+            weekEnd.setDate(now.getDate() - (i * 7));
+            const weekStart = new Date(weekEnd);
+            weekStart.setDate(weekEnd.getDate() - 6);
+
+            // Calculate total for this week
+            let weekTotal = 0;
+            spendingTransactions.forEach(transaction => {
+                const transactionDate = new Date(transaction.date);
+                if (transactionDate >= weekStart && transactionDate <= weekEnd) {
+                    weekTotal += Math.abs(transaction.amount);
+                }
+            });
+
+            weeklyTotals.push(weekTotal);
+
+            // Format label
+            const month = weekEnd.toLocaleDateString('en-US', { month: 'short' });
+            const day = weekEnd.getDate();
+            labels.push(`${month} ${day}`);
+        }
+
+        return { values: weeklyTotals, labels };
+    }
+
+    calculateCryptoWeeklyPerformance(transactions, card) {
+        const weeks = 6;
+        const weeklyValues = [];
+        const labels = [];
+        const now = new Date();
+
+        let initialValue = 0;
+        let currentValue = card.balanceRaw || 0;
+
+        for (let i = weeks - 1; i >= 0; i--) {
+            const weekEnd = new Date(now);
+            weekEnd.setDate(now.getDate() - (i * 7));
+
+            // Calculate portfolio value at that time
+            let weekValue = 0;
+            if (card.holdings) {
+                card.holdings.forEach(holding => {
+                    // Simulate historical price (in real app, you'd fetch historical data)
+                    const currentPrice = holding.price || 0;
+                    const priceVariation = (Math.random() - 0.5) * 0.1; // ±5% random variation
+                    const historicalPrice = currentPrice * (1 + (priceVariation * (weeks - i) / weeks));
+                    weekValue += holding.amount * historicalPrice;
+                });
+            }
+
+            if (i === weeks - 1) initialValue = weekValue;
+            weeklyValues.push(weekValue);
+
+            // Format label
+            const month = weekEnd.toLocaleDateString('en-US', { month: 'short' });
+            const day = weekEnd.getDate();
+            labels.push(`${month} ${day}`);
+        }
+
+        const weekChange = currentValue - initialValue;
+        const weekChangePercent = initialValue > 0 ? (weekChange / initialValue) * 100 : 0;
+
+        return {
+            values: weeklyValues,
+            labels,
+            weekChange,
+            weekChangePercent
+        };
+    }
+
+    renderInsightsChart(values, labels, isCrypto) {
+        const chartContainer = document.getElementById('insightsChart');
+        const yAxisContainer = document.getElementById('insightsYAxis');
+        const labelsContainer = document.getElementById('insightsLabels');
+
+        if (!chartContainer) return;
+
+        // Calculate max value for scaling
+        const maxValue = Math.max(...values, 1);
+        const chartHeight = 70; // pixels
+
+        // Clear existing bars
+        chartContainer.innerHTML = '';
+
+        // Render bars
+        values.forEach((value, index) => {
+            const barHeight = (value / maxValue) * chartHeight;
+            const isLast = index === values.length - 1;
+
+            const col = document.createElement('div');
+            col.className = 'insights-bar-col';
+
+            const bar = document.createElement('div');
+            bar.className = 'insights-bar' + (isLast ? ' active' : '');
+            bar.style.height = `${barHeight}px`;
+
+            // Color based on type
+            if (isCrypto) {
+                const prevValue = index > 0 ? values[index - 1] : value;
+                const isUp = value >= prevValue;
+                bar.style.background = isUp ? 'rgba(0, 212, 170, 0.4)' : 'rgba(255, 107, 107, 0.4)';
+            } else {
+                bar.style.background = isLast ? 'rgba(74, 166, 255, 0.5)' : 'rgba(255, 255, 255, 0.18)';
+            }
+
+            col.appendChild(bar);
+            chartContainer.appendChild(col);
+        });
+
+        // Update Y-axis
+        if (yAxisContainer) {
+            const topValue = maxValue;
+            const midValue = maxValue / 2;
+            yAxisContainer.innerHTML = `
+                <span>${this.formatCurrency(topValue, true)}</span>
+                <span>${this.formatCurrency(midValue, true)}</span>
+            `;
+        }
+
+        // Update labels
+        if (labelsContainer) {
+            labelsContainer.innerHTML = '<span>Week</span>';
+            labels.forEach(label => {
+                const span = document.createElement('span');
+                span.textContent = label;
+                labelsContainer.appendChild(span);
+            });
+        }
+    }
+
+    formatCurrency(amount, compact = false) {
+        if (compact && amount >= 1000) {
+            if (amount >= 1000000) {
+                return '$' + (amount / 1000000).toFixed(1) + 'M';
+            }
+            return '$' + (amount / 1000).toFixed(0) + 'K';
+        }
+        return '$' + amount.toLocaleString('en-US', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
     }
 }
 
