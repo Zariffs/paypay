@@ -2812,7 +2812,13 @@ class AmexApp {
             recipientDisplay += ` (${this.selectedRecipient.email})`;
         }
 
-        confirmationStatus.textContent = `$${parseFloat(amount).toFixed(2)} sent to ${recipientDisplay}`;
+        // Format amount with commas
+        const formattedAmount = parseFloat(amount).toLocaleString('en-US', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
+
+        confirmationStatus.textContent = `$${formattedAmount} sent to ${recipientDisplay}`;
 
         // Show note if provided
         const confirmationNote = document.getElementById('sendConfirmationNote');

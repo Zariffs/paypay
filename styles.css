@@ -2821,8 +2821,7 @@ body {
 }
 
 .send-amount-input:focus {
-    color: var(--accent);
-    text-shadow: 0 0 20px rgba(74, 166, 255, 0.3);
+    color: var(--text);
 }
 
 .send-amount-input::placeholder {
