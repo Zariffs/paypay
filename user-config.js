@@ -423,7 +423,22 @@ function getTotalBalance() {
     return Object.values(userConfig.cards).reduce((sum, card) => sum + card.balanceRaw, 0);
 }
 
+// Helper function to set primary card
+function setPrimaryCard(cardId) {
+    // Set all cards to non-primary first
+    Object.values(userConfig.cards).forEach(card => {
+        card.isPrimary = false;
+    });
+
+    // Set the selected card as primary
+    if (userConfig.cards[cardId]) {
+        userConfig.cards[cardId].isPrimary = true;
+        return true;
+    }
+    return false;
+}
+
 // Export for use in app
 if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { userConfig, getCard, getPrimaryCard, getAllCards, getTotalBalance };
+    module.exports = { userConfig, getCard, getPrimaryCard, getAllCards, getTotalBalance, setPrimaryCard };
 }

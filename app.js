@@ -182,6 +182,52 @@ class AmexApp {
     async populateHomePage() {
         if (typeof userConfig === 'undefined') return;
 
+        // Get primary card
+        const primaryCard = Object.values(userConfig.cards).find(card => card.isPrimary) || userConfig.cards.centurion;
+
+        // Populate home balance and card name from primary card
+        const homeBalanceAmount = document.getElementById('homeBalanceAmount');
+        if (homeBalanceAmount && primaryCard) {
+            homeBalanceAmount.textContent = primaryCard.balance;
+        }
+
+        const homeCardName = document.getElementById('homeCardName');
+        if (homeCardName && primaryCard) {
+            homeCardName.textContent = primaryCard.name;
+        }
+
+        // Update peek card image
+        const peekCard = document.querySelector('.peek-card');
+        if (peekCard && primaryCard) {
+            peekCard.src = primaryCard.image;
+        }
+
+        // Update home primary card display
+        const homePrimaryCardImg = document.querySelector('.home-card-img');
+        if (homePrimaryCardImg && primaryCard) {
+            homePrimaryCardImg.src = primaryCard.image;
+        }
+
+        const homeCardNumber = document.getElementById('homeCardNumber');
+        if (homeCardNumber && primaryCard) {
+            homeCardNumber.textContent = primaryCard.fullNumber;
+        }
+
+        // Populate home transactions from primary card
+        const homeTransactionsList = document.getElementById('homeTransactionsList');
+        if (homeTransactionsList && primaryCard && primaryCard.transactions) {
+            homeTransactionsList.innerHTML = primaryCard.transactions.slice(0, 3).map(txn => `
+                <div class="home-transaction-item">
+                    <div class="home-txn-icon">${txn.icon}</div>
+                    <div class="home-txn-details">
+                        <div class="home-txn-merchant">${txn.merchant}</div>
+                        <div class="home-txn-date">${txn.date}</div>
+                    </div>
+                    <div class="home-txn-amount">${txn.amount}</div>
+                </div>
+            `).join('');
+        }
+
         // Populate current date
         const dateEl = document.getElementById('currentDate');
         if (dateEl) {
@@ -4074,14 +4120,18 @@ class AmexApp {
         // Simulate processing
         await new Promise(resolve => setTimeout(resolve, 2000));
 
-        // Show success
+        // Show success with animated checkmark
         confirmationIcon.innerHTML = `
-            <div class="send-checkmark">
-                <svg viewBox="0 0 52 52">
-                    <circle cx="26" cy="26" r="25" fill="none"/>
-                    <path fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
-                </svg>
-            </div>
+            <svg class="send-success-checkmark" viewBox="0 0 52 52">
+                <defs>
+                    <linearGradient id="transfer-success-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+                        <stop offset="100%" style="stop-color:#764ba2;stop-opacity:1" />
+                    </linearGradient>
+                </defs>
+                <circle class="send-success-circle" cx="26" cy="26" r="25" fill="none" stroke="url(#transfer-success-gradient)"/>
+                <path class="send-success-check" fill="none" stroke="url(#transfer-success-gradient)" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
+            </svg>
         `;
         confirmationTitle.textContent = 'Transfer Complete';
         confirmationStatus.textContent = 'Funds transferred successfully';
