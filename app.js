@@ -2151,7 +2151,11 @@ class AmexApp {
         ];
 
         this.selectedRecipient = null;
-        this.selectedCard = 'centurion';
+        this.sendModalCard = 'centurion';
+        this.receiveModalCard = 'centurion';
+        this.transferFromCard = 'centurion';
+        this.transferToCard = null;
+        this.currentCardSelectorContext = null; // Tracks which modal is selecting a card
 
         // Get all the drawer Send buttons
         const drawerActions = document.querySelector('.drawer-actions');
@@ -2232,7 +2236,10 @@ class AmexApp {
         // Card change button
         const sendCardChange = document.getElementById('sendCardChange');
         if (sendCardChange) {
-            sendCardChange.addEventListener('click', () => this.openCardSelector());
+            sendCardChange.addEventListener('click', () => {
+                this.currentCardSelectorContext = 'send';
+                this.openCardSelector();
+            });
         }
 
         // Setup modals
@@ -2443,8 +2450,27 @@ class AmexApp {
 
         const cards = Object.entries(userConfig.cards);
 
+        // Get currently selected card based on context
+        let currentCard;
+        switch(this.currentCardSelectorContext) {
+            case 'send':
+                currentCard = this.sendModalCard;
+                break;
+            case 'receive':
+                currentCard = this.receiveModalCard;
+                break;
+            case 'transferFrom':
+                currentCard = this.transferFromCard;
+                break;
+            case 'transferTo':
+                currentCard = this.transferToCard;
+                break;
+            default:
+                currentCard = this.sendModalCard;
+        }
+
         cardSelectorList.innerHTML = cards.map(([id, card]) => `
-            <div class="card-selector-item ${id === this.selectedCard ? 'selected' : ''}" data-card-id="${id}">
+            <div class="card-selector-item ${id === currentCard ? 'selected' : ''}" data-card-id="${id}">
                 <img class="card-selector-card-img" src="${card.image}" alt="${card.name}">
                 <div class="card-selector-info">
                     <div class="card-selector-card-name">${card.name}</div>
@@ -2468,19 +2494,28 @@ class AmexApp {
     }
 
     selectCard(cardId) {
-        this.selectedCard = cardId;
-
         const card = userConfig.cards[cardId];
         if (!card) return;
 
-        // Update card display
-        const cardMiniImg = document.getElementById('sendCardMiniImg');
-        const cardName = document.getElementById('sendCardName');
-        const cardNumber = document.getElementById('sendCardNumber');
-
-        if (cardMiniImg) cardMiniImg.src = card.image;
-        if (cardName) cardName.textContent = card.name;
-        if (cardNumber) cardNumber.textContent = `••••${card.lastFour}`;
+        // Update the appropriate card based on context
+        switch(this.currentCardSelectorContext) {
+            case 'send':
+                this.sendModalCard = cardId;
+                this.updateSendModalCard();
+                break;
+            case 'receive':
+                this.receiveModalCard = cardId;
+                this.updateReceiveModalCard();
+                break;
+            case 'transferFrom':
+                this.transferFromCard = cardId;
+                this.updateTransferFromCard();
+                break;
+            case 'transferTo':
+                this.transferToCard = cardId;
+                this.updateTransferToCard();
+                break;
+        }
 
         // Update selector UI
         document.querySelectorAll('.card-selector-item').forEach(item => {
@@ -2694,7 +2729,7 @@ class AmexApp {
     updateSendModalCard() {
         if (typeof userConfig === 'undefined' || !userConfig.cards) return;
 
-        const card = userConfig.cards[this.selectedCard];
+        const card = userConfig.cards[this.sendModalCard];
         if (!card) return;
 
         const cardMiniImg = document.getElementById('sendCardMiniImg');
@@ -2706,14 +2741,66 @@ class AmexApp {
         if (cardNumber) cardNumber.textContent = `••••${card.lastFour}`;
     }
 
+    updateReceiveModalCard() {
+        if (typeof userConfig === 'undefined' || !userConfig.cards) return;
+
+        const card = userConfig.cards[this.receiveModalCard];
+        if (!card) return;
+
+        const cardMiniImg = document.getElementById('receiveCardMiniImg');
+        const cardName = document.getElementById('receiveCardName');
+        const cardNumber = document.getElementById('receiveCardNumber');
+
+        if (cardMiniImg) cardMiniImg.src = card.image;
+        if (cardName) cardName.textContent = card.name;
+        if (cardNumber) cardNumber.textContent = `••••${card.lastFour}`;
+    }
+
+    updateTransferFromCard() {
+        if (typeof userConfig === 'undefined' || !userConfig.cards) return;
+
+        const card = userConfig.cards[this.transferFromCard];
+        if (!card) return;
+
+        const img = document.getElementById('transferFromImg');
+        const name = document.getElementById('transferFromName');
+        const number = document.getElementById('transferFromNumber');
+
+        if (img) img.src = card.image;
+        if (name) name.textContent = card.name;
+        if (number) number.textContent = `••••${card.lastFour}`;
+    }
+
+    updateTransferToCard() {
+        if (typeof userConfig === 'undefined' || !userConfig.cards) return;
+
+        if (!this.transferToCard) return;
+
+        const card = userConfig.cards[this.transferToCard];
+        if (!card) return;
+
+        const img = document.getElementById('transferToImg');
+        const name = document.getElementById('transferToName');
+        const number = document.getElementById('transferToNumber');
+
+        if (img) img.src = card.image;
+        if (name) name.textContent = card.name;
+        if (number) number.textContent = `••••${card.lastFour}`;
+    }
+
     openSendModal() {
         const sendModalOverlay = document.getElementById('sendModalOverlay');
         if (sendModalOverlay) {
-            // Set selected card to the currently viewed card in drawer
+            // Set selected card to the currently viewed card in drawer, or primary card
             if (this.currentDrawerCard) {
-                this.selectedCard = this.currentDrawerCard;
-                this.updateSendModalCard();
+                this.sendModalCard = this.currentDrawerCard;
+            } else if (typeof userConfig !== 'undefined' && userConfig.cards) {
+                const primaryCard = Object.entries(userConfig.cards).find(([, card]) => card.isPrimary);
+                if (primaryCard) {
+                    this.sendModalCard = primaryCard[0];
+                }
             }
+            this.updateSendModalCard();
 
             // Reset to amount step
             const amountStep = document.getElementById('sendStepAmount');
@@ -2789,7 +2876,7 @@ class AmexApp {
 
         // Get selected card info
         const selectedCardInfo = typeof userConfig !== 'undefined' && userConfig.cards ?
-            userConfig.cards[this.selectedCard] : null;
+            userConfig.cards[this.sendModalCard] : null;
 
         // Log payment info (in production, this would process the actual payment)
         console.log('Processing payment:', {
@@ -3834,8 +3921,9 @@ class AmexApp {
     // ========================================
 
     setupTransferModal() {
-        this.selectedTransferFrom = 'centurion';
-        this.selectedTransferTo = null;
+        // Default values already set in setupSendModal
+        // this.transferFromCard = 'centurion';
+        // this.transferToCard = null;
 
         // Home page action buttons (already handled in setupSendModal)
 
@@ -3872,13 +3960,15 @@ class AmexApp {
 
         if (transferFromChange) {
             transferFromChange.addEventListener('click', () => {
-                this.openCardSelector('transferFrom');
+                this.currentCardSelectorContext = 'transferFrom';
+                this.openCardSelector();
             });
         }
 
         if (transferToChange) {
             transferToChange.addEventListener('click', () => {
-                this.openCardSelector('transferTo');
+                this.currentCardSelectorContext = 'transferTo';
+                this.openCardSelector();
             });
         }
 
@@ -3901,6 +3991,28 @@ class AmexApp {
         const confirmationStep = document.getElementById('transferStepConfirmation');
 
         if (overlay && amountStep && confirmationStep) {
+            // Set primary card as default for "from" if available
+            if (typeof userConfig !== 'undefined' && userConfig.cards) {
+                const primaryCard = Object.entries(userConfig.cards).find(([, card]) => card.isPrimary);
+                if (primaryCard) {
+                    this.transferFromCard = primaryCard[0];
+                }
+            }
+
+            // Reset "to" card
+            this.transferToCard = null;
+
+            // Update card displays
+            this.updateTransferFromCard();
+
+            // Reset "to" card to default state
+            const toImg = document.getElementById('transferToImg');
+            const toName = document.getElementById('transferToName');
+            const toNumber = document.getElementById('transferToNumber');
+            if (toImg) toImg.src = 'images/AMEX/amexgold.png';
+            if (toName) toName.textContent = 'Select Card';
+            if (toNumber) toNumber.textContent = '';
+
             // Reset to amount step
             amountStep.classList.add('active');
             confirmationStep.classList.remove('active');
@@ -3932,7 +4044,7 @@ class AmexApp {
 
         if (transferAmount && transferPayBtn) {
             const hasAmount = transferAmount.value.trim() !== '' && transferAmount.value !== '$0';
-            const hasDestination = this.selectedTransferTo !== null;
+            const hasDestination = this.transferToCard !== null;
             transferPayBtn.disabled = !(hasAmount && hasDestination);
         }
     }
@@ -4001,7 +4113,8 @@ class AmexApp {
         // Card change
         if (receiveCardChange) {
             receiveCardChange.addEventListener('click', () => {
-                this.openCardSelector('receive');
+                this.currentCardSelectorContext = 'receive';
+                this.openCardSelector();
             });
         }
 
@@ -4040,6 +4153,36 @@ class AmexApp {
     openReceiveModal() {
         const overlay = document.getElementById('receiveModalOverlay');
         if (overlay) {
+            // Set primary card as default if available
+            if (typeof userConfig !== 'undefined' && userConfig.cards) {
+                const primaryCard = Object.entries(userConfig.cards).find(([, card]) => card.isPrimary);
+                if (primaryCard) {
+                    this.receiveModalCard = primaryCard[0];
+                }
+            }
+
+            // Update card display
+            this.updateReceiveModalCard();
+
+            // Update account info from user config
+            if (typeof userConfig !== 'undefined' && userConfig.profile) {
+                const accountName = document.getElementById('receiveAccountName');
+                if (accountName) {
+                    accountName.textContent = userConfig.profile.fullName;
+                }
+            }
+
+            // Update account number from selected card
+            if (typeof userConfig !== 'undefined' && userConfig.cards) {
+                const card = userConfig.cards[this.receiveModalCard];
+                if (card) {
+                    const accountNumber = document.getElementById('receiveAccountNumber');
+                    if (accountNumber) {
+                        accountNumber.textContent = card.fullNumber;
+                    }
+                }
+            }
+
             overlay.classList.add('active');
         }
     }
