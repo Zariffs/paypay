@@ -2749,9 +2749,15 @@ body {
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     margin: 0 auto 40px;
     position: relative;
+}
+
+.send-recipient-btn:hover {
+    transform: scale(1.05);
+    border-color: var(--accent);
+    box-shadow: 0 4px 12px rgba(74, 166, 255, 0.2);
 }
 
 .send-recipient-btn:active {
@@ -2811,11 +2817,21 @@ body {
     caret-color: var(--accent);
     min-width: 60px;
     padding: 0 10px;
-    transition: font-size 0.2s ease;
+    transition: all 0.3s ease;
+}
+
+.send-amount-input:focus {
+    color: var(--accent);
+    text-shadow: 0 0 20px rgba(74, 166, 255, 0.3);
 }
 
 .send-amount-input::placeholder {
     color: var(--muted2);
+    transition: opacity 0.3s ease;
+}
+
+.send-amount-input:focus::placeholder {
+    opacity: 0.5;
 }
 
 /* Note Input */
@@ -2833,12 +2849,22 @@ body {
     color: var(--text);
     text-align: center;
     outline: none;
-    transition: all 0.2s ease;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .send-note-input:focus {
     border-color: var(--accent);
     background: var(--card);
+    box-shadow: 0 0 0 4px rgba(74, 166, 255, 0.1);
+    transform: translateY(-2px);
+}
+
+.send-note-input::placeholder {
+    transition: opacity 0.3s ease;
+}
+
+.send-note-input:focus::placeholder {
+    opacity: 0.6;
 }
 
 /* Card Display */
@@ -3367,12 +3393,25 @@ body {
     font-size: 32px;
     font-weight: 700;
     color: var(--text);
+    animation: fadeInUp 0.4s ease-out 0.8s backwards;
 }
 
 .send-confirmation-status {
     font-size: 17px;
     color: var(--muted);
     font-weight: 500;
+    animation: fadeInUp 0.4s ease-out 1s backwards;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .send-confirmation-note {
@@ -3383,6 +3422,7 @@ body {
     opacity: 0.8;
     max-width: 300px;
     word-wrap: break-word;
+    animation: fadeInUp 0.4s ease-out 1.2s backwards;
 }
 
 /* Done Button */
@@ -3397,47 +3437,93 @@ body {
     font-weight: 700;
     color: white;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.3s ease;
     box-shadow: 0 4px 16px rgba(102, 126, 234, 0.4);
+    animation: slideUpFade 0.4s ease-out 1.4s backwards;
+}
+
+@keyframes slideUpFade {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .send-done-btn:active {
-    transform: scale(0.98);
+    transform: scale(0.98) translateY(0);
     box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
 }
 
 /* Success Checkmark Animation */
 .send-success-checkmark {
-    width: 80px;
-    height: 80px;
-    filter: drop-shadow(0 0 20px rgba(74, 166, 255, 0.6));
+    width: 100px;
+    height: 100px;
+    background: none;
+    border: none;
+    animation: checkmarkPop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+@keyframes checkmarkPop {
+    0% {
+        transform: scale(0);
+        opacity: 0;
+    }
+    50% {
+        transform: scale(1.1);
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
 }
 
 .send-success-circle {
     stroke-dasharray: 166;
     stroke-dashoffset: 166;
-    stroke-width: 2;
+    stroke-width: 3;
     stroke-miterlimit: 10;
     stroke: url(#success-gradient);
-    animation: stroke 0.6s cubic-bezier(0.65, 0, 0.45, 1) forwards, glow 1.5s ease-in-out infinite;
+    fill: none;
+    animation: drawCircle 0.6s cubic-bezier(0.65, 0, 0.45, 1) 0.2s forwards;
+    filter: drop-shadow(0 0 8px rgba(102, 126, 234, 0.4));
+}
+
+@keyframes drawCircle {
+    to {
+        stroke-dashoffset: 0;
+    }
 }
 
 .send-success-check {
     transform-origin: 50% 50%;
     stroke-dasharray: 48;
     stroke-dashoffset: 48;
-    stroke-width: 3;
+    stroke-width: 4;
     stroke: url(#success-gradient);
     stroke-linecap: round;
-    animation: stroke 0.3s cubic-bezier(0.65, 0, 0.45, 1) 0.4s forwards, glow 1.5s ease-in-out infinite 0.4s;
+    stroke-linejoin: round;
+    fill: none;
+    animation: drawCheck 0.4s cubic-bezier(0.65, 0, 0.45, 1) 0.6s forwards;
+    filter: drop-shadow(0 0 6px rgba(102, 126, 234, 0.3));
 }
 
-@keyframes glow {
+@keyframes drawCheck {
+    to {
+        stroke-dashoffset: 0;
+    }
+}
+
+/* Pulse animation for the whole icon */
+@keyframes subtlePulse {
     0%, 100% {
-        filter: drop-shadow(0 0 8px rgba(74, 166, 255, 0.6));
+        transform: scale(1);
     }
     50% {
-        filter: drop-shadow(0 0 16px rgba(74, 166, 255, 0.9));
+        transform: scale(1.02);
     }
 }
 

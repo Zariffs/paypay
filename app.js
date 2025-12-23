@@ -1126,6 +1126,9 @@ class AmexApp {
     }
 
     openDrawer(cardId = 'centurion') {
+        // Track the currently viewed card
+        this.currentDrawerCard = cardId;
+
         // Render the drawer content for this card
         this.renderDrawerForCard(cardId);
         
@@ -2650,9 +2653,30 @@ class AmexApp {
         }
     }
 
+    updateSendModalCard() {
+        if (typeof userConfig === 'undefined' || !userConfig.cards) return;
+
+        const card = userConfig.cards[this.selectedCard];
+        if (!card) return;
+
+        const cardMiniImg = document.getElementById('sendCardMiniImg');
+        const cardName = document.getElementById('sendCardName');
+        const cardNumber = document.getElementById('sendCardNumber');
+
+        if (cardMiniImg) cardMiniImg.src = card.image;
+        if (cardName) cardName.textContent = card.name;
+        if (cardNumber) cardNumber.textContent = `••••${card.lastFour}`;
+    }
+
     openSendModal() {
         const sendModalOverlay = document.getElementById('sendModalOverlay');
         if (sendModalOverlay) {
+            // Set selected card to the currently viewed card in drawer
+            if (this.currentDrawerCard) {
+                this.selectedCard = this.currentDrawerCard;
+                this.updateSendModalCard();
+            }
+
             // Reset to amount step
             const amountStep = document.getElementById('sendStepAmount');
             const confirmationStep = document.getElementById('sendStepConfirmation');
@@ -2792,9 +2816,13 @@ class AmexApp {
 
         // Show note if provided
         const confirmationNote = document.getElementById('sendConfirmationNote');
-        if (confirmationNote && note) {
-            confirmationNote.textContent = `"${note}"`;
-            confirmationNote.style.display = 'block';
+        if (confirmationNote) {
+            if (note && note.trim()) {
+                confirmationNote.textContent = `"${note}"`;
+                confirmationNote.style.display = 'block';
+            } else {
+                confirmationNote.style.display = 'none';
+            }
         }
 
         // Show done button
