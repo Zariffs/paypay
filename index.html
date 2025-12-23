@@ -401,6 +401,223 @@
             </div>
         </div>
 
+        <!-- Transfer Money Modal -->
+        <div class="modal-overlay" id="transferModalOverlay">
+            <div class="modal send-modal" id="transferModal">
+                <div class="send-modal-content">
+                    <!-- Step 1: Transfer Details -->
+                    <div class="send-step send-step-amount active" id="transferStepAmount">
+                        <button class="send-back-btn" id="transferBackBtn">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M19 12H5M12 19l-7-7 7-7"/>
+                            </svg>
+                        </button>
+
+                        <div class="transfer-title">Transfer Between Cards</div>
+
+                        <div class="send-amount-display">
+                            <input
+                                type="text"
+                                class="send-amount-input"
+                                id="transferAmount"
+                                placeholder="$0"
+                                inputmode="decimal"
+                                pattern="[0-9]*"
+                            >
+                        </div>
+
+                        <div class="transfer-cards-container">
+                            <div class="transfer-card-section">
+                                <div class="transfer-card-label">From</div>
+                                <div class="send-card-display" id="transferFromCard">
+                                    <div class="send-card-mini">
+                                        <img class="send-card-mini-img" id="transferFromImg" src="images/AMEX/centurion.jpeg" alt="">
+                                    </div>
+                                    <div class="send-card-info">
+                                        <div class="send-card-name" id="transferFromName">Centurion Black Card</div>
+                                        <div class="send-card-number" id="transferFromNumber">••••7838</div>
+                                    </div>
+                                    <button class="send-card-change" id="transferFromChange">Change</button>
+                                </div>
+                            </div>
+
+                            <div class="transfer-arrow">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M12 5v14M12 19l-4-4m4 4l4-4"/>
+                                </svg>
+                            </div>
+
+                            <div class="transfer-card-section">
+                                <div class="transfer-card-label">To</div>
+                                <div class="send-card-display" id="transferToCard">
+                                    <div class="send-card-mini">
+                                        <img class="send-card-mini-img" id="transferToImg" src="images/AMEX/gold.jpeg" alt="">
+                                    </div>
+                                    <div class="send-card-info">
+                                        <div class="send-card-name" id="transferToName">Select Card</div>
+                                        <div class="send-card-number" id="transferToNumber"></div>
+                                    </div>
+                                    <button class="send-card-change" id="transferToChange">Change</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button class="send-pay-btn" id="transferPayBtn" disabled>
+                            <span>Transfer</span>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M5 12h14M12 5l7 7-7 7"/>
+                            </svg>
+                        </button>
+                    </div>
+
+                    <!-- Step 2: Confirmation -->
+                    <div class="send-step send-step-confirmation" id="transferStepConfirmation">
+                        <div class="send-confirmation-content">
+                            <div class="send-confirmation-icon" id="transferConfirmationIcon">
+                                <!-- Will show spinner then checkmark -->
+                            </div>
+                            <div class="send-confirmation-title" id="transferConfirmationTitle">Transferring...</div>
+                            <div class="send-confirmation-status" id="transferConfirmationStatus">Processing transfer</div>
+                        </div>
+
+                        <button class="send-done-btn" id="transferDoneBtn" style="display: none;">
+                            Done
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Receive Money Modal -->
+        <div class="modal-overlay" id="receiveModalOverlay">
+            <div class="modal receive-modal" id="receiveModal">
+                <div class="modal-header">
+                    <button class="modal-close" id="closeReceiveModal" type="button">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M19 12H5M12 19l-7-7 7-7"/>
+                        </svg>
+                    </button>
+                    <h2 class="modal-title">Receive Money</h2>
+                    <div style="width: 32px;"></div>
+                </div>
+                <div class="modal-body">
+                    <div class="receive-qr-container">
+                        <div class="receive-qr-code" id="receiveQRCode">
+                            <!-- QR Code placeholder -->
+                            <svg viewBox="0 0 200 200" fill="none">
+                                <rect x="10" y="10" width="50" height="50" fill="black"/>
+                                <rect x="70" y="10" width="10" height="10" fill="black"/>
+                                <rect x="90" y="10" width="10" height="10" fill="black"/>
+                                <rect x="110" y="10" width="10" height="10" fill="black"/>
+                                <rect x="140" y="10" width="50" height="50" fill="black"/>
+                                <rect x="20" y="20" width="30" height="30" fill="white"/>
+                                <rect x="150" y="20" width="30" height="30" fill="white"/>
+                                <rect x="70" y="30" width="10" height="10" fill="black"/>
+                                <rect x="90" y="30" width="10" height="10" fill="black"/>
+                                <rect x="110" y="30" width="10" height="10" fill="black"/>
+                                <rect x="70" y="50" width="10" height="10" fill="black"/>
+                                <rect x="90" y="50" width="10" height="10" fill="black"/>
+                                <rect x="110" y="50" width="10" height="10" fill="black"/>
+                                <rect x="10" y="70" width="10" height="10" fill="black"/>
+                                <rect x="30" y="70" width="10" height="10" fill="black"/>
+                                <rect x="50" y="70" width="10" height="10" fill="black"/>
+                                <rect x="70" y="70" width="10" height="10" fill="black"/>
+                                <rect x="90" y="70" width="10" height="10" fill="black"/>
+                                <rect x="110" y="70" width="10" height="10" fill="black"/>
+                                <rect x="130" y="70" width="10" height="10" fill="black"/>
+                                <rect x="150" y="70" width="10" height="10" fill="black"/>
+                                <rect x="170" y="70" width="10" height="10" fill="black"/>
+                                <rect x="10" y="90" width="10" height="10" fill="black"/>
+                                <rect x="30" y="90" width="10" height="10" fill="black"/>
+                                <rect x="50" y="90" width="10" height="10" fill="black"/>
+                                <rect x="130" y="90" width="10" height="10" fill="black"/>
+                                <rect x="150" y="90" width="10" height="10" fill="black"/>
+                                <rect x="170" y="90" width="10" height="10" fill="black"/>
+                                <rect x="10" y="110" width="10" height="10" fill="black"/>
+                                <rect x="30" y="110" width="10" height="10" fill="black"/>
+                                <rect x="50" y="110" width="10" height="10" fill="black"/>
+                                <rect x="130" y="110" width="10" height="10" fill="black"/>
+                                <rect x="150" y="110" width="10" height="10" fill="black"/>
+                                <rect x="170" y="110" width="10" height="10" fill="black"/>
+                                <rect x="70" y="130" width="10" height="10" fill="black"/>
+                                <rect x="90" y="130" width="10" height="10" fill="black"/>
+                                <rect x="110" y="130" width="10" height="10" fill="black"/>
+                                <rect x="10" y="140" width="50" height="50" fill="black"/>
+                                <rect x="70" y="140" width="10" height="10" fill="black"/>
+                                <rect x="90" y="140" width="10" height="10" fill="black"/>
+                                <rect x="110" y="140" width="10" height="10" fill="black"/>
+                                <rect x="130" y="140" width="10" height="10" fill="black"/>
+                                <rect x="150" y="140" width="10" height="10" fill="black"/>
+                                <rect x="170" y="140" width="10" height="10" fill="black"/>
+                                <rect x="20" y="150" width="30" height="30" fill="white"/>
+                                <rect x="70" y="160" width="10" height="10" fill="black"/>
+                                <rect x="90" y="160" width="10" height="10" fill="black"/>
+                                <rect x="110" y="160" width="10" height="10" fill="black"/>
+                                <rect x="130" y="160" width="10" height="10" fill="black"/>
+                                <rect x="150" y="160" width="10" height="10" fill="black"/>
+                                <rect x="170" y="160" width="10" height="10" fill="black"/>
+                                <rect x="70" y="180" width="10" height="10" fill="black"/>
+                                <rect x="90" y="180" width="10" height="10" fill="black"/>
+                                <rect x="110" y="180" width="10" height="10" fill="black"/>
+                            </svg>
+                        </div>
+                        <div class="receive-qr-label">Scan to send money</div>
+                    </div>
+
+                    <div class="receive-divider">
+                        <span>OR</span>
+                    </div>
+
+                    <div class="receive-details">
+                        <div class="receive-detail-item">
+                            <div class="receive-detail-label">Account Name</div>
+                            <div class="receive-detail-value" id="receiveAccountName">John Doe</div>
+                            <button class="receive-copy-btn" data-copy="name">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="9" y="9" width="13" height="13" rx="2"/>
+                                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="receive-detail-item">
+                            <div class="receive-detail-label">Account Number</div>
+                            <div class="receive-detail-value" id="receiveAccountNumber">•••• •••• •••• 7838</div>
+                            <button class="receive-copy-btn" data-copy="number">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="9" y="9" width="13" height="13" rx="2"/>
+                                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="receive-detail-item">
+                            <div class="receive-detail-label">Routing Number</div>
+                            <div class="receive-detail-value">021000021</div>
+                            <button class="receive-copy-btn" data-copy="routing">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="9" y="9" width="13" height="13" rx="2"/>
+                                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="receive-card-selector">
+                        <div class="receive-card-label">Receiving to</div>
+                        <div class="send-card-display" id="receiveCardDisplay">
+                            <div class="send-card-mini">
+                                <img class="send-card-mini-img" id="receiveCardMiniImg" src="images/AMEX/centurion.jpeg" alt="">
+                            </div>
+                            <div class="send-card-info">
+                                <div class="send-card-name" id="receiveCardName">Centurion Black Card</div>
+                                <div class="send-card-number" id="receiveCardNumber">••••7838</div>
+                            </div>
+                            <button class="send-card-change" id="receiveCardChange">Change</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Recipient Selector Modal -->
         <div class="modal-overlay" id="recipientSelectorOverlay" style="display: none;">
             <div class="modal recipient-selector-modal" id="recipientSelectorModal">

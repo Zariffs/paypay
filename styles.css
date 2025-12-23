@@ -3763,6 +3763,181 @@ body::before {
     stroke-width: 3;
 }
 
+/* ========================================
+   Transfer Modal Styles
+   ======================================== */
+
+.transfer-title {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--text);
+    text-align: center;
+    margin: 40px 0 30px 0;
+}
+
+.transfer-cards-container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    margin: 30px 0;
+}
+
+.transfer-card-section {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.transfer-card-label {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding-left: 4px;
+}
+
+.transfer-arrow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 0;
+}
+
+.transfer-arrow svg {
+    width: 24px;
+    height: 24px;
+    stroke: var(--muted);
+    opacity: 0.5;
+}
+
+/* ========================================
+   Receive Modal Styles
+   ======================================== */
+
+.receive-modal {
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.receive-qr-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 32px 0;
+}
+
+.receive-qr-code {
+    width: 200px;
+    height: 200px;
+    padding: 16px;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+.receive-qr-code svg {
+    width: 100%;
+    height: 100%;
+}
+
+.receive-qr-label {
+    margin-top: 20px;
+    font-size: 15px;
+    color: var(--muted);
+}
+
+.receive-divider {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin: 24px 0;
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.receive-divider::before,
+.receive-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--stroke);
+}
+
+.receive-details {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.receive-detail-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
+    background: rgba(30, 30, 35, 0.4);
+    backdrop-filter: blur(40px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.receive-detail-label {
+    font-size: 13px;
+    color: var(--muted);
+    min-width: 120px;
+}
+
+.receive-detail-value {
+    flex: 1;
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--text);
+}
+
+.receive-copy-btn {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(74, 166, 255, 0.12);
+    backdrop-filter: blur(16px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.receive-copy-btn:active {
+    transform: scale(0.92);
+    background: rgba(74, 166, 255, 0.2);
+}
+
+.receive-copy-btn svg {
+    width: 18px;
+    height: 18px;
+    stroke: #6bb8ff;
+}
+
+.receive-card-selector {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding-top: 16px;
+    border-top: 1px solid var(--stroke);
+}
+
+.receive-card-label {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
 /* Old styles for backwards compatibility - remove if needed */
 .recent-recipients {
     display: flex;

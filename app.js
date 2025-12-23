@@ -57,6 +57,12 @@ class AmexApp {
         // Setup send money modal
         this.setupSendModal();
 
+        // Setup transfer modal
+        this.setupTransferModal();
+
+        // Setup receive modal
+        this.setupReceiveModal();
+
         // Setup edge swipe navigation
         this.setupEdgeSwipe();
 
@@ -286,15 +292,18 @@ class AmexApp {
 
         // Cleanup: remove active from ALL pages first
         document.querySelectorAll('.page.active').forEach(p => p.classList.remove('active'));
-        
+
         // Add active only to target
         targetEl.classList.add('active');
-        
+
         this.currentPage = targetPage;
-        
+
         // Re-setup handlers
         this.setupTouchHandlers();
         this.setupCardDrawer();
+        this.setupSendModal();
+        this.setupTransferModal();
+        this.setupReceiveModal();
         
         // Scroll to top
         targetEl.scrollTop = 0;
@@ -2166,6 +2175,10 @@ class AmexApp {
                     const action = actionBtn.dataset.action;
                     if (action === 'send') {
                         this.openSendModal();
+                    } else if (action === 'transfer') {
+                        this.openTransferModal();
+                    } else if (action === 'receive') {
+                        this.openReceiveModal();
                     }
                 }
             });
@@ -3813,6 +3826,228 @@ class AmexApp {
                 span.textContent = label;
                 labelsContainer.appendChild(span);
             });
+        }
+    }
+
+    // ========================================
+    // Transfer Modal
+    // ========================================
+
+    setupTransferModal() {
+        this.selectedTransferFrom = 'centurion';
+        this.selectedTransferTo = null;
+
+        // Home page action buttons (already handled in setupSendModal)
+
+        // Setup modal controls
+        const transferModalOverlay = document.getElementById('transferModalOverlay');
+
+        // Close modal when clicking overlay
+        if (transferModalOverlay) {
+            transferModalOverlay.addEventListener('click', (e) => {
+                if (e.target === transferModalOverlay) {
+                    this.closeTransferModal();
+                }
+            });
+        }
+
+        // Back button
+        const transferBackBtn = document.getElementById('transferBackBtn');
+        if (transferBackBtn) {
+            transferBackBtn.addEventListener('click', () => this.closeTransferModal());
+        }
+
+        // Amount input
+        const transferAmount = document.getElementById('transferAmount');
+        if (transferAmount) {
+            transferAmount.addEventListener('input', (e) => {
+                this.formatAmountInput(e.target);
+                this.updateTransferButton();
+            });
+        }
+
+        // Card change buttons
+        const transferFromChange = document.getElementById('transferFromChange');
+        const transferToChange = document.getElementById('transferToChange');
+
+        if (transferFromChange) {
+            transferFromChange.addEventListener('click', () => {
+                this.openCardSelector('transferFrom');
+            });
+        }
+
+        if (transferToChange) {
+            transferToChange.addEventListener('click', () => {
+                this.openCardSelector('transferTo');
+            });
+        }
+
+        // Transfer button
+        const transferPayBtn = document.getElementById('transferPayBtn');
+        if (transferPayBtn) {
+            transferPayBtn.addEventListener('click', () => this.processTransfer());
+        }
+
+        // Done button
+        const transferDoneBtn = document.getElementById('transferDoneBtn');
+        if (transferDoneBtn) {
+            transferDoneBtn.addEventListener('click', () => this.closeTransferModal());
+        }
+    }
+
+    openTransferModal() {
+        const overlay = document.getElementById('transferModalOverlay');
+        const amountStep = document.getElementById('transferStepAmount');
+        const confirmationStep = document.getElementById('transferStepConfirmation');
+
+        if (overlay && amountStep && confirmationStep) {
+            // Reset to amount step
+            amountStep.classList.add('active');
+            confirmationStep.classList.remove('active');
+
+            // Clear amount
+            const transferAmount = document.getElementById('transferAmount');
+            if (transferAmount) {
+                transferAmount.value = '';
+            }
+
+            // Update button state
+            this.updateTransferButton();
+
+            // Show modal
+            overlay.classList.add('active');
+        }
+    }
+
+    closeTransferModal() {
+        const overlay = document.getElementById('transferModalOverlay');
+        if (overlay) {
+            overlay.classList.remove('active');
+        }
+    }
+
+    updateTransferButton() {
+        const transferAmount = document.getElementById('transferAmount');
+        const transferPayBtn = document.getElementById('transferPayBtn');
+
+        if (transferAmount && transferPayBtn) {
+            const hasAmount = transferAmount.value.trim() !== '' && transferAmount.value !== '$0';
+            const hasDestination = this.selectedTransferTo !== null;
+            transferPayBtn.disabled = !(hasAmount && hasDestination);
+        }
+    }
+
+    async processTransfer() {
+        const amountStep = document.getElementById('transferStepAmount');
+        const confirmationStep = document.getElementById('transferStepConfirmation');
+        const confirmationIcon = document.getElementById('transferConfirmationIcon');
+        const confirmationTitle = document.getElementById('transferConfirmationTitle');
+        const confirmationStatus = document.getElementById('transferConfirmationStatus');
+        const doneBtn = document.getElementById('transferDoneBtn');
+
+        // Switch to confirmation step
+        amountStep.classList.remove('active');
+        confirmationStep.classList.add('active');
+
+        // Show spinner
+        confirmationIcon.innerHTML = `
+            <div class="send-spinner">
+                <div class="send-spinner-ring"></div>
+            </div>
+        `;
+        confirmationTitle.textContent = 'Transferring...';
+        confirmationStatus.textContent = 'Processing transfer';
+        doneBtn.style.display = 'none';
+
+        // Simulate processing
+        await new Promise(resolve => setTimeout(resolve, 2000));
+
+        // Show success
+        confirmationIcon.innerHTML = `
+            <div class="send-checkmark">
+                <svg viewBox="0 0 52 52">
+                    <circle cx="26" cy="26" r="25" fill="none"/>
+                    <path fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
+                </svg>
+            </div>
+        `;
+        confirmationTitle.textContent = 'Transfer Complete';
+        confirmationStatus.textContent = 'Funds transferred successfully';
+        doneBtn.style.display = 'block';
+    }
+
+    // ========================================
+    // Receive Modal
+    // ========================================
+
+    setupReceiveModal() {
+        const receiveModalOverlay = document.getElementById('receiveModalOverlay');
+        const closeReceiveModal = document.getElementById('closeReceiveModal');
+        const receiveCardChange = document.getElementById('receiveCardChange');
+
+        // Close modal
+        if (closeReceiveModal) {
+            closeReceiveModal.addEventListener('click', () => this.closeReceiveModal());
+        }
+
+        if (receiveModalOverlay) {
+            receiveModalOverlay.addEventListener('click', (e) => {
+                if (e.target === receiveModalOverlay) {
+                    this.closeReceiveModal();
+                }
+            });
+        }
+
+        // Card change
+        if (receiveCardChange) {
+            receiveCardChange.addEventListener('click', () => {
+                this.openCardSelector('receive');
+            });
+        }
+
+        // Copy buttons
+        const copyBtns = document.querySelectorAll('.receive-copy-btn');
+        copyBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const copyType = btn.dataset.copy;
+                let textToCopy = '';
+
+                if (copyType === 'name') {
+                    textToCopy = document.getElementById('receiveAccountName').textContent;
+                } else if (copyType === 'number') {
+                    textToCopy = document.getElementById('receiveAccountNumber').textContent;
+                } else if (copyType === 'routing') {
+                    textToCopy = btn.previousElementSibling.textContent;
+                }
+
+                // Copy to clipboard
+                navigator.clipboard.writeText(textToCopy).then(() => {
+                    // Show feedback
+                    const originalHTML = btn.innerHTML;
+                    btn.innerHTML = `
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M20 6L9 17l-5-5"/>
+                        </svg>
+                    `;
+                    setTimeout(() => {
+                        btn.innerHTML = originalHTML;
+                    }, 2000);
+                });
+            });
+        });
+    }
+
+    openReceiveModal() {
+        const overlay = document.getElementById('receiveModalOverlay');
+        if (overlay) {
+            overlay.classList.add('active');
+        }
+    }
+
+    closeReceiveModal() {
+        const overlay = document.getElementById('receiveModalOverlay');
+        if (overlay) {
+            overlay.classList.remove('active');
         }
     }
 
