@@ -97,6 +97,28 @@ body {
     color: var(--text);
     min-height: 100vh;
     min-height: -webkit-fill-available;
+    background: radial-gradient(ellipse at top, #0a0a0f 0%, #000000 50%);
+    position: relative;
+}
+
+/* Grain texture overlay */
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E");
+    opacity: 0.6;
+    pointer-events: none;
+    z-index: 1;
+}
+
+/* Ensure content is above grain */
+.app {
+    position: relative;
+    z-index: 2;
 }
 
 /* ========================================
@@ -301,6 +323,38 @@ body {
     -ms-overflow-style: none;
 }
 
+/* Subtle fade-in animations for home page elements */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.hero {
+    animation: fadeInUp 0.6s ease-out 0.1s backwards;
+}
+
+.accounts-container {
+    animation: fadeInUp 0.6s ease-out 0.2s backwards;
+}
+
+.rewards-section {
+    animation: fadeInUp 0.6s ease-out 0.3s backwards;
+}
+
+.upcoming {
+    animation: fadeInUp 0.6s ease-out 0.4s backwards;
+}
+
+.lounge-cta {
+    animation: fadeInUp 0.6s ease-out 0.5s backwards;
+}
+
 .content::-webkit-scrollbar {
     display: none;
 }
@@ -311,6 +365,7 @@ body {
     font-weight: 500;
     letter-spacing: -0.2px;
     color: rgba(255, 255, 255, 0.56);
+    animation: fadeInUp 0.5s ease-out backwards;
 }
 
 .welcome {
@@ -318,6 +373,8 @@ body {
     font-size: 44px;
     font-weight: 800;
     letter-spacing: -0.6px;
+    text-shadow: 0 0 40px rgba(74, 166, 255, 0.15);
+    animation: fadeInUp 0.6s ease-out 0.05s backwards;
 }
 
 /* ========================================
@@ -344,11 +401,24 @@ body {
     display: block;
     text-decoration: none;
     color: inherit;
-    background: var(--card);
-    border: 1px solid var(--stroke);
-    border-radius: 22px;
+    background: rgba(30, 30, 35, 0.4);
+    -webkit-backdrop-filter: blur(40px) saturate(180%);
+    backdrop-filter: blur(40px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 24px;
     overflow: hidden;
-    box-shadow: 0 18px 44px rgba(0,0,0,0.55);
+    box-shadow:
+        0 20px 50px rgba(0, 0, 0, 0.6),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08),
+        0 0 60px rgba(74, 166, 255, 0.03);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hero:active {
+    transform: scale(0.98);
+    box-shadow:
+        0 10px 30px rgba(0, 0, 0, 0.5),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
 .hero-inner {
@@ -538,15 +608,25 @@ body {
    Account Cards Container
    ======================================== */
 .accounts-container {
-    background: var(--card);
-    border: 1px solid var(--stroke);
-    border-radius: 20px;
+    background: rgba(30, 30, 35, 0.4);
+    -webkit-backdrop-filter: blur(40px) saturate(180%);
+    backdrop-filter: blur(40px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 24px;
     overflow: hidden;
-    box-shadow: 0 18px 44px rgba(0,0,0,0.55);
+    box-shadow:
+        0 20px 50px rgba(0, 0, 0, 0.6),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
 .account {
     background: transparent;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+}
+
+.account:active {
+    background: rgba(74, 166, 255, 0.06);
 }
 
 .account-top {
@@ -754,11 +834,15 @@ body {
 }
 
 .rewards {
-    background: var(--card);
-    border: 1px solid var(--stroke);
-    border-radius: 20px;
-    padding: 20px;
-    box-shadow: 0 18px 44px rgba(0,0,0,0.55);
+    background: rgba(30, 30, 35, 0.4);
+    -webkit-backdrop-filter: blur(40px) saturate(180%);
+    backdrop-filter: blur(40px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 24px;
+    padding: 24px;
+    box-shadow:
+        0 20px 50px rgba(0, 0, 0, 0.6),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
 .rewards-label {
@@ -894,17 +978,29 @@ body {
 }
 
 .upcoming-card {
-    background: var(--card);
-    border: 1px solid var(--stroke);
-    border-radius: 16px;
+    background: rgba(30, 30, 35, 0.4);
+    -webkit-backdrop-filter: blur(40px) saturate(180%);
+    backdrop-filter: blur(40px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 20px;
     overflow: hidden;
-    box-shadow: 0 14px 34px rgba(0,0,0,0.45);
+    box-shadow:
+        0 16px 40px rgba(0, 0, 0, 0.5),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08);
     flex-shrink: 0;
     width: 240px;
     height: 214px;
     scroll-snap-align: start;
     display: flex;
     flex-direction: column;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.upcoming-card:active {
+    transform: scale(0.97);
+    box-shadow:
+        0 8px 20px rgba(0, 0, 0, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
 .upcoming-img {
@@ -954,15 +1050,28 @@ body {
    ======================================== */
 .lounge-cta {
     margin-top: 18px;
-    background: var(--card);
-    border: 1px solid var(--stroke);
-    border-radius: 16px;
-    padding: 16px;
+    background: rgba(30, 30, 35, 0.4);
+    -webkit-backdrop-filter: blur(40px) saturate(180%);
+    backdrop-filter: blur(40px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 20px;
+    padding: 18px;
     display: flex;
     align-items: center;
     gap: 14px;
     text-decoration: none;
     color: inherit;
+    box-shadow:
+        0 16px 40px rgba(0, 0, 0, 0.5),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.lounge-cta:active {
+    transform: scale(0.98);
+    box-shadow:
+        0 8px 20px rgba(0, 0, 0, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
 .lounge-icon {
