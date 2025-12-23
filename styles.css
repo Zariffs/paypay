@@ -2505,13 +2505,14 @@ body {
    ======================================== */
 
 .send-modal {
-    background: var(--bg);
+    background: linear-gradient(135deg, var(--bg) 0%, rgba(74, 166, 255, 0.03) 100%);
     border-radius: 0;
     width: 100%;
     max-height: 100vh;
     height: 100vh;
     overflow: hidden;
     transform: translateX(100%);
+    backdrop-filter: blur(10px);
 }
 
 .modal-overlay.active .send-modal {
@@ -2789,32 +2790,28 @@ body {
 /* Large Amount Display */
 .send-amount-display {
     display: flex;
-    align-items: flex-start;
+    align-items: center;
     justify-content: center;
     margin-bottom: 20px;
     min-height: 100px;
-}
-
-.send-amount-currency {
-    font-size: 56px;
-    font-weight: 300;
-    color: var(--muted);
-    margin-right: 8px;
-    margin-top: 8px;
+    width: 100%;
+    overflow: hidden;
 }
 
 .send-amount-input {
     background: transparent;
     border: none;
     outline: none;
-    font-size: 72px;
+    font-size: clamp(32px, 10vw, 72px);
     font-weight: 600;
     color: var(--text);
     text-align: center;
     width: 100%;
-    max-width: 500px;
+    max-width: 90%;
     caret-color: var(--accent);
     min-width: 60px;
+    padding: 0 10px;
+    transition: font-size 0.2s ease;
 }
 
 .send-amount-input::placeholder {
@@ -2918,8 +2915,25 @@ body {
     justify-content: center;
     gap: 12px;
     cursor: pointer;
-    transition: all 0.2s ease;
-    box-shadow: 0 4px 16px rgba(102, 126, 234, 0.4);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4);
+    position: relative;
+    overflow: hidden;
+}
+
+.send-pay-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s;
+}
+
+.send-pay-btn:not(:disabled):hover::before {
+    left: 100%;
 }
 
 .send-pay-btn:disabled {
@@ -2944,10 +2958,38 @@ body {
     max-height: 70vh;
 }
 
+.recipient-search-container {
+    margin-bottom: 16px;
+}
+
+.recipient-search-input {
+    width: 100%;
+    padding: 14px 16px;
+    background: var(--card2);
+    border: 2px solid transparent;
+    border-radius: 12px;
+    font-size: 16px;
+    color: var(--text);
+    outline: none;
+    transition: all 0.2s ease;
+}
+
+.recipient-search-input:focus {
+    border-color: var(--accent);
+    background: var(--card);
+    box-shadow: 0 0 0 4px rgba(74, 166, 255, 0.1);
+}
+
+.recipient-search-input::placeholder {
+    color: var(--muted);
+}
+
 .recipient-selector-list {
     display: flex;
     flex-direction: column;
     gap: 8px;
+    max-height: 50vh;
+    overflow-y: auto;
 }
 
 .recipient-selector-item {
@@ -3333,6 +3375,16 @@ body {
     font-weight: 500;
 }
 
+.send-confirmation-note {
+    margin-top: 16px;
+    font-size: 15px;
+    color: var(--text);
+    font-style: italic;
+    opacity: 0.8;
+    max-width: 300px;
+    word-wrap: break-word;
+}
+
 /* Done Button */
 .send-done-btn {
     width: calc(100% - 40px);
@@ -3358,6 +3410,7 @@ body {
 .send-success-checkmark {
     width: 80px;
     height: 80px;
+    filter: drop-shadow(0 0 20px rgba(74, 166, 255, 0.6));
 }
 
 .send-success-circle {
@@ -3365,8 +3418,8 @@ body {
     stroke-dashoffset: 166;
     stroke-width: 2;
     stroke-miterlimit: 10;
-    stroke: #4aa6ff;
-    animation: stroke 0.6s cubic-bezier(0.65, 0, 0.45, 1) forwards;
+    stroke: url(#success-gradient);
+    animation: stroke 0.6s cubic-bezier(0.65, 0, 0.45, 1) forwards, glow 1.5s ease-in-out infinite;
 }
 
 .send-success-check {
@@ -3374,9 +3427,18 @@ body {
     stroke-dasharray: 48;
     stroke-dashoffset: 48;
     stroke-width: 3;
-    stroke: #4aa6ff;
+    stroke: url(#success-gradient);
     stroke-linecap: round;
-    animation: stroke 0.3s cubic-bezier(0.65, 0, 0.45, 1) 0.4s forwards;
+    animation: stroke 0.3s cubic-bezier(0.65, 0, 0.45, 1) 0.4s forwards, glow 1.5s ease-in-out infinite 0.4s;
+}
+
+@keyframes glow {
+    0%, 100% {
+        filter: drop-shadow(0 0 8px rgba(74, 166, 255, 0.6));
+    }
+    50% {
+        filter: drop-shadow(0 0 16px rgba(74, 166, 255, 0.9));
+    }
 }
 
 @keyframes stroke {

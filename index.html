@@ -289,12 +289,11 @@
                         </button>
 
                         <div class="send-amount-display">
-                            <span class="send-amount-currency">$</span>
                             <input
                                 type="text"
                                 class="send-amount-input"
                                 id="sendAmount"
-                                placeholder="0"
+                                placeholder="$0"
                                 inputmode="decimal"
                                 pattern="[0-9]*"
                             >
@@ -336,6 +335,7 @@
                             </div>
                             <div class="send-confirmation-title" id="sendConfirmationTitle">Sending...</div>
                             <div class="send-confirmation-status" id="sendConfirmationStatus">Verifying recipient</div>
+                            <div class="send-confirmation-note" id="sendConfirmationNote" style="display: none;"></div>
                         </div>
 
                         <button class="send-done-btn" id="sendDoneBtn" style="display: none;">
@@ -359,6 +359,15 @@
                     <div style="width: 32px;"></div>
                 </div>
                 <div class="modal-body">
+                    <div class="recipient-search-container">
+                        <input
+                            type="text"
+                            class="recipient-search-input"
+                            id="recipientSearchInput"
+                            placeholder="Enter name, email, or phone number"
+                            autocomplete="off"
+                        >
+                    </div>
                     <div class="recipient-selector-list" id="recipientSelectorList">
                         <!-- Recipients populated dynamically -->
                     </div>

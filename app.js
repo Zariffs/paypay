@@ -2313,6 +2313,19 @@ class AmexApp {
         }
     }
 
+    formatPhoneNumber(phone) {
+        // Remove all non-numeric characters
+        const cleaned = phone.replace(/\D/g, '');
+
+        // Format as (XXX) XXX-XXXX
+        if (cleaned.length === 10) {
+            return `(${cleaned.slice(0, 3)}) ${cleaned.slice(3, 6)}-${cleaned.slice(6)}`;
+        }
+
+        // Return original if not 10 digits
+        return phone;
+    }
+
     formatAmountInput(input) {
         // Get cursor position
         const cursorPosition = input.selectionStart;
@@ -2336,12 +2349,17 @@ class AmexApp {
         const [integerPart, decimalPart] = value.split('.');
         const formattedInteger = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 
-        // Reconstruct the value with commas
+        // Reconstruct the value with commas and $ sign
         value = decimalPart !== undefined ? `${formattedInteger}.${decimalPart}` : formattedInteger;
+
+        // Add $ prefix if there's a value
+        if (value) {
+            value = '$' + value;
+        }
 
         input.value = value;
 
-        // Adjust cursor position to account for added/removed commas
+        // Adjust cursor position to account for added/removed commas and $ sign
         const newLength = input.value.length;
         const diff = newLength - oldLength;
         input.setSelectionRange(cursorPosition + diff, cursorPosition + diff);
@@ -2352,8 +2370,8 @@ class AmexApp {
         const amountInput = document.getElementById('sendAmount');
 
         if (payBtn && amountInput) {
-            // Remove commas before parsing
-            const amount = parseFloat(amountInput.value.replace(/,/g, ''));
+            // Remove commas and $ sign before parsing
+            const amount = parseFloat(amountInput.value.replace(/,/g, '').replace(/\$/g, ''));
             payBtn.disabled = !amount || amount <= 0 || !this.selectedRecipient;
         }
     }
@@ -2455,6 +2473,7 @@ class AmexApp {
     setupRecipientSelector() {
         const closeRecipientSelector = document.getElementById('closeRecipientSelector');
         const recipientSelectorOverlay = document.getElementById('recipientSelectorOverlay');
+        const recipientSearchInput = document.getElementById('recipientSearchInput');
 
         if (closeRecipientSelector) {
             closeRecipientSelector.addEventListener('click', () => this.closeRecipientSelector());
@@ -2468,15 +2487,32 @@ class AmexApp {
             });
         }
 
+        if (recipientSearchInput) {
+            recipientSearchInput.addEventListener('input', (e) => {
+                this.handleRecipientSelectorSearch(e.target.value);
+            });
+
+            recipientSearchInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    const query = e.target.value.trim();
+                    if (query) {
+                        this.createCustomRecipient(query);
+                    }
+                }
+            });
+        }
+
         // Populate recipients
         this.populateRecipientSelector();
     }
 
-    populateRecipientSelector() {
+    populateRecipientSelector(filteredRecipients = null) {
         const recipientSelectorList = document.getElementById('recipientSelectorList');
         if (!recipientSelectorList) return;
 
-        recipientSelectorList.innerHTML = this.recipients.map(recipient => `
+        const recipientsToShow = filteredRecipients || this.recipients;
+
+        recipientSelectorList.innerHTML = recipientsToShow.map(recipient => `
             <div class="recipient-selector-item ${this.selectedRecipient && this.selectedRecipient.name === recipient.name ? 'selected' : ''}" data-recipient='${JSON.stringify(recipient)}'>
                 <div class="recipient-selector-avatar">${recipient.initials}</div>
                 <div class="recipient-selector-info">
@@ -2493,6 +2529,77 @@ class AmexApp {
                 this.selectRecipientFromModal(recipient);
             });
         });
+    }
+
+    handleRecipientSelectorSearch(query) {
+        if (!query || query.trim() === '') {
+            this.populateRecipientSelector();
+            return;
+        }
+
+        const lowerQuery = query.toLowerCase();
+        const filtered = this.recipients.filter(r =>
+            r.name.toLowerCase().includes(lowerQuery) ||
+            (r.cashtag && r.cashtag.toLowerCase().includes(lowerQuery)) ||
+            (r.email && r.email.toLowerCase().includes(lowerQuery)) ||
+            (r.phone && r.phone.includes(query))
+        );
+
+        this.populateRecipientSelector(filtered);
+    }
+
+    createCustomRecipient(input) {
+        const trimmed = input.trim();
+
+        // Email validation regex
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        // Phone validation regex (various formats)
+        const phoneRegex = /^[\d\s\-\(\)]+$/;
+
+        let recipient;
+
+        if (emailRegex.test(trimmed)) {
+            // It's an email
+            const initials = trimmed.substring(0, 2).toUpperCase();
+            recipient = {
+                name: trimmed,
+                initials: initials,
+                email: trimmed,
+                cashtag: '',
+                phone: '',
+                isCustom: true
+            };
+        } else if (phoneRegex.test(trimmed.replace(/\D/g, ''))) {
+            // It's a phone number
+            const cleanedPhone = trimmed.replace(/\D/g, '');
+            if (cleanedPhone.length >= 10) {
+                const formattedPhone = this.formatPhoneNumber(cleanedPhone);
+                recipient = {
+                    name: formattedPhone,
+                    initials: 'PH',
+                    email: '',
+                    cashtag: '',
+                    phone: formattedPhone,
+                    isCustom: true
+                };
+            } else {
+                alert('Please enter a valid 10-digit phone number');
+                return;
+            }
+        } else {
+            // Assume it's a name/username
+            const initials = trimmed.substring(0, 2).toUpperCase();
+            recipient = {
+                name: trimmed,
+                initials: initials,
+                email: '',
+                cashtag: '@' + trimmed.toLowerCase().replace(/\s+/g, ''),
+                phone: '',
+                isCustom: true
+            };
+        }
+
+        this.selectRecipientFromModal(recipient);
     }
 
     selectRecipientFromModal(recipient) {
@@ -2611,12 +2718,25 @@ class AmexApp {
     async processSendMoney() {
         const amountInput = document.getElementById('sendAmount');
         const note = document.getElementById('sendNote').value;
-        const amount = amountInput.value.replace(/,/g, ''); // Remove commas
+        const amount = amountInput.value.replace(/,/g, '').replace(/\$/g, ''); // Remove commas and $ sign
 
         // Basic validation
         if (!this.selectedRecipient || !amount || parseFloat(amount) <= 0) {
             return;
         }
+
+        // Get selected card info
+        const selectedCardInfo = typeof userConfig !== 'undefined' && userConfig.cards ?
+            userConfig.cards[this.selectedCard] : null;
+
+        // Log payment info (in production, this would process the actual payment)
+        console.log('Processing payment:', {
+            amount: parseFloat(amount),
+            recipient: this.selectedRecipient,
+            note: note,
+            card: selectedCardInfo,
+            timestamp: new Date().toISOString()
+        });
 
         // Go to confirmation step
         this.goToConfirmationStep();
@@ -2648,12 +2768,34 @@ class AmexApp {
         // Show success state
         confirmationIcon.innerHTML = `
             <svg class="send-success-checkmark" viewBox="0 0 52 52">
+                <defs>
+                    <linearGradient id="success-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+                        <stop offset="100%" style="stop-color:#764ba2;stop-opacity:1" />
+                    </linearGradient>
+                </defs>
                 <circle class="send-success-circle" cx="26" cy="26" r="25" fill="none"/>
                 <path class="send-success-check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
             </svg>
         `;
         confirmationTitle.textContent = 'Sent!';
-        confirmationStatus.textContent = `$${parseFloat(amount).toFixed(2)} sent to ${this.selectedRecipient.name}`;
+
+        // Format recipient display (phone or email)
+        let recipientDisplay = this.selectedRecipient.name;
+        if (this.selectedRecipient.phone) {
+            recipientDisplay += ` (${this.formatPhoneNumber(this.selectedRecipient.phone)})`;
+        } else if (this.selectedRecipient.email) {
+            recipientDisplay += ` (${this.selectedRecipient.email})`;
+        }
+
+        confirmationStatus.textContent = `$${parseFloat(amount).toFixed(2)} sent to ${recipientDisplay}`;
+
+        // Show note if provided
+        const confirmationNote = document.getElementById('sendConfirmationNote');
+        if (confirmationNote && note) {
+            confirmationNote.textContent = `"${note}"`;
+            confirmationNote.style.display = 'block';
+        }
 
         // Show done button
         const doneBtn = document.getElementById('sendDoneBtn');
