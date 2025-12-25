@@ -2607,6 +2607,9 @@ class AmexApp {
     openCardSelector() {
         const cardSelectorOverlay = document.getElementById('cardSelectorOverlay');
         if (cardSelectorOverlay) {
+            // Refresh the card list to show correct selected state
+            this.populateCardSelector();
+
             cardSelectorOverlay.style.display = 'flex';
             setTimeout(() => {
                 cardSelectorOverlay.classList.add('active');
@@ -2998,14 +3001,20 @@ class AmexApp {
         // Get card name
         const cardName = selectedCardInfo ? selectedCardInfo.name : 'Unknown Card';
 
-        // Show receipt immediately (data will animate in)
-        this.showReceipt({
+        // Show receipt immediately with processing state
+        await this.showReceiptWithProcessing({
             title: 'Payment sent',
             to: recipientDisplay,
             method: cardName,
             amount: formattedAmount,
             note: note,
-            onClose: () => this.closeSendModal()
+            onClose: () => this.closeSendModal(),
+            steps: [
+                { status: 'Verifying recipient', duration: 1000 },
+                { status: 'Processing payment', duration: 1200 },
+                { status: 'Securing transaction', duration: 1000 },
+                { status: 'Confirming transfer', duration: 800 }
+            ]
         });
     }
 
@@ -4100,13 +4109,18 @@ class AmexApp {
             maximumFractionDigits: 2
         });
 
-        // Show receipt immediately (data will animate in)
-        this.showReceipt({
+        // Show receipt immediately with processing state
+        await this.showReceiptWithProcessing({
             title: 'Transfer complete',
             to: toCardName,
             method: fromCardName,
             amount: formattedAmount,
-            onClose: () => this.closeTransferModal()
+            onClose: () => this.closeTransferModal(),
+            steps: [
+                { status: 'Verifying cards', duration: 900 },
+                { status: 'Processing transfer', duration: 1100 },
+                { status: 'Updating balances', duration: 1000 }
+            ]
         });
     }
 
@@ -4377,6 +4391,126 @@ class AmexApp {
             segments.push(segment);
         }
         return `REF-${segments.join('-')}`;
+    }
+
+    async showReceiptWithProcessing(data) {
+        const overlay = document.getElementById('receiptModalOverlay');
+        const paper = document.querySelector('.receipt-paper');
+        const logo = document.getElementById('receiptLogo');
+        const statusEl = document.getElementById('receiptStatus');
+
+        if (!overlay || !paper) return;
+
+        // Add processing class to disable animations
+        paper.classList.add('processing');
+
+        // Show spinner in logo
+        logo.innerHTML = '<div class="receipt-spinner"></div>';
+
+        // Set initial content
+        document.getElementById('receiptTitle').textContent = data.title || 'Transfer success';
+        document.getElementById('receiptDate').textContent = '';
+
+        // Clear data fields
+        document.getElementById('receiptTo').textContent = '';
+        document.getElementById('receiptMethod').textContent = '';
+        document.getElementById('receiptTxnId').textContent = '';
+        document.getElementById('receiptRefId').textContent = '';
+        document.getElementById('receiptAmount').textContent = '';
+
+        // Show status
+        if (statusEl) {
+            statusEl.style.display = 'block';
+            statusEl.textContent = 'Initializing...';
+        }
+
+        // Show receipt modal
+        overlay.classList.add('active');
+
+        // Process through steps
+        if (data.steps) {
+            for (const step of data.steps) {
+                if (statusEl) {
+                    statusEl.textContent = step.status;
+                }
+                await new Promise(resolve => setTimeout(resolve, step.duration));
+            }
+        }
+
+        // Hide status and spinner
+        if (statusEl) {
+            statusEl.style.display = 'none';
+        }
+
+        // Show success icon
+        logo.innerHTML = `
+            <svg viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+            </svg>
+        `;
+
+        // Populate receipt data
+        const now = new Date();
+        const dateString = now.toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            hour: 'numeric',
+            minute: '2-digit',
+            hour12: true
+        });
+
+        // Generate realistic IDs
+        const txnId = this.generateRealisticTransactionId();
+        const refId = this.generateRealisticReferenceId();
+
+        document.getElementById('receiptDate').textContent = dateString;
+        document.getElementById('receiptTo').textContent = data.to || 'Unknown';
+        document.getElementById('receiptMethod').textContent = data.method || 'AMEX Wallet';
+        document.getElementById('receiptTxnId').textContent = txnId;
+        document.getElementById('receiptRefId').textContent = refId;
+        document.getElementById('receiptAmount').textContent = `$${data.amount}`;
+
+        // Remove processing class to enable animations
+        paper.classList.remove('processing');
+
+        // Setup close button
+        const closeBtn = document.getElementById('receiptCloseBtn');
+        if (closeBtn) {
+            closeBtn.onclick = () => {
+                overlay.classList.remove('active');
+                if (data.onClose) data.onClose();
+            };
+        }
+
+        // Setup back button
+        const backBtn = document.getElementById('receiptBackBtn');
+        if (backBtn) {
+            backBtn.onclick = () => {
+                overlay.classList.remove('active');
+                if (data.onClose) data.onClose();
+            };
+        }
+
+        // Setup share button
+        const shareBtn = document.getElementById('receiptShareBtn');
+        if (shareBtn) {
+            shareBtn.onclick = () => {
+                if (navigator.share) {
+                    navigator.share({
+                        title: data.title,
+                        text: `${data.title}\nAmount: $${data.amount}\nTo: ${data.to}\nTransaction ID: ${txnId}\nReference: ${refId}`
+                    });
+                }
+            };
+        }
+
+        // Close on overlay click
+        overlay.onclick = (e) => {
+            if (e.target === overlay) {
+                overlay.classList.remove('active');
+                if (data.onClose) data.onClose();
+            }
+        };
     }
 
     showReceipt(data) {
