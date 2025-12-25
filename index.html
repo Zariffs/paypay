@@ -44,6 +44,14 @@
                         </div>
                     </div>
 
+                    <!-- Refresh Button -->
+                    <button class="home-refresh-btn" id="homeRefreshBtn" type="button">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        <span>Refresh Data</span>
+                    </button>
+
                     <!-- Action Buttons -->
                     <div class="home-action-buttons" id="homeActionButtons">
                         <button class="home-action-btn" type="button" data-action="transfer">
@@ -220,6 +228,25 @@
                             <button class="insights-link" id="insightsViewBtn" type="button">View Recent Spending</button>
                         </div>
                     </section>
+                </main>
+            </div>
+
+            <!-- TRANSACTIONS PAGE -->
+            <div class="page" data-page="transactions">
+                <main class="content">
+                    <div class="page-header">
+                        <button class="page-back-btn" id="transactionsBackBtn" type="button">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M19 12H5M12 19l-7-7 7-7"/>
+                            </svg>
+                        </button>
+                        <h1 class="page-title">All Transactions</h1>
+                        <div style="width: 32px;"></div>
+                    </div>
+
+                    <div class="transactions-page-list" id="transactionsPageList">
+                        <!-- Transactions populated dynamically -->
+                    </div>
                 </main>
             </div>
 

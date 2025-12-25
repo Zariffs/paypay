@@ -77,6 +77,12 @@ class AmexApp {
 
         // Setup financial insights
         this.setupFinancialInsights();
+
+        // Setup transactions view all link
+        this.setupTransactionsViewAll();
+
+        // Setup refresh button
+        this.setupRefreshButton();
     }
     
     async updateCryptoPrices() {
@@ -3007,8 +3013,8 @@ class AmexApp {
             <svg class="send-success-checkmark" viewBox="0 0 52 52">
                 <defs>
                     <linearGradient id="success-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
-                        <stop offset="100%" style="stop-color:#764ba2;stop-opacity:1" />
+                        <stop offset="0%" style="stop-color:#4aa6ff;stop-opacity:1" />
+                        <stop offset="100%" style="stop-color:#2b7fd9;stop-opacity:1" />
                     </linearGradient>
                 </defs>
                 <circle class="send-success-circle" cx="26" cy="26" r="25" fill="none"/>
@@ -4167,8 +4173,8 @@ class AmexApp {
             <svg class="send-success-checkmark" viewBox="0 0 52 52">
                 <defs>
                     <linearGradient id="transfer-success-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
-                        <stop offset="100%" style="stop-color:#764ba2;stop-opacity:1" />
+                        <stop offset="0%" style="stop-color:#4aa6ff;stop-opacity:1" />
+                        <stop offset="100%" style="stop-color:#2b7fd9;stop-opacity:1" />
                     </linearGradient>
                 </defs>
                 <circle class="send-success-circle" cx="26" cy="26" r="25" fill="none" stroke="url(#transfer-success-gradient)"/>
@@ -4296,6 +4302,93 @@ class AmexApp {
         return '$' + amount.toLocaleString('en-US', {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2
+        });
+    }
+
+    setupTransactionsViewAll() {
+        // Handle View All link click
+        const viewAllLink = document.querySelector('.home-view-all-link');
+        if (viewAllLink) {
+            viewAllLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.showTransactionsPage();
+            });
+        }
+
+        // Handle back button on transactions page
+        const backBtn = document.getElementById('transactionsBackBtn');
+        if (backBtn) {
+            backBtn.addEventListener('click', () => {
+                this.navigateTo('home');
+            });
+        }
+    }
+
+    showTransactionsPage() {
+        // Get primary card
+        const primaryCard = Object.values(userConfig.cards).find(card => card.isPrimary) || userConfig.cards.centurion;
+
+        // Generate more transactions for the full list
+        const allTransactions = typeof generateDailyTransactions === 'function'
+            ? generateDailyTransactions(new Date(), primaryCard.id, 20)
+            : (primaryCard.transactions || []);
+
+        // Populate transactions page list
+        const transactionsPageList = document.getElementById('transactionsPageList');
+        if (transactionsPageList) {
+            transactionsPageList.innerHTML = allTransactions.map(txn => `
+                <div class="transactions-page-item">
+                    <div class="home-txn-icon">${txn.icon}</div>
+                    <div class="home-txn-details" style="flex: 1;">
+                        <div class="home-txn-merchant">${txn.merchant}</div>
+                        <div class="home-txn-date">${txn.date}</div>
+                    </div>
+                    <div class="home-txn-amount">${txn.amount}</div>
+                </div>
+            `).join('');
+        }
+
+        // Navigate to transactions page
+        this.navigateTo('transactions');
+    }
+
+    setupRefreshButton() {
+        const refreshBtn = document.getElementById('homeRefreshBtn');
+        if (!refreshBtn) return;
+
+        refreshBtn.addEventListener('click', async () => {
+            // Add refreshing class for animation
+            refreshBtn.classList.add('refreshing');
+            refreshBtn.disabled = true;
+
+            try {
+                // Clear all caches
+                if ('caches' in window) {
+                    const cacheNames = await caches.keys();
+                    await Promise.all(
+                        cacheNames.map(cacheName => caches.delete(cacheName))
+                    );
+                }
+
+                // Clear service worker cache
+                if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+                    navigator.serviceWorker.controller.postMessage({
+                        type: 'CLEAR_CACHE'
+                    });
+                }
+
+                // Refresh crypto prices
+                await this.updateCryptoPrices();
+
+                // Reload the page to get fresh data
+                setTimeout(() => {
+                    window.location.reload();
+                }, 500);
+            } catch (error) {
+                console.error('Error clearing cache:', error);
+                refreshBtn.classList.remove('refreshing');
+                refreshBtn.disabled = false;
+            }
         });
     }
 }
