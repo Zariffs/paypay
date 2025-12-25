@@ -44,14 +44,6 @@
                         </div>
                     </div>
 
-                    <!-- Refresh Button -->
-                    <button class="home-refresh-btn" id="homeRefreshBtn" type="button">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                        <span>Refresh Data</span>
-                    </button>
-
                     <!-- Action Buttons -->
                     <div class="home-action-buttons" id="homeActionButtons">
                         <button class="home-action-btn" type="button" data-action="transfer">
@@ -115,6 +107,13 @@
 
                     <!-- Version Footer -->
                     <div class="version-footer" id="versionFooter"></div>
+
+                    <!-- Refresh Button -->
+                    <button class="home-refresh-btn-small" id="homeRefreshBtn" type="button" title="Clear cache and refresh">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </button>
                 </main>
             </div>
 
@@ -259,6 +258,95 @@
 
         <!-- Card Drawer Overlay -->
         <div class="drawer-overlay" id="drawerOverlay"></div>
+
+        <!-- Receipt Modal -->
+        <div class="receipt-modal-overlay" id="receiptModalOverlay">
+            <div class="receipt-modal" id="receiptModal">
+                <div class="receipt-paper">
+                    <div class="receipt-header">
+                        <div class="receipt-logo">
+                            <svg viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                            </svg>
+                        </div>
+                        <div class="receipt-title" id="receiptTitle">Transfer success</div>
+                        <div class="receipt-date" id="receiptDate">Dec 17, 9:00 AM</div>
+                    </div>
+
+                    <div class="receipt-body">
+                        <div class="receipt-row">
+                            <span class="receipt-label">Transfer to</span>
+                            <span class="receipt-value" id="receiptTo">Mitchell A.</span>
+                        </div>
+                        <div class="receipt-row">
+                            <span class="receipt-label">Payment method</span>
+                            <span class="receipt-value" id="receiptMethod">Financer Wallet</span>
+                        </div>
+                        <div class="receipt-row">
+                            <span class="receipt-label">Transaction ID</span>
+                            <span class="receipt-value receipt-value-small" id="receiptTxnId">00098564XXX</span>
+                        </div>
+                        <div class="receipt-row">
+                            <span class="receipt-label">Reference ID</span>
+                            <span class="receipt-value receipt-value-small" id="receiptRefId">908746AXV752B</span>
+                        </div>
+                        <div class="receipt-divider"></div>
+                        <div class="receipt-row receipt-total">
+                            <span class="receipt-label">Total amount</span>
+                            <span class="receipt-value receipt-amount" id="receiptAmount">$150.00</span>
+                        </div>
+                    </div>
+
+                    <div class="receipt-barcode">
+                        <svg viewBox="0 0 200 40" fill="currentColor">
+                            <rect x="0" y="0" width="2" height="40"/>
+                            <rect x="4" y="0" width="1" height="40"/>
+                            <rect x="8" y="0" width="3" height="40"/>
+                            <rect x="14" y="0" width="1" height="40"/>
+                            <rect x="18" y="0" width="2" height="40"/>
+                            <rect x="24" y="0" width="1" height="40"/>
+                            <rect x="28" y="0" width="3" height="40"/>
+                            <rect x="34" y="0" width="2" height="40"/>
+                            <rect x="40" y="0" width="1" height="40"/>
+                            <rect x="44" y="0" width="2" height="40"/>
+                            <rect x="50" y="0" width="3" height="40"/>
+                            <rect x="56" y="0" width="1" height="40"/>
+                            <rect x="60" y="0" width="2" height="40"/>
+                            <rect x="66" y="0" width="1" height="40"/>
+                            <rect x="70" y="0" width="3" height="40"/>
+                            <rect x="76" y="0" width="2" height="40"/>
+                            <rect x="82" y="0" width="1" height="40"/>
+                            <rect x="88" y="0" width="3" height="40"/>
+                            <rect x="94" y="0" width="1" height="40"/>
+                            <rect x="100" y="0" width="2" height="40"/>
+                            <rect x="106" y="0" width="3" height="40"/>
+                            <rect x="112" y="0" width="1" height="40"/>
+                            <rect x="118" y="0" width="2" height="40"/>
+                            <rect x="124" y="0" width="1" height="40"/>
+                            <rect x="130" y="0" width="3" height="40"/>
+                            <rect x="138" y="0" width="1" height="40"/>
+                            <rect x="144" y="0" width="2" height="40"/>
+                            <rect x="150" y="0" width="1" height="40"/>
+                            <rect x="156" y="0" width="3" height="40"/>
+                            <rect x="164" y="0" width="1" height="40"/>
+                            <rect x="170" y="0" width="2" height="40"/>
+                            <rect x="176" y="0" width="1" height="40"/>
+                            <rect x="182" y="0" width="3" height="40"/>
+                            <rect x="190" y="0" width="1" height="40"/>
+                            <rect x="196" y="0" width="2" height="40"/>
+                        </svg>
+                    </div>
+
+                    <button class="receipt-share-btn" id="receiptShareBtn">Share</button>
+                </div>
+
+                <button class="receipt-close-btn" id="receiptCloseBtn">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M18 6L6 18M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
         
         <!-- Add Trip Modal -->
         <div class="modal-overlay" id="tripModalOverlay">
@@ -411,6 +499,12 @@
 
                     <!-- Step 2: Confirmation -->
                     <div class="send-step send-step-confirmation" id="sendStepConfirmation">
+                        <button class="send-back-btn" id="sendConfirmationBackBtn" style="display: none;">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M19 12H5M12 19l-7-7 7-7"/>
+                            </svg>
+                        </button>
+
                         <div class="send-confirmation-content">
                             <div class="send-confirmation-icon" id="sendConfirmationIcon">
                                 <!-- Will show spinner then checkmark -->
@@ -499,6 +593,12 @@
 
                     <!-- Step 2: Confirmation -->
                     <div class="send-step send-step-confirmation" id="transferStepConfirmation">
+                        <button class="send-back-btn" id="transferConfirmationBackBtn" style="display: none;">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M19 12H5M12 19l-7-7 7-7"/>
+                            </svg>
+                        </button>
+
                         <div class="send-confirmation-content">
                             <div class="send-confirmation-icon" id="transferConfirmationIcon">
                                 <!-- Will show spinner then checkmark -->
@@ -902,6 +1002,25 @@
                 </div>
                 <div class="transactions-list">
                     <!-- Transactions populated dynamically -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Transactions Drawer -->
+        <div class="transactions-drawer" id="transactionsDrawer">
+            <div class="drawer-handle"></div>
+            <div class="drawer-content">
+                <div class="transactions-drawer-header">
+                    <h2 class="transactions-drawer-title">All Transactions</h2>
+                    <button class="transactions-drawer-close" id="closeTransactionsDrawer" type="button">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M18 6L6 18M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="transactions-drawer-list" id="transactionsDrawerList">
+                    <!-- Transactions populated dynamically with month headers -->
                 </div>
             </div>
         </div>

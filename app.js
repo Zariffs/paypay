@@ -3050,10 +3050,25 @@ class AmexApp {
             }
         }
 
-        // Show done button
+        // Show done button and back button
         const doneBtn = document.getElementById('sendDoneBtn');
+        const backBtn = document.getElementById('sendConfirmationBackBtn');
         if (doneBtn) {
             doneBtn.style.display = 'block';
+            // Show receipt when done is clicked
+            doneBtn.onclick = () => {
+                this.showReceipt({
+                    title: 'Transfer success',
+                    to: recipientDisplay,
+                    method: cardName,
+                    amount: formattedAmount
+                });
+                this.closeSendModal();
+            };
+        }
+        if (backBtn) {
+            backBtn.style.display = 'block';
+            backBtn.onclick = () => this.closeSendModal();
         }
     }
 
@@ -4184,6 +4199,33 @@ class AmexApp {
         confirmationTitle.textContent = 'Transfer Complete';
         confirmationStatus.textContent = 'Funds transferred successfully';
         doneBtn.style.display = 'block';
+
+        // Show back button
+        const backBtn = document.getElementById('transferConfirmationBackBtn');
+        if (backBtn) {
+            backBtn.style.display = 'block';
+            backBtn.onclick = () => this.closeTransferModal();
+        }
+
+        // Show receipt when done is clicked
+        const fromCardName = this.transferFromCard ? this.transferFromCard.name : 'Unknown';
+        const toCardName = this.transferToCard ? this.transferToCard.name : 'Unknown';
+        const amountInput = document.getElementById('transferAmount');
+        const amount = amountInput ? amountInput.value.replace('$', '').replace(/,/g, '') : '0';
+        const formattedAmount = parseFloat(amount).toLocaleString('en-US', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
+
+        doneBtn.onclick = () => {
+            this.showReceipt({
+                title: 'Transfer complete',
+                to: toCardName,
+                method: fromCardName,
+                amount: formattedAmount
+            });
+            this.closeTransferModal();
+        };
     }
 
     // ========================================
@@ -4311,33 +4353,74 @@ class AmexApp {
         if (viewAllLink) {
             viewAllLink.addEventListener('click', (e) => {
                 e.preventDefault();
-                this.showTransactionsPage();
+                this.showTransactionsDrawer();
             });
         }
 
-        // Handle back button on transactions page
-        const backBtn = document.getElementById('transactionsBackBtn');
-        if (backBtn) {
-            backBtn.addEventListener('click', () => {
-                this.navigateTo('home');
+        // Handle drawer close
+        const closeBtn = document.getElementById('closeTransactionsDrawer');
+        const drawer = document.getElementById('transactionsDrawer');
+        const overlay = document.getElementById('drawerOverlay');
+
+        if (closeBtn && drawer && overlay) {
+            closeBtn.addEventListener('click', () => {
+                drawer.classList.remove('active');
+                overlay.classList.remove('active');
+            });
+
+            overlay.addEventListener('click', () => {
+                if (drawer.classList.contains('active')) {
+                    drawer.classList.remove('active');
+                    overlay.classList.remove('active');
+                }
             });
         }
     }
 
-    showTransactionsPage() {
+    showTransactionsDrawer() {
+        const drawer = document.getElementById('transactionsDrawer');
+        const overlay = document.getElementById('drawerOverlay');
+        const drawerList = document.getElementById('transactionsDrawerList');
+
+        if (!drawer || !overlay || !drawerList) return;
+
         // Get primary card
         const primaryCard = Object.values(userConfig.cards).find(card => card.isPrimary) || userConfig.cards.centurion;
 
-        // Generate more transactions for the full list
-        const allTransactions = typeof generateDailyTransactions === 'function'
-            ? generateDailyTransactions(new Date(), primaryCard.id, 20)
-            : (primaryCard.transactions || []);
+        // Generate transactions for multiple months
+        const allTransactions = [];
+        const today = new Date();
 
-        // Populate transactions page list
-        const transactionsPageList = document.getElementById('transactionsPageList');
-        if (transactionsPageList) {
-            transactionsPageList.innerHTML = allTransactions.map(txn => `
-                <div class="transactions-page-item">
+        // Generate transactions for current month and past 2 months
+        for (let monthOffset = 0; monthOffset < 3; monthOffset++) {
+            const date = new Date(today.getFullYear(), today.getMonth() - monthOffset, 1);
+            const monthTransactions = typeof generateDailyTransactions === 'function'
+                ? generateDailyTransactions(date, primaryCard.id, 15)
+                : [];
+
+            monthTransactions.forEach(txn => {
+                allTransactions.push({
+                    ...txn,
+                    monthYear: date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+                });
+            });
+        }
+
+        // Group transactions by month
+        const groupedTransactions = {};
+        allTransactions.forEach(txn => {
+            if (!groupedTransactions[txn.monthYear]) {
+                groupedTransactions[txn.monthYear] = [];
+            }
+            groupedTransactions[txn.monthYear].push(txn);
+        });
+
+        // Generate HTML with month headers
+        let html = '';
+        Object.keys(groupedTransactions).forEach(monthYear => {
+            html += `<div class="transactions-month-header">${monthYear}</div>`;
+            html += groupedTransactions[monthYear].map(txn => `
+                <div class="transactions-drawer-item">
                     <div class="home-txn-icon">${txn.icon}</div>
                     <div class="home-txn-details" style="flex: 1;">
                         <div class="home-txn-merchant">${txn.merchant}</div>
@@ -4346,10 +4429,13 @@ class AmexApp {
                     <div class="home-txn-amount">${txn.amount}</div>
                 </div>
             `).join('');
-        }
+        });
 
-        // Navigate to transactions page
-        this.navigateTo('transactions');
+        drawerList.innerHTML = html;
+
+        // Show drawer
+        overlay.classList.add('active');
+        drawer.classList.add('active');
     }
 
     setupRefreshButton() {
@@ -4390,6 +4476,68 @@ class AmexApp {
                 refreshBtn.disabled = false;
             }
         });
+    }
+
+    showReceipt(data) {
+        const overlay = document.getElementById('receiptModalOverlay');
+        const modal = document.getElementById('receiptModal');
+
+        if (!overlay || !modal) return;
+
+        // Populate receipt data
+        const now = new Date();
+        const dateString = now.toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            hour: 'numeric',
+            minute: '2-digit',
+            hour12: true
+        });
+
+        // Generate random IDs
+        const txnId = Math.random().toString(36).substr(2, 11).toUpperCase();
+        const refId = Math.random().toString(36).substr(2, 13).toUpperCase();
+
+        document.getElementById('receiptTitle').textContent = data.title || 'Transfer success';
+        document.getElementById('receiptDate').textContent = dateString;
+        document.getElementById('receiptTo').textContent = data.to || 'Unknown';
+        document.getElementById('receiptMethod').textContent = data.method || 'Wallet';
+        document.getElementById('receiptTxnId').textContent = txnId;
+        document.getElementById('receiptRefId').textContent = refId;
+        document.getElementById('receiptAmount').textContent = `$${data.amount}`;
+
+        // Setup close button
+        const closeBtn = document.getElementById('receiptCloseBtn');
+        if (closeBtn) {
+            closeBtn.onclick = () => {
+                overlay.classList.remove('active');
+            };
+        }
+
+        // Setup share button
+        const shareBtn = document.getElementById('receiptShareBtn');
+        if (shareBtn) {
+            shareBtn.onclick = () => {
+                if (navigator.share) {
+                    navigator.share({
+                        title: data.title,
+                        text: `${data.title}\nAmount: $${data.amount}\nTo: ${data.to}\nTransaction ID: ${txnId}`
+                    });
+                } else {
+                    alert('Share functionality not available');
+                }
+            };
+        }
+
+        // Show receipt
+        overlay.classList.add('active');
+
+        // Close on overlay click
+        overlay.onclick = (e) => {
+            if (e.target === overlay) {
+                overlay.classList.remove('active');
+            }
+        };
     }
 }
 

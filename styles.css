@@ -683,7 +683,7 @@ body::before {
 }
 
 .home-balance-amount {
-    font-size: 48px;
+    font-size: clamp(32px, 8vw, 48px);
     font-weight: 800;
     letter-spacing: -1.2px;
     background: linear-gradient(135deg, #ffffff 0%, rgba(255, 255, 255, 0.9) 100%);
@@ -691,6 +691,8 @@ body::before {
     -webkit-text-fill-color: transparent;
     background-clip: text;
     text-shadow: 0 0 30px rgba(74, 166, 255, 0.2);
+    word-break: break-word;
+    max-width: 100%;
 }
 
 /* ========================================
@@ -725,42 +727,32 @@ body::before {
     left: 20px;
 }
 
-/* Home Refresh Button */
-.home-refresh-btn {
-    width: 100%;
-    margin-top: 16px;
-    padding: 12px 16px;
-    background: rgba(30, 30, 35, 0.4);
-    -webkit-backdrop-filter: blur(40px) saturate(180%);
-    backdrop-filter: blur(40px) saturate(180%);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 12px;
-    color: var(--text);
-    font-family: inherit;
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
+/* Home Refresh Button - Small version at bottom */
+.home-refresh-btn-small {
+    background: transparent;
+    border: none;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
+    cursor: pointer;
+    padding: 12px;
+    margin: 8px auto 24px;
     transition: all 0.2s ease;
-    animation: fadeInUp 0.6s ease-out 0.2s backwards;
+    opacity: 0.3;
 }
 
-.home-refresh-btn:active {
-    transform: scale(0.96);
-    background: rgba(30, 30, 35, 0.6);
+.home-refresh-btn-small:active {
+    opacity: 0.6;
 }
 
-.home-refresh-btn svg {
-    width: 16px;
-    height: 16px;
-    stroke: var(--accent);
+.home-refresh-btn-small svg {
+    width: 18px;
+    height: 18px;
+    stroke: var(--muted2);
     transition: transform 0.3s ease;
 }
 
-.home-refresh-btn.refreshing svg {
+.home-refresh-btn-small.refreshing svg {
     animation: spin 1s linear infinite;
 }
 
@@ -2393,6 +2385,102 @@ body::before {
 
 .account-top:active {
     opacity: 0.7;
+}
+
+/* ========================================
+   Transactions Drawer
+   ======================================== */
+.transactions-drawer {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    max-height: 85vh;
+    height: 85vh;
+    background: var(--bg);
+    border-radius: 24px 24px 0 0;
+    box-shadow: 0 -10px 60px rgba(0, 0, 0, 0.8);
+    transform: translateY(100%);
+    transition: transform 0.4s cubic-bezier(0.32, 0.72, 0, 1);
+    z-index: 1001;
+    overflow: hidden;
+}
+
+.transactions-drawer.active {
+    transform: translateY(0);
+}
+
+.transactions-drawer-header {
+    padding: 24px 22px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.transactions-drawer-title {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--text);
+}
+
+.transactions-drawer-close {
+    background: transparent;
+    border: none;
+    padding: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.2s ease;
+}
+
+.transactions-drawer-close:active {
+    opacity: 0.5;
+}
+
+.transactions-drawer-close svg {
+    width: 20px;
+    height: 20px;
+    stroke: var(--text);
+}
+
+.transactions-drawer-list {
+    overflow-y: auto;
+    height: calc(100% - 72px);
+    padding: 16px 22px 32px;
+}
+
+.transactions-month-header {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin: 24px 0 12px;
+}
+
+.transactions-month-header:first-child {
+    margin-top: 0;
+}
+
+.transactions-drawer-item {
+    background: rgba(30, 30, 35, 0.4);
+    -webkit-backdrop-filter: blur(40px) saturate(180%);
+    backdrop-filter: blur(40px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 8px;
+    transition: all 0.2s ease;
+}
+
+.transactions-drawer-item:active {
+    transform: scale(0.98);
+    background: rgba(30, 30, 35, 0.6);
 }
 
 /* ========================================
@@ -4978,3 +5066,205 @@ body::before {
     color: currentColor;
 }
 
+
+/* ========================================
+   Receipt Modal
+   ======================================== */
+.receipt-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.85);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+    z-index: 2000;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+
+.receipt-modal-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.receipt-modal {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.9);
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    z-index: 2001;
+}
+
+.receipt-modal-overlay.active .receipt-modal {
+    transform: translate(-50%, -50%) scale(1);
+}
+
+.receipt-paper {
+    width: 90vw;
+    max-width: 320px;
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 32px 24px 24px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    position: relative;
+}
+
+.receipt-header {
+    text-align: center;
+    margin-bottom: 24px;
+    padding-bottom: 20px;
+    border-bottom: 2px dashed rgba(0, 0, 0, 0.1);
+}
+
+.receipt-logo {
+    width: 56px;
+    height: 56px;
+    margin: 0 auto 16px;
+    background: linear-gradient(135deg, #4aa6ff 0%, #2b7fd9 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+}
+
+.receipt-logo svg {
+    width: 32px;
+    height: 32px;
+}
+
+.receipt-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin-bottom: 4px;
+}
+
+.receipt-date {
+    font-size: 13px;
+    color: #666;
+}
+
+.receipt-body {
+    margin-bottom: 24px;
+}
+
+.receipt-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 12px 0;
+    gap: 16px;
+}
+
+.receipt-label {
+    font-size: 13px;
+    color: #666;
+    flex-shrink: 0;
+}
+
+.receipt-value {
+    font-size: 14px;
+    font-weight: 600;
+    color: #1a1a1a;
+    text-align: right;
+}
+
+.receipt-value-small {
+    font-size: 12px;
+    font-family: 'Courier New', monospace;
+    word-break: break-all;
+}
+
+.receipt-divider {
+    height: 1px;
+    background: repeating-linear-gradient(
+        to right,
+        rgba(0, 0, 0, 0.15) 0px,
+        rgba(0, 0, 0, 0.15) 8px,
+        transparent 8px,
+        transparent 12px
+    );
+    margin: 16px 0;
+}
+
+.receipt-total {
+    padding-top: 16px;
+}
+
+.receipt-total .receipt-label {
+    font-size: 14px;
+    font-weight: 700;
+    color: #1a1a1a;
+}
+
+.receipt-amount {
+    font-size: 20px;
+    font-weight: 800;
+    color: #4aa6ff;
+}
+
+.receipt-barcode {
+    text-align: center;
+    margin: 24px 0;
+    padding: 16px 0;
+    border-top: 2px dashed rgba(0, 0, 0, 0.1);
+    border-bottom: 2px dashed rgba(0, 0, 0, 0.1);
+}
+
+.receipt-barcode svg {
+    width: 100%;
+    max-width: 200px;
+    height: 40px;
+    color: #1a1a1a;
+}
+
+.receipt-share-btn {
+    width: 100%;
+    padding: 14px;
+    background: #1a1a1a;
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.receipt-share-btn:active {
+    transform: scale(0.98);
+    background: #000;
+}
+
+.receipt-close-btn {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.15);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.receipt-close-btn:active {
+    transform: scale(0.9);
+}
+
+.receipt-close-btn svg {
+    width: 20px;
+    height: 20px;
+    stroke: white;
+}
