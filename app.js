@@ -2981,48 +2981,6 @@ class AmexApp {
             timestamp: new Date().toISOString()
         });
 
-        // Go to confirmation step
-        this.goToConfirmationStep();
-
-        // Get confirmation elements
-        const confirmationIcon = document.getElementById('sendConfirmationIcon');
-        const confirmationTitle = document.getElementById('sendConfirmationTitle');
-        const confirmationStatus = document.getElementById('sendConfirmationStatus');
-
-        // Show spinner initially
-        confirmationIcon.innerHTML = '<div class="send-spinner"></div>';
-        confirmationTitle.textContent = 'Sending...';
-        confirmationStatus.textContent = 'Verifying recipient';
-
-        // Simulate multi-step sending process
-        const steps = [
-            { title: 'Sending...', status: 'Verifying recipient', duration: 1200 },
-            { title: 'Sending...', status: 'Processing payment', duration: 1500 },
-            { title: 'Sending...', status: 'Securing transaction', duration: 1300 },
-            { title: 'Sending...', status: 'Confirming transfer', duration: 1000 }
-        ];
-
-        for (const step of steps) {
-            confirmationTitle.textContent = step.title;
-            confirmationStatus.textContent = step.status;
-            await new Promise(resolve => setTimeout(resolve, step.duration));
-        }
-
-        // Show success state
-        confirmationIcon.innerHTML = `
-            <svg class="send-success-checkmark" viewBox="0 0 52 52">
-                <defs>
-                    <linearGradient id="success-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" style="stop-color:#4aa6ff;stop-opacity:1" />
-                        <stop offset="100%" style="stop-color:#2b7fd9;stop-opacity:1" />
-                    </linearGradient>
-                </defs>
-                <circle class="send-success-circle" cx="26" cy="26" r="25" fill="none"/>
-                <path class="send-success-check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
-            </svg>
-        `;
-        confirmationTitle.textContent = 'Sent!';
-
         // Format recipient display (phone or email)
         let recipientDisplay = this.selectedRecipient.name;
         if (this.selectedRecipient.phone) {
@@ -3037,39 +2995,18 @@ class AmexApp {
             maximumFractionDigits: 2
         });
 
-        confirmationStatus.textContent = `$${formattedAmount} sent to ${recipientDisplay}`;
+        // Get card name
+        const cardName = selectedCardInfo ? selectedCardInfo.name : 'Unknown Card';
 
-        // Show note if provided
-        const confirmationNote = document.getElementById('sendConfirmationNote');
-        if (confirmationNote) {
-            if (note && note.trim()) {
-                confirmationNote.textContent = `"${note}"`;
-                confirmationNote.style.display = 'block';
-            } else {
-                confirmationNote.style.display = 'none';
-            }
-        }
-
-        // Show done button and back button
-        const doneBtn = document.getElementById('sendDoneBtn');
-        const backBtn = document.getElementById('sendConfirmationBackBtn');
-        if (doneBtn) {
-            doneBtn.style.display = 'block';
-            // Show receipt when done is clicked
-            doneBtn.onclick = () => {
-                this.showReceipt({
-                    title: 'Transfer success',
-                    to: recipientDisplay,
-                    method: cardName,
-                    amount: formattedAmount
-                });
-                this.closeSendModal();
-            };
-        }
-        if (backBtn) {
-            backBtn.style.display = 'block';
-            backBtn.onclick = () => this.closeSendModal();
-        }
+        // Show receipt immediately (data will animate in)
+        this.showReceipt({
+            title: 'Payment sent',
+            to: recipientDisplay,
+            method: cardName,
+            amount: formattedAmount,
+            note: note,
+            onClose: () => this.closeSendModal()
+        });
     }
 
     goToConfirmationStep() {
@@ -4159,73 +4096,30 @@ class AmexApp {
     }
 
     async processTransfer() {
-        const amountStep = document.getElementById('transferStepAmount');
-        const confirmationStep = document.getElementById('transferStepConfirmation');
-        const confirmationIcon = document.getElementById('transferConfirmationIcon');
-        const confirmationTitle = document.getElementById('transferConfirmationTitle');
-        const confirmationStatus = document.getElementById('transferConfirmationStatus');
-        const doneBtn = document.getElementById('transferDoneBtn');
-
-        // Switch to confirmation step
-        amountStep.classList.remove('active');
-        confirmationStep.classList.add('active');
-
-        // Show spinner
-        confirmationIcon.innerHTML = `
-            <div class="send-spinner">
-                <div class="send-spinner-ring"></div>
-            </div>
-        `;
-        confirmationTitle.textContent = 'Transferring...';
-        confirmationStatus.textContent = 'Processing transfer';
-        doneBtn.style.display = 'none';
-
-        // Simulate processing
-        await new Promise(resolve => setTimeout(resolve, 2000));
-
-        // Show success with animated checkmark
-        confirmationIcon.innerHTML = `
-            <svg class="send-success-checkmark" viewBox="0 0 52 52">
-                <defs>
-                    <linearGradient id="transfer-success-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" style="stop-color:#4aa6ff;stop-opacity:1" />
-                        <stop offset="100%" style="stop-color:#2b7fd9;stop-opacity:1" />
-                    </linearGradient>
-                </defs>
-                <circle class="send-success-circle" cx="26" cy="26" r="25" fill="none" stroke="url(#transfer-success-gradient)"/>
-                <path class="send-success-check" fill="none" stroke="url(#transfer-success-gradient)" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
-            </svg>
-        `;
-        confirmationTitle.textContent = 'Transfer Complete';
-        confirmationStatus.textContent = 'Funds transferred successfully';
-        doneBtn.style.display = 'block';
-
-        // Show back button
-        const backBtn = document.getElementById('transferConfirmationBackBtn');
-        if (backBtn) {
-            backBtn.style.display = 'block';
-            backBtn.onclick = () => this.closeTransferModal();
-        }
-
-        // Show receipt when done is clicked
+        // Get transfer details
         const fromCardName = this.transferFromCard ? this.transferFromCard.name : 'Unknown';
         const toCardName = this.transferToCard ? this.transferToCard.name : 'Unknown';
         const amountInput = document.getElementById('transferAmount');
         const amount = amountInput ? amountInput.value.replace('$', '').replace(/,/g, '') : '0';
+
+        // Validate amount
+        if (!amount || parseFloat(amount) <= 0) {
+            return;
+        }
+
         const formattedAmount = parseFloat(amount).toLocaleString('en-US', {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2
         });
 
-        doneBtn.onclick = () => {
-            this.showReceipt({
-                title: 'Transfer complete',
-                to: toCardName,
-                method: fromCardName,
-                amount: formattedAmount
-            });
-            this.closeTransferModal();
-        };
+        // Show receipt immediately (data will animate in)
+        this.showReceipt({
+            title: 'Transfer complete',
+            to: toCardName,
+            method: fromCardName,
+            amount: formattedAmount,
+            onClose: () => this.closeTransferModal()
+        });
     }
 
     // ========================================
@@ -4478,6 +4372,25 @@ class AmexApp {
         });
     }
 
+    generateRealisticTransactionId() {
+        // Generate realistic transaction ID like: TXN20251225987654
+        const year = new Date().getFullYear();
+        const month = String(new Date().getMonth() + 1).padStart(2, '0');
+        const day = String(new Date().getDate()).padStart(2, '0');
+        const random = Math.floor(Math.random() * 1000000);
+        return `TXN${year}${month}${day}${String(random).padStart(6, '0')}`;
+    }
+
+    generateRealisticReferenceId() {
+        // Generate realistic reference ID like: REF-A7B9-C4D2-E8F1
+        const segments = [];
+        for (let i = 0; i < 4; i++) {
+            const segment = Math.random().toString(36).substr(2, 4).toUpperCase();
+            segments.push(segment);
+        }
+        return `REF-${segments.join('-')}`;
+    }
+
     showReceipt(data) {
         const overlay = document.getElementById('receiptModalOverlay');
         const modal = document.getElementById('receiptModal');
@@ -4494,14 +4407,14 @@ class AmexApp {
             hour12: true
         });
 
-        // Generate random IDs
-        const txnId = Math.random().toString(36).substr(2, 11).toUpperCase();
-        const refId = Math.random().toString(36).substr(2, 13).toUpperCase();
+        // Generate realistic IDs
+        const txnId = this.generateRealisticTransactionId();
+        const refId = this.generateRealisticReferenceId();
 
         document.getElementById('receiptTitle').textContent = data.title || 'Transfer success';
         document.getElementById('receiptDate').textContent = dateString;
         document.getElementById('receiptTo').textContent = data.to || 'Unknown';
-        document.getElementById('receiptMethod').textContent = data.method || 'Wallet';
+        document.getElementById('receiptMethod').textContent = data.method || 'AMEX Wallet';
         document.getElementById('receiptTxnId').textContent = txnId;
         document.getElementById('receiptRefId').textContent = refId;
         document.getElementById('receiptAmount').textContent = `$${data.amount}`;
@@ -4511,6 +4424,16 @@ class AmexApp {
         if (closeBtn) {
             closeBtn.onclick = () => {
                 overlay.classList.remove('active');
+                if (data.onClose) data.onClose();
+            };
+        }
+
+        // Setup back button
+        const backBtn = document.getElementById('receiptBackBtn');
+        if (backBtn) {
+            backBtn.onclick = () => {
+                overlay.classList.remove('active');
+                if (data.onClose) data.onClose();
             };
         }
 
@@ -4521,10 +4444,8 @@ class AmexApp {
                 if (navigator.share) {
                     navigator.share({
                         title: data.title,
-                        text: `${data.title}\nAmount: $${data.amount}\nTo: ${data.to}\nTransaction ID: ${txnId}`
+                        text: `${data.title}\nAmount: $${data.amount}\nTo: ${data.to}\nTransaction ID: ${txnId}\nReference: ${refId}`
                     });
-                } else {
-                    alert('Share functionality not available');
                 }
             };
         }
@@ -4536,6 +4457,7 @@ class AmexApp {
         overlay.onclick = (e) => {
             if (e.target === overlay) {
                 overlay.classList.remove('active');
+                if (data.onClose) data.onClose();
             }
         };
     }
