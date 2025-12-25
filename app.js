@@ -2232,7 +2232,7 @@ class AmexApp {
         this.sendModalCard = 'centurion';
         this.receiveModalCard = 'centurion';
         this.transferFromCard = 'centurion';
-        this.transferToCard = null;
+        this.transferToCard = 'platinum';
         this.currentCardSelectorContext = null; // Tracks which modal is selecting a card
 
         // Get all the drawer Send buttons
@@ -4037,27 +4037,13 @@ class AmexApp {
         const confirmationStep = document.getElementById('transferStepConfirmation');
 
         if (overlay && amountStep && confirmationStep) {
-            // Set primary card as default for "from" if available
-            if (typeof userConfig !== 'undefined' && userConfig.cards) {
-                const primaryCard = Object.entries(userConfig.cards).find(([, card]) => card.isPrimary);
-                if (primaryCard) {
-                    this.transferFromCard = primaryCard[0];
-                }
-            }
-
-            // Reset "to" card
-            this.transferToCard = null;
+            // Set default cards: Centurion (from) -> Platinum (to)
+            this.transferFromCard = 'centurion';
+            this.transferToCard = 'platinum';
 
             // Update card displays
             this.updateTransferFromCard();
-
-            // Reset "to" card to default state
-            const toImg = document.getElementById('transferToImg');
-            const toName = document.getElementById('transferToName');
-            const toNumber = document.getElementById('transferToNumber');
-            if (toImg) toImg.src = 'images/AMEX/amexgold.png';
-            if (toName) toName.textContent = 'Select Card';
-            if (toNumber) toNumber.textContent = '';
+            this.updateTransferToCard();
 
             // Reset to amount step
             amountStep.classList.add('active');
@@ -4097,8 +4083,10 @@ class AmexApp {
 
     async processTransfer() {
         // Get transfer details
-        const fromCardName = this.transferFromCard ? this.transferFromCard.name : 'Unknown';
-        const toCardName = this.transferToCard ? this.transferToCard.name : 'Unknown';
+        const fromCard = userConfig.cards[this.transferFromCard];
+        const toCard = userConfig.cards[this.transferToCard];
+        const fromCardName = fromCard ? fromCard.name : 'Unknown';
+        const toCardName = toCard ? toCard.name : 'Unknown';
         const amountInput = document.getElementById('transferAmount');
         const amount = amountInput ? amountInput.value.replace('$', '').replace(/,/g, '') : '0';
 
