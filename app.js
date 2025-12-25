@@ -3001,6 +3001,22 @@ class AmexApp {
         // Get card name
         const cardName = selectedCardInfo ? selectedCardInfo.name : 'Unknown Card';
 
+        // Add transaction to card history
+        const now = new Date();
+        const dateString = now.toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric'
+        });
+
+        this.addTransaction(this.sendModalCard, {
+            icon: '💸',
+            merchant: `Sent to ${this.selectedRecipient.name}`,
+            date: dateString,
+            amount: `-$${formattedAmount}`,
+            category: 'Transfer'
+        });
+
         // Show receipt immediately with processing state
         await this.showReceiptWithProcessing({
             title: 'Payment sent',
@@ -4109,6 +4125,32 @@ class AmexApp {
             maximumFractionDigits: 2
         });
 
+        // Add transaction to both cards
+        const now = new Date();
+        const dateString = now.toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric'
+        });
+
+        // Add transaction to "from" card (debit)
+        this.addTransaction(this.transferFromCard, {
+            icon: '💳',
+            merchant: `Transfer to ${toCardName}`,
+            date: dateString,
+            amount: `-$${formattedAmount}`,
+            category: 'Transfer'
+        });
+
+        // Add transaction to "to" card (credit)
+        this.addTransaction(this.transferToCard, {
+            icon: '💳',
+            merchant: `Transfer from ${fromCardName}`,
+            date: dateString,
+            amount: `+$${formattedAmount}`,
+            category: 'Transfer'
+        });
+
         // Show receipt immediately with processing state
         await this.showReceiptWithProcessing({
             title: 'Transfer complete',
@@ -4393,6 +4435,44 @@ class AmexApp {
         return `REF-${segments.join('-')}`;
     }
 
+    addTransaction(cardId, transaction) {
+        // Add a transaction to the specified card's transaction history
+        if (typeof userConfig === 'undefined' || !userConfig.cards || !userConfig.cards[cardId]) {
+            return;
+        }
+
+        const card = userConfig.cards[cardId];
+        if (!card.transactions) {
+            card.transactions = [];
+        }
+
+        // Add transaction to the beginning of the array (most recent first)
+        card.transactions.unshift(transaction);
+
+        // Update card balance
+        const amountValue = parseFloat(transaction.amount.replace(/[$,]/g, ''));
+        card.balanceRaw += amountValue; // amountValue is negative for spending, positive for receiving
+        card.balance = `$${card.balanceRaw.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        card.availableCredit = card.balance;
+        card.availableCreditRaw = card.balanceRaw;
+
+        // Refresh the home page to show updated balance
+        if (card.isPrimary) {
+            this.updateHomeBalance();
+        }
+    }
+
+    updateHomeBalance() {
+        // Update the balance display on the home page
+        const balanceEl = document.querySelector('.home-balance-amount');
+        if (balanceEl && typeof userConfig !== 'undefined' && userConfig.cards) {
+            const primaryCard = Object.values(userConfig.cards).find(card => card.isPrimary);
+            if (primaryCard) {
+                balanceEl.textContent = primaryCard.balance;
+            }
+        }
+    }
+
     async showReceiptWithProcessing(data) {
         const overlay = document.getElementById('receiptModalOverlay');
         const paper = document.querySelector('.receipt-paper');
@@ -4407,8 +4487,9 @@ class AmexApp {
         // Show spinner in logo
         logo.innerHTML = '<div class="receipt-spinner"></div>';
 
-        // Set initial content
-        document.getElementById('receiptTitle').textContent = data.title || 'Transfer success';
+        // Set initial content with processing title
+        const titleEl = document.getElementById('receiptTitle');
+        titleEl.textContent = 'Processing...';
         document.getElementById('receiptDate').textContent = '';
 
         // Clear data fields
@@ -4442,10 +4523,13 @@ class AmexApp {
             statusEl.style.display = 'none';
         }
 
-        // Show success icon
+        // Update title to success message
+        titleEl.textContent = data.title || 'Transfer success';
+
+        // Show success icon (dollar sign)
         logo.innerHTML = `
             <svg viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                <path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"/>
             </svg>
         `;
 
